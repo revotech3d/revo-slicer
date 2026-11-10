@@ -1,3 +1,4 @@
+#include "RevoMonek.hpp"
 #include "CloudProvider.hpp"
 #include "RevoLicencja.hpp"
 #include "ExportPresetBundleDialog.hpp"
@@ -8801,7 +8802,7 @@ namespace
 {
 ConfigOptionMode saved_mode_from_string(const std::string& mode)
 {
-    return mode == "expert" ? comExpert :
+    return mode == "expert" || mode == "monek" ? comExpert :
            mode == "advanced" ? comAdvanced :
            mode == "develop" ? comAdvanced :
            comSimple;
@@ -8865,6 +8866,11 @@ std::string GUI_App::get_mode_str()
 
 void GUI_App::save_mode(const /*ConfigOptionMode*/int mode)
 {
+    if (mode == Revo::Monek::MODE) { // [r]evo Slicer: tryb Monek
+        app_config->set("user_mode", "monek");
+        update_mode();
+        return;
+    }
     const auto saved_mode = mode == comExpert ? comExpert :
                             mode == comAdvanced ? comAdvanced :
                             mode == comSimple ? comSimple :

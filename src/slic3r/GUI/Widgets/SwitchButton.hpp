@@ -90,7 +90,7 @@ private:
     bool     m_pressed   { false };
     bool     m_enabled   { true };
     bool     m_dev_mode  { false };
-    wxString   m_tooltips[4];
+    wxString   m_tooltips[5];
     StateColor dot_active;
     StateColor dot_dimmed;
     StateColor text_color;

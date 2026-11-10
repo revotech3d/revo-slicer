@@ -1,0 +1,43 @@
+# [r]evo Slicer – tryb Monek: ustawienia, które Revotech zaleca zmieniać.
+# Jedna opcja na linię (klucz z PrintConfig.cpp). Reszta jest ukryta, ale działa z wartościami z profilu Revon.
+# Jakość
+layer_height
+initial_layer_print_height
+seam_position
+ironing_type
+# Ściany i wypełnienie
+wall_loops
+top_shell_layers
+bottom_shell_layers
+sparse_infill_density
+sparse_infill_pattern
+# Prędkość
+outer_wall_speed
+inner_wall_speed
+sparse_infill_speed
+travel_speed
+default_acceleration
+# Podpory i przyczepność
+enable_support
+support_type
+support_threshold_angle
+brim_type
+brim_width
+# Filament
+nozzle_temperature
+nozzle_temperature_initial_layer
+hot_plate_temp
+hot_plate_temp_initial_layer
+textured_plate_temp
+textured_plate_temp_initial_layer
+filament_flow_ratio
+filament_max_volumetric_speed
+fan_min_speed
+fan_max_speed
+enable_pressure_advance
+pressure_advance
+filament_retraction_length
+# Drukarka
+retraction_length
+retraction_speed
+z_hop

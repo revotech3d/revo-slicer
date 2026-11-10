@@ -1,4 +1,5 @@
-//#include "slic3r/Utils/Serial.hpp"
+//#include "RevoMonek.hpp"
+#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
 #include "PresetHints.hpp"
 #include "libslic3r/IMEXHelpers.hpp"
@@ -134,6 +135,8 @@ namespace
 {
 int mode_to_selection(ConfigOptionMode mode)
 {
+    if (mode == comExpert && Revo::Monek::active())
+        return Revo::Monek::SELECTION;
     return mode == comExpert ? 2 :
            mode == comAdvanced ? 1 :
            0;

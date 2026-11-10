@@ -4,6 +4,7 @@
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
 ///////////////////////////////////////////////////////////////////////////
+#include "RevoMonek.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Preset.hpp"
 #include "ParamsPanel.hpp"
@@ -47,6 +48,8 @@ namespace
 {
 int mode_to_selection(ConfigOptionMode mode)
 {
+    if (mode == comExpert && Revo::Monek::active())
+        return Revo::Monek::SELECTION;
     return mode == comExpert ? 2 :
            mode == comAdvanced ? 1 :
            0;

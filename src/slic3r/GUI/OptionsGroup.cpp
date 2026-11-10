@@ -1,3 +1,4 @@
+#include "RevoMonek.hpp"
 #include "OptionsGroup.hpp"
 #include "Plater.hpp"
 #include "SettingsIndex.hpp"
@@ -907,6 +908,13 @@ bool ConfigOptionsGroup::is_visible(ConfigOptionMode mode)
 {
     if (m_options_mode.empty())
         return true;
+    if (Revo::Monek::active()) { // [r]evo Slicer: grupa widoczna, gdy ma choć jedną zalecaną opcję
+        bool any = false;
+        for (const auto& kv : m_opt_map)
+            any = any || Revo::Monek::allows(kv.second.first);
+        if (!any)
+            return false;
+    }
     if (m_options_mode.size() == 1)
         return m_options_mode[0] <= mode;
 
