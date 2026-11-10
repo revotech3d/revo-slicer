@@ -234,6 +234,15 @@ void PrinterWebView::load_url(wxString& url, wxString apikey)
     m_url = url;
     m_apikey = apikey;
     m_host_type = host_type;
+    // [r]evo Slicer: Panel Revo wymaga sesji – logujemy się raz kluczem slicera (agent ustawia cookie i przekierowuje na panel)
+    if (host_type == htMoonraker && !apikey.IsEmpty()) {
+        wxString base = url;
+        const int scheme = base.Find("://");
+        const int slash  = base.find('/', scheme == wxNOT_FOUND ? 0 : scheme + 3);
+        if (slash != wxNOT_FOUND)
+            base = base.Left(slash);
+        url = base + "/revo/sesja/klucz?k=" + apikey;
+    }
     m_apikey_sent = false;
     m_url_loaded = false;
     m_handler = create_printer_webview_handler(*this);
