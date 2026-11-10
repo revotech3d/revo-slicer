@@ -1,0 +1,42 @@
+{
+	"type": "filament",
+	"name": "Revo Generic ASA @Revon",
+	"inherits": "Generic ASA @System",
+	"from": "system",
+	"filament_id": "OFNBsPc3",
+	"setting_id": "nfduyKC0eDxLB8U9",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Revotech"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"24",
+		"31"
+	]
+}

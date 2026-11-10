@@ -1,6 +1,6 @@
 {
 	"name": "Revotech",
-	"version": "02.05.00.03",
+	"version": "02.05.00.04",
 	"force_update": "0",
 	"description": "Revotech – drukarki Revon (Revo OS)",
 	"machine_model_list": [
@@ -143,8 +143,24 @@
 	],
 	"filament_list": [
 		{
+			"name": "Revo Generic ABS @Revon",
+			"sub_path": "filament/Revo Generic ABS @Revon.json"
+		},
+		{
+			"name": "Revo Generic ASA @Revon",
+			"sub_path": "filament/Revo Generic ASA @Revon.json"
+		},
+		{
+			"name": "Revo Generic PETG @Revon",
+			"sub_path": "filament/Revo Generic PETG @Revon.json"
+		},
+		{
 			"name": "Revo Generic PLA @Revon",
 			"sub_path": "filament/Revo Generic PLA @Revon.json"
+		},
+		{
+			"name": "Revo Generic TPU @Revon",
+			"sub_path": "filament/Revo Generic TPU @Revon.json"
 		}
 	]
 }
