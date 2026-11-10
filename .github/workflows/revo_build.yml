@@ -4,6 +4,15 @@ on:
   push:
     branches: [revo]
   workflow_dispatch:
+    inputs:
+      wydaj:
+        description: 'Opublikuj wydanie po udanej kompilacji'
+        type: boolean
+        default: false
+      wersja:
+        description: 'Wersja [r]evo Slicer, np. 1.0.0'
+        type: string
+        default: '1.0.0'
 jobs:
   windows:
     name: Windows x64
@@ -27,3 +36,35 @@ jobs:
       os: macos-15
       arch: ${{ matrix.arch }}
     secrets: inherit
+
+  # Wydanie: tylko z ręcznego uruchomienia z „wydaj: true”. Instalator Windows + aplikacja Mac (zip, bez podpisu Apple).
+  wydanie:
+    name: Wydanie [r]evo Slicer
+    needs: [windows, macos_arch]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.wydaj }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: art
+      - name: Pakowanie
+        run: |
+          set -e
+          mkdir -p out
+          find art -name 'OrcaSlicer*.exe' ! -path '*portable*' -exec cp {} out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe \;
+          tgz=$(find art -name 'OrcaSlicer_Mac_bundle_arm64_*.tar.gz' | head -1)
+          mkdir mac && tar -xzf "$tgz" -C mac
+          app=$(find mac -maxdepth 2 -name '*.app' | head -1)
+          (cd "$(dirname "$app")" && zip -qry "$GITHUB_WORKSPACE/out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip" "$(basename "$app")")
+          ls -la out
+      - name: Publikacja
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ inputs.wersja }}" out/* -R "${{ github.repository }}" --target "${{ github.sha }}" \
+            --title "[r]evo Slicer ${{ inputs.wersja }}" \
+            --notes "[r]evo Slicer ${{ inputs.wersja }} – slicer Revotech dla drukarek Revon. Sometimes evolution. Sometimes [r]evolution.
+
+          Windows: uruchom instalator. Mac (Apple Silicon): rozpakuj zip, przeciągnij aplikację do Programów, przy pierwszym uruchomieniu prawy przycisk → Otwórz."
