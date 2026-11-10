@@ -10185,6 +10185,19 @@ void GUI_App::window_pos_center(wxTopLevelWindow *window)
 bool GUI_App::config_wizard_startup()
 {
     if (!m_app_conf_exists || preset_bundle->printers.only_default_printers()) {
+        // [r]evo Slicer: bez kreatora Orki – instalujemy od razu wszystkie maszyny Revon i filamenty Revo
+        std::map<std::string, std::map<std::string, std::set<std::string>>> vendors;
+        const std::set<std::string> nozzles = {"0.4", "0.6", "0.8", "1.0", "1.2"};
+        for (const char* model : {"Revon 600x600x600", "Revon 600x600x400", "Revon 1200x600x500", "Revon Belt 350x350x300"})
+            vendors["Revotech"][model] = nozzles;
+        std::map<std::string, std::string> filaments;
+        for (const char* f : {"PLA", "PETG", "ABS", "ASA", "TPU"})
+            filaments[std::string("Revo Generic ") + f + " @Revon"] = "true";
+        if (preset_bundle->apply_vendor_config(vendors, filaments, app_config, true, "Revon 600x600x600", "0.4", "Revo Generic PLA @Revon")) {
+            app_config->set("firstguide", "finish", "true");
+            load_current_presets();
+            return true;
+        }
         BOOST_LOG_TRIVIAL(info) << "run wizard...";
         run_wizard(RunReason::RR_DATA_EMPTY);
         BOOST_LOG_TRIVIAL(info) << "finished run wizard";

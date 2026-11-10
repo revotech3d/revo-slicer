@@ -2909,7 +2909,13 @@ wxMenu* MainFrame::generate_help_menu()
     append_shortcut_item(helpMenu, Shortcut::KeyboardShortcuts, false, _L("Keyboard Shortcuts"), _L("Show the list of keyboard shortcuts"),
         [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(ShortcutContext::Global); });
     // Show Beginner's Tutorial
-    append_menu_item(helpMenu, wxID_ANY, _L("Setup Wizard"), _L("Setup Wizard"), [](wxCommandEvent &) {wxGetApp().ShowUserGuide();});
+    // [r]evo Slicer: nasz kreator zamiast kreatora konfiguracji Orki
+    append_menu_item(helpMenu, wxID_ANY, _L("[r]evo quick print setup (Newbie)"), _L("Quick print setup"),
+        [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_newbie_wizard(this); });
+    append_menu_item(helpMenu, wxID_ANY, _L("Revo guides"), _L("Guides for Revon printers and [r]evo Slicer"),
+        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/category/revo-os/"); });
+    append_menu_item(helpMenu, wxID_ANY, _L("Contact Revotech service"), _L("Contact Revotech service"),
+        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/serwis-drukarek-3d/"); });
 
     helpMenu->AppendSeparator();
 
@@ -2917,9 +2923,6 @@ wxMenu* MainFrame::generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, _L("Show Configuration Folder"), _L("Show Configuration Folder"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
 
-    append_menu_item(helpMenu, wxID_ANY, _L("Migrate Filament Presets"),
-        _L("Bring back filament presets that a profile update removed from printers they were made for"),
-        [](wxCommandEvent&) { wxGetApp().check_legacy_user_filament_presets(true); });
 
     helpMenu->AppendSeparator();
 
@@ -2927,10 +2930,6 @@ wxMenu* MainFrame::generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, _L("Troubleshoot Center"), "",
         [](wxCommandEvent&) { wxGetApp().troubleshoot(); });
 
-    append_menu_item(helpMenu, wxID_ANY, _L("Open Network Test"), _L("Open Network Test"), [](wxCommandEvent&) {
-            NetworkTestDialog dlg(wxGetApp().mainframe);
-            dlg.ShowModal();
-        });
 
     if (wxGetApp().is_editor())
         append_menu_item(helpMenu, wxID_ANY, _L("Benchmark 3D Scene"), _L("Measure how fast the 3D scene renders in Prepare and Preview"),

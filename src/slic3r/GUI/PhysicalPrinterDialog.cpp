@@ -601,7 +601,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
     if (tech == ptFFF) {
         update_host_type(printer_change);
         const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
-        m_optgroup->show_field("host_type");
+        m_optgroup->hide_field("host_type"); // [r]evo Slicer: zawsze Revo OS
 
         m_optgroup->enable_field("print_host");
         m_optgroup->show_field("print_host_webui");
@@ -757,6 +757,12 @@ void PhysicalPrinterDialog::update_host_type(bool printer_change)
 {
     if (m_config == nullptr)
         return;
+    // [r]evo Slicer: tylko drukarki Revon (Revo OS / Moonraker) – bez wyboru innych typów połączeń
+    m_config->set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(htMoonraker));
+    if (Field* f = m_optgroup->get_field("host_type"))
+        f->set_value(int(htMoonraker), false);
+    m_optgroup->hide_field("host_type");
+    return;
     Field* ht = m_optgroup->get_field("host_type");
     wxArrayString types;
     int last_in_conf = m_config->option("host_type")->getInt(); //  this is real position in last choice

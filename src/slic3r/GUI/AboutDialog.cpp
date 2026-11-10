@@ -167,9 +167,11 @@ wxString CopyrightsDialog::get_html_text()
                 "<font size=\"3\">",
          bgr_clr_str, text_clr_str, text_clr_str,
         _L("License"),
-        _L("Orca Slicer is licensed under "),
+        // TRN [r]evo Slicer license note
+        _L("[r]evo Slicer by Revotech is based on Orca Slicer and, like it, is licensed under "),
         "https://www.gnu.org/licenses/agpl-3.0.html",_L("GNU Affero General Public License, version 3"),
-        _L("Orca Slicer is based on PrusaSlicer and BambuStudio"),
+        // TRN [r]evo Slicer credits
+        _L("Orca Slicer is based on PrusaSlicer and BambuStudio. Source code of [r]evo Slicer: github.com/revotech3d/revo-slicer"),
         _L("Libraries"),
         _L("This software uses open source components whose copyright and other proprietary rights belong to their respective owners"));
 

@@ -8,7 +8,7 @@
 #include <initializer_list>
 #include <limits>
 #include <utility>
-#define SLIC3R_APP_FULL_NAME "Orca Slicer"
+#define SLIC3R_APP_FULL_NAME "[r]evo Slicer" // [r]evo Slicer: nazwa w oknach; nagłówek G-code zostaje „OrcaSlicer” (zgodność z Moonrakerem)
 #define GCODEVIEWER_APP_NAME "OrcaSlicer G-code Viewer"
 #define GCODEVIEWER_APP_KEY  "OrcaSlicerGcodeViewer"
 #define GCODEVIEWER_BUILD_ID std::string("OrcaSlicer G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-RC")
