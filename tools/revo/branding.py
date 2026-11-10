@@ -45,6 +45,27 @@ def text_w(s, size, track=0.18):
     return text(s, 0, 0, size, "#000", track)[1]
 
 
+def starfield(w, h, n, seed, avoid=None, rmax=1.6):
+    """Tło galaktyki: rozsiane gwiazdy-heksagony o różnej jasności (bez filtrów – nanosvg ich nie obsługuje)."""
+    import random
+    rnd, out = random.Random(seed), []
+    cx, cy = w / 2, h / 2
+    for i in range(n):
+        if rnd.random() < 0.6:   # ramiona spirali
+            t = rnd.random() ** 0.7 * 3.4
+            ang = rnd.choice([0, math.pi]) + t * 1.9 + rnd.gauss(0, 0.22)
+            rr = t / 3.4 * w * 0.62 + rnd.gauss(0, w * 0.02)
+            x, y = cx + rr * math.cos(ang), cy + rr * math.sin(ang) * 0.5
+        else:
+            x, y = rnd.uniform(0, w), rnd.uniform(0, h)
+        if not (0 < x < w and 0 < y < h) or (avoid and avoid[0] < x < avoid[2] and avoid[1] < y < avoid[3]):
+            continue
+        r = rnd.choice([0.5, 0.7, 1.0, 1.3, rmax]) * w / 480
+        pts = " ".join(f"{x + r * math.cos(math.pi / 3 * k + math.pi / 6):.1f},{y + r * math.sin(math.pi / 3 * k + math.pi / 6):.1f}" for k in range(6))
+        out.append(f'<polygon points="{pts}" fill-opacity="{rnd.uniform(0.15, 0.7):.2f}"/>')
+    return '<g fill="#dfe4ea">' + "".join(out) + "</g>"
+
+
 def svg(w, h, body):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">{body}</svg>'
 
@@ -58,6 +79,8 @@ def icon_svg(n=1024, step=6):
     gw, gh = R_END * s, logo.height * s
     ox, oy = (n - gw) / 2, (n - gh) / 2 - n * 0.04
     body = f'<rect x="{n*0.04}" y="{n*0.04}" width="{n*0.92}" height="{n*0.92}" rx="{n*0.2}" fill="{DARK}" stroke="#2b3139" stroke-width="{n*0.012}"/>'
+    if n >= 256:
+        body += starfield(n, n, 260, 7, rmax=2.2).replace('<g fill', f'<g transform="translate({n*0.04} {n*0.04}) scale(0.92)" fill')
     body += dots(0, R_END, ox, oy, s, step, "#f0f3f6")
     body += f'<rect x="{n*0.36}" y="{n*0.76}" width="{n*0.28}" height="{n*0.028}" rx="{n*0.014}" fill="{GREEN}"/>'
     return svg(n, n, body)
@@ -80,7 +103,9 @@ def splash_svg(n, dark):
     dot = "#f0f3f6" if dark else "#1a1e24"
     s = n * 0.72 / EVO_END
     ox, oy = (n - EVO_END * s) / 2, n * 0.30
-    body = f'<rect width="{n}" height="{n}" rx="{n*0.06}" fill="{bg}"/>' + dots(0, EVO_END, ox, oy, s, 3, dot)
+    body = f'<rect width="{n}" height="{n}" rx="{n*0.06}" fill="{bg}"/>'
+    body += starfield(n, n, 700, 1126) if dark else starfield(n, n, 500, 1126).replace("#dfe4ea", "#8a9099")
+    body += dots(0, EVO_END, ox, oy, s, 3, dot)
     fs = n * 0.085; tw = text_w("SLICER", fs, 0.35)
     t, _ = text("SLICER", (n - tw) / 2, oy + logo.height * s + fs * 1.5, fs, "#9aa0a8" if dark else "#5a6068", 0.35)
     body += t + f'<rect x="{n*0.4}" y="{n*0.70}" width="{n*0.2}" height="{n*0.008}" fill="{GREEN}"/>'
