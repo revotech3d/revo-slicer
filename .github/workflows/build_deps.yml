@@ -133,8 +133,10 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
             if [ -z "${{ vars.SELF_HOSTED }}" ]; then
-              brew install automake texinfo libtool pkgconf yasm nasm
+              brew install automake texinfo libtool pkgconf yasm nasm m4
             fi
+            # [r]evo: GMP nie buduje się z m4 z Xcode („gm4: invalid option -- O”) – użyj GNU m4 z Homebrew
+            if command -v brew >/dev/null; then export M4="$(brew --prefix m4)/bin/m4"; export PATH="$(brew --prefix m4)/bin:$PATH"; fi
             ./build_release_macos.sh -dx ${{ !vars.SELF_HOSTED && '-j 3' || '' }} -a ${{ inputs.arch }} -t 10.15
             (cd "${{ github.workspace }}/deps/build/${{ inputs.arch }}" && \
             find . -mindepth 1 -maxdepth 1 ! -name 'OrcaSlicer_dep' -exec rm -rf {} +)
