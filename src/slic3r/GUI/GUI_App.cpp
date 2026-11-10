@@ -2746,6 +2746,7 @@ void GUI_App::init_app_config()
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
     // [r]evo Slicer: osobny folder ustawień – nie miesza się ze zwykłą Orką
     SetAppName("RevoSlicer");
+    SetAppDisplayName(SLIC3R_APP_FULL_NAME);
 //	SetAppName(SLIC3R_APP_KEY "-alpha");
 //  SetAppName(SLIC3R_APP_KEY "-beta");
 //	SetAppDisplayName(SLIC3R_APP_NAME);
