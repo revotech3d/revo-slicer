@@ -2,6 +2,9 @@
 
 #include "RevoKreator.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -24,6 +27,9 @@
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/Tab.hpp"
+#include "slic3r/Utils/Http.hpp"
+
+#include <nlohmann/json.hpp>
 
 namespace Slic3r::GUI::Revo {
 
@@ -59,7 +65,12 @@ public:
         auto* s  = new wxBoxSizer(wxVERTICAL);
         auto* pb = wxGetApp().preset_bundle;
         s->Add(heading(this, _L("Three choices and you are ready to print")), 0, wxALL, FromDIP(16));
-        s->Add(new wxStaticText(this, wxID_ANY, from_u8(pb->printers.get_selected_preset_name())), 0, wxLEFT | wxRIGHT, FromDIP(16));
+        auto* prow = new wxBoxSizer(wxHORIZONTAL);
+        prow->Add(new wxStaticText(this, wxID_ANY, from_u8(pb->printers.get_selected_preset_name())), 1, wxALIGN_CENTER_VERTICAL);
+        auto* con = new wxButton(this, wxID_ANY, _L("Connect to printer"));
+        con->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { show_connect_wizard(this); });
+        prow->Add(con, 0);
+        s->Add(prow, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(16));
 
         s->Add(new wxStaticText(this, wxID_ANY, _L("Material")), 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
         m_material = new wxChoice(this, wxID_ANY);
@@ -276,6 +287,117 @@ private:
     wxButton *          m_print, *m_back, *m_next;
 };
 
+
+// ---------------------------------------------------------------- Połączenie z drukarką
+class ConnectWizard : public wxDialog
+{
+public:
+    explicit ConnectWizard(wxWindow* parent)
+        : wxDialog(parent, wxID_ANY, _L("[r]evo – connect to your Revon printer"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    {
+        auto* s = new wxBoxSizer(wxVERTICAL);
+        s->Add(heading(this, _L("Connect to your Revon printer")), 0, wxALL, FromDIP(16));
+        auto* info = new wxStaticText(this, wxID_ANY,
+            _L("Enter the printer address (revon.local or the IP shown on the printer screen in System) "
+               "and the login and PIN of the machine manager. The slicer gets the access key from the printer by itself."));
+        info->Wrap(FromDIP(440));
+        s->Add(info, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
+        m_host  = new wxTextCtrl(this, wxID_ANY, "revon.local");
+        m_login = new wxTextCtrl(this, wxID_ANY);
+        m_pin   = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
+        m_login->SetHint(_L("Manager login"));
+        m_pin->SetHint("PIN");
+        for (auto* c : {m_host, m_login, m_pin})
+            s->Add(c, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
+        m_err = new wxStaticText(this, wxID_ANY, "");
+        m_err->SetForegroundColour(wxColour(255, 77, 82));
+        s->Add(m_err, 0, wxLEFT | wxRIGHT, FromDIP(16));
+        auto* ok = new wxButton(this, wxID_OK, _L("Connect"));
+        s->Add(ok, 0, wxALIGN_RIGHT | wxALL, FromDIP(16));
+        ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { connect(); });
+        m_host->SetMinSize(wxSize(FromDIP(440), -1));
+        SetSizerAndFit(s);
+        CentreOnParent();
+    }
+
+private:
+    void fail(const wxString& msg)
+    {
+        m_err->SetLabel(msg);
+        m_err->Wrap(FromDIP(440));
+        Layout();
+        Fit();
+    }
+
+    void connect()
+    {
+        wxBusyCursor      busy;
+        std::string       host = into_u8(m_host->GetValue().Trim().Trim(false));
+        if (host.rfind("http", 0) != 0)
+            host = "http://" + host;
+        while (!host.empty() && host.back() == '/')
+            host.pop_back();
+        std::string cookie, key, err;
+        unsigned    st = 0;
+        nlohmann::json body = {{"login", into_u8(m_login->GetValue())}, {"pin", into_u8(m_pin->GetValue())}};
+        Http::post(host + "/revo/sesja/operator")
+            .header("Content-Type", "application/json")
+            .timeout_connect(5)
+            .timeout_max(15)
+            .set_post_body(body.dump())
+            .on_header_callback([&cookie](std::string h) {
+                // nagłówek „set-cookie: revo_sesja=…; Path=/…”
+                std::string low = h;
+                std::transform(low.begin(), low.end(), low.begin(), ::tolower);
+                auto p = low.find("revo_sesja=");
+                if (p != std::string::npos) {
+                    auto e = h.find(';', p);
+                    cookie = h.substr(p, e == std::string::npos ? std::string::npos : e - p);
+                }
+            })
+            .on_complete([&](std::string, unsigned s) { st = s; })
+            .on_error([&](std::string b, std::string e, unsigned s) {
+                st = s;
+                try { err = nlohmann::json::parse(b).value("message", e); } catch (...) { err = e; }
+            })
+            .perform_sync();
+        if (st == 0)
+            return fail(_L("The printer does not respond. Check the address and that the computer is in the same network."));
+        if (st != 200 || cookie.empty())
+            return fail(from_u8(err.empty() ? _u8L("Wrong login or PIN.") : err));
+        Http::get(host + "/revo/klucz-api")
+            .header("Cookie", cookie)
+            .timeout_connect(5)
+            .timeout_max(15)
+            .on_complete([&](std::string b, unsigned) {
+                try { key = nlohmann::json::parse(b).value("klucz", ""); } catch (...) {}
+            })
+            .on_error([&](std::string b, std::string e, unsigned) {
+                try { err = nlohmann::json::parse(b).value("message", e); } catch (...) { err = e; }
+            })
+            .perform_sync();
+        if (key.empty())
+            return fail(from_u8(err.empty() ? _u8L("Only the machine manager can connect the slicer.") : err));
+
+        Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+        if (!tab)
+            return;
+        auto&              pr  = wxGetApp().preset_bundle->printers;
+        DynamicPrintConfig cfg = pr.get_edited_preset().config;
+        cfg.set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(htMoonraker));
+        cfg.set_key_value("print_host", new ConfigOptionString(host.substr(host.find("//") + 2)));
+        cfg.set_key_value("printhost_apikey", new ConfigOptionString(key));
+        std::string base = pr.get_edited_preset().is_system ? pr.get_edited_preset().name : pr.get_selected_preset_parent() ? pr.get_selected_preset_parent()->name : pr.get_edited_preset().name;
+        tab->load_config(cfg);
+        tab->save_preset(base + " @ " + host.substr(host.find("//") + 2));
+        EndModal(wxID_OK);
+        MessageDialog(GetParent(), _L("Connected. Send prints to the printer with the Print button."), "[r]evo Slicer", wxOK | wxICON_INFORMATION).ShowModal();
+    }
+
+    wxTextCtrl *  m_host, *m_login, *m_pin;
+    wxStaticText* m_err;
+};
+
 } // namespace
 
 void show_newbie_wizard(wxWindow* parent)
@@ -288,6 +410,12 @@ void show_monek_wizard(wxWindow* parent)
 {
     // niemodalny – zostaje otwarty, gdy drukujesz testy
     (new MonekWizard(parent))->Show();
+}
+
+void show_connect_wizard(wxWindow* parent)
+{
+    ConnectWizard dlg(parent);
+    dlg.ShowModal();
 }
 
 void maybe_first_run_wizard(wxWindow* parent)

@@ -3692,6 +3692,9 @@ void MainFrame::init_menubar_as_editor()
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("[r]evo profile wizard (Monek)"), _L("Calibrate and create a filament profile"),
         [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_monek_wizard(this); }, "", nullptr,
         [this]() { return m_plater->is_view3D_shown(); }, this);
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Connect to Revon printer"), _L("Connect to Revon printer"),
+        [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_connect_wizard(this); }, "", nullptr,
+        [this]() { return m_plater->is_view3D_shown(); }, this);
     m_topbar->GetCalibMenu()->AppendSeparator();
 
     // Temperature
