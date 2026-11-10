@@ -3465,7 +3465,7 @@ bool GUI_App::on_init_inner()
     // [r]evo Slicer: logowanie kontem Revotech i licencja przed wczytaniem profili
     if (is_editor()) {
         if (scrn) scrn->Hide();
-        if (!Revo::ensure_licence(*app_config, nullptr)) {
+        if (!Slic3r::GUI::Revo::ensure_licence(*app_config, nullptr)) {
             if (scrn) scrn->Destroy();
             return false;
         }
@@ -3815,7 +3815,7 @@ bool GUI_App::on_init_inner()
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
     // [r]evo Slicer: przy pierwszym uruchomieniu prosty kreator (poziom Newbie)
     if (is_editor() && get_saved_mode() == comSimple)
-        mainframe->CallAfter([this]() { Revo::maybe_first_run_wizard(mainframe); });
+        mainframe->CallAfter([this]() { Slic3r::GUI::Revo::maybe_first_run_wizard(mainframe); });
 
 //#if BBL_HAS_FIRST_PAGE
     //BBS: set tp3DEditor firstly
@@ -8870,7 +8870,7 @@ std::string GUI_App::get_mode_str()
 
 void GUI_App::save_mode(const /*ConfigOptionMode*/int mode)
 {
-    if (mode == Revo::Monek::MODE) { // [r]evo Slicer: tryb Monek
+    if (mode == Slic3r::GUI::Revo::Monek::MODE) { // [r]evo Slicer: tryb Monek
         app_config->set("user_mode", "monek");
         update_mode();
         return;

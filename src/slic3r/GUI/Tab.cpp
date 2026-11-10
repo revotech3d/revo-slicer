@@ -136,8 +136,8 @@ namespace
 int mode_to_selection(ConfigOptionMode mode)
 {
     // [r]evo Slicer: Newbie (prosty) / Pro (wszystko) / Monek (lista Revotech)
-    if (mode == comExpert && Revo::Monek::active())
-        return Revo::Monek::SELECTION;
+    if (mode == comExpert && Slic3r::GUI::Revo::Monek::active())
+        return Slic3r::GUI::Revo::Monek::SELECTION;
     return mode >= comAdvanced ? 1 : 0;
 }
 }
@@ -2679,7 +2679,7 @@ void Tab::update_wiping_button_visibility() {
 void Tab::activate_option(const std::string& opt_key, const wxString& category)
 {
     // [r]evo Slicer: w poziomie Monek opcja znaleziona w wyszukiwarce zostaje odkryta
-    if (Revo::Monek::reveal(opt_key))
+    if (Slic3r::GUI::Revo::Monek::reveal(opt_key))
         wxGetApp().update_mode();
 
     wxString page_title = translate_category(category, m_type);

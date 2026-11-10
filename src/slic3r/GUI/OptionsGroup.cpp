@@ -908,10 +908,10 @@ bool ConfigOptionsGroup::is_visible(ConfigOptionMode mode)
 {
     if (m_options_mode.empty())
         return true;
-    if (Revo::Monek::active()) { // [r]evo Slicer: grupa widoczna, gdy ma choć jedną zalecaną opcję
+    if (Slic3r::GUI::Revo::Monek::active()) { // [r]evo Slicer: grupa widoczna, gdy ma choć jedną zalecaną opcję
         bool any = false;
         for (const auto& kv : m_opt_map)
-            any = any || Revo::Monek::allows(kv.second.first);
+            any = any || Slic3r::GUI::Revo::Monek::allows(kv.second.first);
         if (!any)
             return false;
     }

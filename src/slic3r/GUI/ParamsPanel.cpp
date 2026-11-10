@@ -49,8 +49,8 @@ namespace
 int mode_to_selection(ConfigOptionMode mode)
 {
     // [r]evo Slicer: Newbie (prosty) / Pro (wszystko) / Monek (lista Revotech)
-    if (mode == comExpert && Revo::Monek::active())
-        return Revo::Monek::SELECTION;
+    if (mode == comExpert && Slic3r::GUI::Revo::Monek::active())
+        return Slic3r::GUI::Revo::Monek::SELECTION;
     return mode >= comAdvanced ? 1 : 0;
 }
 }

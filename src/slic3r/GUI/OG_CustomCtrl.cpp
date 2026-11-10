@@ -781,7 +781,7 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
     const ConfigOptionMode& line_mode = option_set.front().opt.mode;
     bool monek_ok = false; // [r]evo Slicer: tryb Monek – tylko zalecane opcje
     for (const Option& o : option_set)
-        monek_ok = monek_ok || Revo::Monek::allows(o.opt_id);
+        monek_ok = monek_ok || Slic3r::GUI::Revo::Monek::allows(o.opt_id);
     is_visible = og_line.toggle_visible && line_mode <= mode && monek_ok;
 
     if (draw_just_act_buttons)
