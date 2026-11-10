@@ -3,8 +3,8 @@
 	"name": "Revo Generic TPU @Revon",
 	"inherits": "Generic TPU @System",
 	"from": "system",
-	"filament_id": "OFdwBFhM",
 	"setting_id": "rdcxMp3Zx6eq18h3",
+	"filament_id": "OFdwBFhM",
 	"instantiation": "true",
 	"filament_vendor": [
 		"Revotech"

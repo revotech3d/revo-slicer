@@ -3,8 +3,8 @@
 	"name": "Revo Generic ASA @Revon",
 	"inherits": "Generic ASA @System",
 	"from": "system",
-	"filament_id": "OFNBsPc3",
 	"setting_id": "nfduyKC0eDxLB8U9",
+	"filament_id": "OFNBsPc3",
 	"instantiation": "true",
 	"filament_vendor": [
 		"Revotech"

@@ -3,8 +3,8 @@
 	"name": "Revo Generic ABS @Revon",
 	"inherits": "Generic ABS @System",
 	"from": "system",
-	"filament_id": "OFnvEA8L",
 	"setting_id": "6NqCwEAVkCoTrjnG",
+	"filament_id": "OFnvEA8L",
 	"instantiation": "true",
 	"filament_vendor": [
 		"Revotech"

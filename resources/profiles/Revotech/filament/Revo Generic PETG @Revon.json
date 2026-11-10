@@ -3,8 +3,8 @@
 	"name": "Revo Generic PETG @Revon",
 	"inherits": "Generic PETG @System",
 	"from": "system",
-	"filament_id": "OFDi6PMK",
 	"setting_id": "Rg9dXRN9ksWV1DPs",
+	"filament_id": "OFDi6PMK",
 	"instantiation": "true",
 	"filament_vendor": [
 		"Revotech"
