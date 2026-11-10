@@ -2,7 +2,7 @@
 	"type": "machine_model",
 	"name": "Revon 600x600x600",
 	"model_id": "Revon 600x600x600",
-	"nozzle_diameter": "0.4",
+	"nozzle_diameter": "0.4;0.6;0.8;1.0;1.2",
 	"machine_tech": "FFF",
 	"family": "Revon",
 	"bed_model": "Revon 600x600x600_buildplate_model.stl",

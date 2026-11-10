@@ -12,17 +12,15 @@
 		"Direct Drive"
 	],
 	"extruder_variant_list": [
-		"Direct Drive Standard,Direct Drive High Flow,Direct Drive Extra High Flow"
+		"Direct Drive Standard,Direct Drive High Flow"
 	],
 	"printer_extruder_id": [
-		"1",
 		"1",
 		"1"
 	],
 	"printer_extruder_variant": [
 		"Direct Drive Standard",
-		"Direct Drive High Flow",
-		"Direct Drive Extra High Flow"
+		"Direct Drive High Flow"
 	],
 	"printer_model": "Revon Belt 350x350x300",
 	"printer_variant": "0.4",

@@ -2,7 +2,7 @@
 	"type": "machine_model",
 	"name": "Revon Belt 350x350x300",
 	"model_id": "Revon Belt 350x350x300",
-	"nozzle_diameter": "0.4",
+	"nozzle_diameter": "0.4;0.6;0.8;1.0;1.2",
 	"machine_tech": "FFF",
 	"family": "Revon",
 	"bed_model": "Revon Belt 350x350x300_buildplate_model.stl",

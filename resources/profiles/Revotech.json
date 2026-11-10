@@ -1,6 +1,6 @@
 {
 	"name": "Revotech",
-	"version": "02.05.00.00",
+	"version": "02.05.00.01",
 	"force_update": "0",
 	"description": "Revotech – drukarki Revon (Revo OS)",
 	"machine_model_list": [
@@ -35,16 +35,80 @@
 			"sub_path": "machine/Revon 1200x600x500 0.4 nozzle.json"
 		},
 		{
+			"name": "Revon 1200x600x500 0.6 nozzle",
+			"sub_path": "machine/Revon 1200x600x500 0.6 nozzle.json"
+		},
+		{
+			"name": "Revon 1200x600x500 0.8 nozzle",
+			"sub_path": "machine/Revon 1200x600x500 0.8 nozzle.json"
+		},
+		{
+			"name": "Revon 1200x600x500 1.0 nozzle",
+			"sub_path": "machine/Revon 1200x600x500 1.0 nozzle.json"
+		},
+		{
+			"name": "Revon 1200x600x500 1.2 nozzle",
+			"sub_path": "machine/Revon 1200x600x500 1.2 nozzle.json"
+		},
+		{
 			"name": "Revon 600x600x400 0.4 nozzle",
 			"sub_path": "machine/Revon 600x600x400 0.4 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x400 0.6 nozzle",
+			"sub_path": "machine/Revon 600x600x400 0.6 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x400 0.8 nozzle",
+			"sub_path": "machine/Revon 600x600x400 0.8 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x400 1.0 nozzle",
+			"sub_path": "machine/Revon 600x600x400 1.0 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x400 1.2 nozzle",
+			"sub_path": "machine/Revon 600x600x400 1.2 nozzle.json"
 		},
 		{
 			"name": "Revon 600x600x600 0.4 nozzle",
 			"sub_path": "machine/Revon 600x600x600 0.4 nozzle.json"
 		},
 		{
+			"name": "Revon 600x600x600 0.6 nozzle",
+			"sub_path": "machine/Revon 600x600x600 0.6 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x600 0.8 nozzle",
+			"sub_path": "machine/Revon 600x600x600 0.8 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x600 1.0 nozzle",
+			"sub_path": "machine/Revon 600x600x600 1.0 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x600 1.2 nozzle",
+			"sub_path": "machine/Revon 600x600x600 1.2 nozzle.json"
+		},
+		{
 			"name": "Revon Belt 350x350x300 0.4 nozzle",
 			"sub_path": "machine/Revon Belt 350x350x300 0.4 nozzle.json"
+		},
+		{
+			"name": "Revon Belt 350x350x300 0.6 nozzle",
+			"sub_path": "machine/Revon Belt 350x350x300 0.6 nozzle.json"
+		},
+		{
+			"name": "Revon Belt 350x350x300 0.8 nozzle",
+			"sub_path": "machine/Revon Belt 350x350x300 0.8 nozzle.json"
+		},
+		{
+			"name": "Revon Belt 350x350x300 1.0 nozzle",
+			"sub_path": "machine/Revon Belt 350x350x300 1.0 nozzle.json"
+		},
+		{
+			"name": "Revon Belt 350x350x300 1.2 nozzle",
+			"sub_path": "machine/Revon Belt 350x350x300 1.2 nozzle.json"
 		}
 	],
 	"process_list": [
@@ -59,6 +123,22 @@
 		{
 			"name": "0.20mm Standard @Revon",
 			"sub_path": "process/0.20mm Standard @Revon.json"
+		},
+		{
+			"name": "0.30mm Standard @Revon 0.6 nozzle",
+			"sub_path": "process/0.30mm Standard @Revon 0.6 nozzle.json"
+		},
+		{
+			"name": "0.40mm Standard @Revon 0.8 nozzle",
+			"sub_path": "process/0.40mm Standard @Revon 0.8 nozzle.json"
+		},
+		{
+			"name": "0.50mm Standard @Revon 1.0 nozzle",
+			"sub_path": "process/0.50mm Standard @Revon 1.0 nozzle.json"
+		},
+		{
+			"name": "0.60mm Standard @Revon 1.2 nozzle",
+			"sub_path": "process/0.60mm Standard @Revon 1.2 nozzle.json"
 		}
 	],
 	"filament_list": [

@@ -1,0 +1,53 @@
+{
+	"type": "machine",
+	"name": "Revon 1200x600x500 0.6 nozzle",
+	"inherits": "fdm_klipper_common",
+	"from": "system",
+	"setting_id": "XXQp93B0sGUMiGWB",
+	"instantiation": "true",
+	"default_nozzle_volume_type": [
+		"Standard"
+	],
+	"extruder_type": [
+		"Direct Drive"
+	],
+	"extruder_variant_list": [
+		"Direct Drive Standard,Direct Drive High Flow"
+	],
+	"printer_extruder_id": [
+		"1",
+		"1"
+	],
+	"printer_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"printer_model": "Revon 1200x600x500",
+	"printer_variant": "0.6",
+	"nozzle_diameter": [
+		"0.6"
+	],
+	"printable_area": [
+		"0x0",
+		"1200x0",
+		"1200x600",
+		"0x600"
+	],
+	"printable_height": "500",
+	"default_print_profile": "0.30mm Standard @Revon 0.6 nozzle",
+	"default_filament_profile": [
+		"Revo Generic PLA @Revon"
+	],
+	"machine_start_gcode": "REVO_CHECK_NOZZLE NOZZLE=[nozzle_diameter]\nPRINT_START BED=[bed_temperature_initial_layer_single] EXTRUDER=[nozzle_temperature_initial_layer] CHAMBER=[chamber_temperature] MATERIAL=[filament_type]\n",
+	"machine_end_gcode": "PRINT_END\n",
+	"thumbnails": [
+		"300x300/PNG"
+	],
+	"host_type": "moonraker",
+	"max_layer_height": [
+		"0.45"
+	],
+	"min_layer_height": [
+		"0.12"
+	]
+}
