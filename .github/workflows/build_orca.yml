@@ -44,6 +44,10 @@ jobs:
         with:
           lfs: 'false'
 
+      - name: '[r]evo – tylko profile Revotech'
+        shell: bash
+        run: python3 tools/revo/tylko_revotech.py
+
       - name: load cached deps
         if: ${{ !(runner.os == 'macOS' && inputs.macos-combine-only) }}
         uses: actions/cache@v6

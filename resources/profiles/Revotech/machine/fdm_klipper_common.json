@@ -200,5 +200,6 @@
 		"undefine",
 		"undefine"
 	],
-	"auxiliary_fan": "0"
+	"auxiliary_fan": "0",
+	"support_multi_bed_types": "1"
 }
