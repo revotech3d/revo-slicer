@@ -235,13 +235,14 @@ void PrinterWebView::load_url(wxString& url, wxString apikey)
     m_apikey = apikey;
     m_host_type = host_type;
     // [r]evo Slicer: Panel Revo wymaga sesji – logujemy się raz kluczem slicera (agent ustawia cookie i przekierowuje na panel)
+    wxString target = url;
     if (host_type == htMoonraker && !apikey.IsEmpty()) {
         wxString base = url;
         const int scheme = base.Find("://");
         const int slash  = base.find('/', scheme == wxNOT_FOUND ? 0 : scheme + 3);
         if (slash != wxNOT_FOUND)
             base = base.Left(slash);
-        url = base + "/revo/sesja/klucz?k=" + apikey;
+        target = base + "/revo/sesja/klucz?k=" + apikey;
     }
     m_apikey_sent = false;
     m_url_loaded = false;
@@ -250,9 +251,9 @@ void PrinterWebView::load_url(wxString& url, wxString apikey)
     if (this->IsShown()) {
         //ORCA: m_url_deferred will be cleared on load success
         //m_url_deferred.clear();
-        m_browser->LoadURL(url);
+        m_browser->LoadURL(target);
     } else {
-        m_url_deferred = url;
+        m_url_deferred = target;
     }
     //m_browser->SetFocus();
     UpdateState();
