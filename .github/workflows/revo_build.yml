@@ -1,4 +1,4 @@
-# [r]evo Slicer – budowanie dla Windows (x64) i macOS (uniwersalny). Linux nie jest wspierany.
+# [r]evo Slicer – budowanie dla Windows (x64) i macOS (tylko Apple Silicon). Linux nie jest wspierany.
 name: Revo Slicer – build
 on:
   push:
@@ -21,18 +21,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [arm64, x86_64]
+        arch: [arm64]
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: macos-15
       arch: ${{ matrix.arch }}
-    secrets: inherit
-  macos:
-    name: macOS Universal
-    needs: macos_arch
-    uses: ./.github/workflows/build_orca.yml
-    with:
-      os: macos-15
-      arch: universal
-      macos-combine-only: true
     secrets: inherit
