@@ -244,6 +244,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ImageDPIFrame.hpp
     GUI/IMediaController.hpp
     GUI/GUI_App.cpp
+    GUI/RevoLicencja.cpp
+    GUI/RevoLicencja.hpp
     GUI/GUI_App.hpp
     GUI/GUI_AuxiliaryList.cpp
     GUI/GUI_AuxiliaryList.hpp

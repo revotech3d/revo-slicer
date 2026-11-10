@@ -1,3 +1,4 @@
+#include "RevoLicencja.hpp"
 #include "Plater.hpp"
 #include "../Utils/NetworkAgent.hpp"
 #include "IPrinterAgent.hpp"
@@ -3686,6 +3687,12 @@ void Sidebar::on_change_color_mode(bool is_dark) {
 
 void Sidebar::create_printer_preset()
 {
+    // [r]evo Slicer: własne drukarki tworzy tylko serwis Revotech
+    if (!Revo::is_service()) {
+        MessageDialog(wxGetApp().mainframe, _L("Only Revotech service can add printers. Your Revon printers are already on the list."),
+                      "[r]evo Slicer", wxOK | wxICON_INFORMATION).ShowModal();
+        return;
+    }
     CreatePrinterPresetDialog dlg(wxGetApp().mainframe);
     int                       res = dlg.ShowModal();
     if (wxID_OK == res) {

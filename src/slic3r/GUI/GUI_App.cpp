@@ -1,4 +1,5 @@
 #include "CloudProvider.hpp"
+#include "RevoLicencja.hpp"
 #include "ExportPresetBundleDialog.hpp"
 #include "ICloudServiceAgent.hpp"
 #include "IPrinterAgent.hpp"
@@ -3457,6 +3458,16 @@ bool GUI_App::on_init_inner()
         scrn = new SplashScreen(splashscreen_pos);
         wxYield();
         scrn->SetText(_L("Loading configuration") + dots, 5);
+    }
+
+    // [r]evo Slicer: logowanie kontem Revotech i licencja przed wczytaniem profili
+    if (is_editor()) {
+        if (scrn) scrn->Hide();
+        if (!Revo::ensure_licence(*app_config, nullptr)) {
+            if (scrn) scrn->Destroy();
+            return false;
+        }
+        if (scrn) scrn->Show();
     }
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";

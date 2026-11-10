@@ -1,3 +1,4 @@
+#include "RevoLicencja.hpp"
 #include "PresetComboBoxes.hpp"
 
 #include <climits>
@@ -1540,7 +1541,8 @@ void PlaterPresetComboBox::update()
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
         else {
             set_label_marker(Append(separator(L("Select/Remove printers (system presets)")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
-            set_label_marker(Append(separator(L("Create printer")), *bmp), LABEL_ITEM_WIZARD_ADD_PRINTERS);
+            if (Revo::is_service()) // [r]evo Slicer: tylko serwis Revotech
+                set_label_marker(Append(separator(L("Create printer")), *bmp), LABEL_ITEM_WIZARD_ADD_PRINTERS);
         }
     }
 
