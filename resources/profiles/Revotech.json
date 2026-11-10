@@ -1,0 +1,70 @@
+{
+	"name": "Revotech",
+	"version": "02.05.00.00",
+	"force_update": "0",
+	"description": "Revotech – drukarki Revon (Revo OS)",
+	"machine_model_list": [
+		{
+			"name": "Revon 1200x600x500",
+			"sub_path": "machine/Revon 1200x600x500.json"
+		},
+		{
+			"name": "Revon 600x600x400",
+			"sub_path": "machine/Revon 600x600x400.json"
+		},
+		{
+			"name": "Revon 600x600x600",
+			"sub_path": "machine/Revon 600x600x600.json"
+		},
+		{
+			"name": "Revon Belt 350x350x300",
+			"sub_path": "machine/Revon Belt 350x350x300.json"
+		}
+	],
+	"machine_list": [
+		{
+			"name": "fdm_machine_common",
+			"sub_path": "machine/fdm_machine_common.json"
+		},
+		{
+			"name": "fdm_klipper_common",
+			"sub_path": "machine/fdm_klipper_common.json"
+		},
+		{
+			"name": "Revon 1200x600x500 0.4 nozzle",
+			"sub_path": "machine/Revon 1200x600x500 0.4 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x400 0.4 nozzle",
+			"sub_path": "machine/Revon 600x600x400 0.4 nozzle.json"
+		},
+		{
+			"name": "Revon 600x600x600 0.4 nozzle",
+			"sub_path": "machine/Revon 600x600x600 0.4 nozzle.json"
+		},
+		{
+			"name": "Revon Belt 350x350x300 0.4 nozzle",
+			"sub_path": "machine/Revon Belt 350x350x300 0.4 nozzle.json"
+		}
+	],
+	"process_list": [
+		{
+			"name": "fdm_process_common",
+			"sub_path": "process/fdm_process_common.json"
+		},
+		{
+			"name": "fdm_process_klipper_common",
+			"sub_path": "process/fdm_process_klipper_common.json"
+		},
+		{
+			"name": "0.20mm Standard @Revon",
+			"sub_path": "process/0.20mm Standard @Revon.json"
+		}
+	],
+	"filament_list": [
+		{
+			"name": "Revo Generic PLA @Revon",
+			"sub_path": "filament/Revo Generic PLA @Revon.json"
+		}
+	]
+}

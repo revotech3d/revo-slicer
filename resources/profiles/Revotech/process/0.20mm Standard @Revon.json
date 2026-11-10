@@ -1,0 +1,25 @@
+{
+	"type": "process",
+	"name": "0.20mm Standard @Revon",
+	"inherits": "fdm_process_klipper_common",
+	"from": "system",
+	"setting_id": "0Rvd2czIL1T7dviR",
+	"instantiation": "true",
+	"print_extruder_id": [
+		"1",
+		"1",
+		"1"
+	],
+	"print_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow",
+		"Direct Drive Extra High Flow"
+	],
+	"layer_height": "0.2",
+	"compatible_printers": [
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle"
+	]
+}

@@ -1,0 +1,38 @@
+# [r]evo Slicer – budowanie dla Windows (x64) i macOS (uniwersalny). Linux nie jest wspierany.
+name: Revo Slicer – build
+on:
+  push:
+    branches: [revo]
+  workflow_dispatch:
+jobs:
+  windows:
+    name: Windows x64
+    permissions:
+      actions: write
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: windows-latest
+      arch: x64
+      compiler: clang
+    secrets: inherit
+  macos_arch:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [arm64, x86_64]
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: macos-15
+      arch: ${{ matrix.arch }}
+    secrets: inherit
+  macos:
+    name: macOS Universal
+    needs: macos_arch
+    uses: ./.github/workflows/build_orca.yml
+    with:
+      os: macos-15
+      arch: universal
+      macos-combine-only: true
+    secrets: inherit

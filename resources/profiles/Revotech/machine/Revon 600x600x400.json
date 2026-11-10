@@ -1,0 +1,12 @@
+{
+	"type": "machine_model",
+	"name": "Revon 600x600x400",
+	"model_id": "Revon 600x600x400",
+	"nozzle_diameter": "0.4",
+	"machine_tech": "FFF",
+	"family": "Revon",
+	"bed_model": "Revon 600x600x400_buildplate_model.stl",
+	"bed_texture": "Revon 600x600x400_buildplate_texture.png",
+	"hotend_model": "",
+	"default_materials": "Revo Generic PLA @Revon"
+}

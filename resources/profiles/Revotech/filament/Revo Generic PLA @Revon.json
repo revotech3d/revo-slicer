@@ -1,0 +1,18 @@
+{
+	"type": "filament",
+	"name": "Revo Generic PLA @Revon",
+	"inherits": "Generic PLA @System",
+	"from": "system",
+	"setting_id": "19rUKCt0o2lhliTK",
+	"filament_id": "OFZPy0Im",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Revotech"
+	],
+	"compatible_printers": [
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle"
+	]
+}
