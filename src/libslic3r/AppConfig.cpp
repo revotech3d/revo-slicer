@@ -58,8 +58,8 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-static const std::string VERSION_CHECK_URL = "https://check-version.orcaslicer.com/latest";
-static const std::string PROFILE_UPDATE_URL = "https://check-version.orcaslicer.com/profile";
+// [r]evo Slicer: aktualizacje wyłącznie z serwera Revotech (wydania revotech3d/revo-slicer)
+static const std::string VERSION_CHECK_URL = "https://revo3d.pl/api/slicer/wersja";
 
 constexpr const char* CONFIG_ORCA_UPDATER_URL = "orca_updater_url";
 
@@ -111,7 +111,7 @@ bool AppConfig::get_stealth_mode()
     if (!get_bool("firstguide","finish")) {
         return true;
     }
-    return get_bool("stealth_mode");
+    return true; // [r]evo Slicer: zawsze – żadnej chmury Orki ani Bambu
 }
 
 bool AppConfig::get_hide_login_side_panel()
@@ -479,7 +479,7 @@ void AppConfig::set_defaults()
 
     // Orca
     if (get("stealth_mode").empty()) {
-        set_bool("stealth_mode", false);
+        set_bool("stealth_mode", true); // [r]evo Slicer: nic nie wychodzi poza Revotech
     }
     if (get("hide_login_side_panel").empty()) {
         set_bool("hide_login_side_panel", false);
@@ -1949,16 +1949,13 @@ bool AppConfig::peek_bool(const std::string &data_dir, const std::string &key)
 
 std::string AppConfig::version_check_url() const
 {
-    auto from_settings = get("version_check_url");
-    return from_settings.empty() ? VERSION_CHECK_URL : from_settings;
+    return VERSION_CHECK_URL; // [r]evo Slicer: bez nadpisywania w ustawieniach
 }
 
 std::string AppConfig::profile_update_url() const
 {
-    std::string orca_updater_url = get(CONFIG_ORCA_UPDATER_URL);
-    if (orca_updater_url.empty())
-        return PROFILE_UPDATE_URL;
-    return orca_updater_url;
+    // [r]evo Slicer: profile tylko z naszych wydań – żadnych aktualizacji profili z sieci
+    return {};
 }
 
 bool AppConfig::exists()

@@ -2216,7 +2216,9 @@ void PreferencesDialog::create_items()
     g_sizer->Add(item_region);
  
     auto item_stealth_mode     = create_item_checkbox(_L("Stealth mode"), _L("This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option.\n\nNote: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."), "stealth_mode");
+    // [r]evo Slicer: tryb prywatny zawsze włączony – bez przełącznika
     g_sizer->Add(item_stealth_mode);
+    g_sizer->Hide(item_stealth_mode);
 
     auto item_hide_login_side_panel = create_item_checkbox(_L("Hide login side panel"), _L("Hide the login side panel on the home page."), "hide_login_side_panel");
     g_sizer->Add(item_hide_login_side_panel);

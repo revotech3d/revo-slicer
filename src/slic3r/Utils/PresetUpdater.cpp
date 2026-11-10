@@ -1421,6 +1421,8 @@ void PresetUpdater::priv::check_new_vendors(const std::set<std::string>& system_
 {
     vendor_check_threads.emplace_back([this, system_vendors, callback]() {
         AppConfig* app_config = GUI::wxGetApp().app_config;
+        if (app_config->profile_update_url().empty()) // [r]evo Slicer: bez profili z sieci
+            return;
         std::string url       = app_config->profile_update_url() + "/new?orcaslicer_version=" + Http::url_encode(SoftFever_VERSION);
 
         auto check_cancel = [this](Http::Progress, bool& cancel_http) {
