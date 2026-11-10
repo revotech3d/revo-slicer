@@ -1,3 +1,4 @@
+#include "RevoKreator.hpp"
 #include "RevoLicencja.hpp"
 #include "Plater.hpp"
 #include "../Utils/NetworkAgent.hpp"
@@ -2837,10 +2838,10 @@ Sidebar::Sidebar(Plater *parent)
 
         // ORCA use connect button on titlebar
         p->m_printer_connect = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "monitor_signal_strong");
-        p->m_printer_connect->SetToolTip(_L("Connection"));
+        p->m_printer_connect->SetToolTip(_L("Connect to Revon printer"));
         p->m_printer_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-            PhysicalPrinterDialog dlg(this->GetParent());
-            dlg.ShowModal();
+            // [r]evo Slicer: połączenie z drukarką Revon (adres + login i PIN kierownika)
+            Slic3r::GUI::Revo::show_connect_wizard(this->GetParent());
         });
 
         // ORCA use sync button on titlebar
