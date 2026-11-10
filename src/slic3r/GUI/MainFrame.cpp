@@ -3801,6 +3801,18 @@ void MainFrame::init_menubar_as_editor()
     // SoftFever calibrations
     auto calib_menu = new wxMenu();
 
+    // [r]evo Slicer: kreatory i połączenie z drukarką (menu macOS)
+    append_menu_item(calib_menu, wxID_ANY, _L("Connect to Revon printer"), _L("Connect to Revon printer"),
+        [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_connect_wizard(this); }, "", nullptr,
+        [this]() { return m_plater->is_view3D_shown(); }, this);
+    append_menu_item(calib_menu, wxID_ANY, _L("[r]evo quick print setup (Newbie)"), _L("Quick print setup"),
+        [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_newbie_wizard(this); }, "", nullptr,
+        [this]() { return m_plater->is_view3D_shown(); }, this);
+    append_menu_item(calib_menu, wxID_ANY, _L("[r]evo profile wizard (Monek)"), _L("Calibrate and create a filament profile"),
+        [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_monek_wizard(this); }, "", nullptr,
+        [this]() { return m_plater->is_view3D_shown(); }, this);
+    calib_menu->AppendSeparator();
+
     // Temperature
     append_menu_item(calib_menu, wxID_ANY, _L("Temperature"), _L("Temperature"),
         [this](wxCommandEvent&) { run_calibration(CalibKind::Temperature); }, "", nullptr,
