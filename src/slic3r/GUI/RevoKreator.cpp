@@ -362,7 +362,8 @@ private:
             })
             .perform_sync();
         if (st == 0)
-            return fail(_L("The printer does not respond. Check the address and that the computer is in the same network."));
+            return fail(_L("The printer does not respond. Check the address and that the computer is in the same network.") +
+                        (err.empty() ? wxString() : "\n(" + from_u8(err) + ")"));
         if (st != 200 || cookie.empty())
             return fail(from_u8(err.empty() ? _u8L("Wrong login or PIN.") : err));
         Http::get(host + "/revo/klucz-api")
