@@ -30,5 +30,13 @@
 		"Revon Belt 350x350x300 0.8 nozzle",
 		"Revon Belt 350x350x300 1.0 nozzle",
 		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"25",
+		"50"
 	]
 }
