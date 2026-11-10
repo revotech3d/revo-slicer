@@ -580,11 +580,11 @@ std::vector<int> HotEndTable::FilterHotEnds(const NozzleOption& option)
 void HotEndTable::MarkRelatedItems(const NozzleOption& option)
 {
     const static StateColor bg_green(
-        std::pair<wxColour, int>(wxColour("#E5F0EE"), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour("#E6F6EB"), StateColor::Normal)
     );
 
     const static StateColor bd_green(
-        std::pair<wxColour, int>(wxColour("#009688"), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour("#1FA34A"), StateColor::Normal)
     );
     auto filtered_nozzles = FilterHotEnds(option);
     for (auto nozzle_id : filtered_nozzles) {
@@ -595,7 +595,7 @@ void HotEndTable::MarkRelatedItems(const NozzleOption& option)
         item->SetBackgroundColor(bg_green);
         item->SetBorderColor(bd_green);
         for (auto child : item->GetChildren()) {
-            child->SetBackgroundColour("#E5F0EE");
+            child->SetBackgroundColour("#E6F6EB");
         }
     }
     wxGetApp().UpdateDarkUIWin(this);
@@ -919,7 +919,7 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
         std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(31, 163, 74), StateColor::Normal)
     );
 
     StateColor btn_text_green(
