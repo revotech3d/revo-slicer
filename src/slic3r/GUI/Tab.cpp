@@ -2678,6 +2678,10 @@ void Tab::update_wiping_button_visibility() {
 
 void Tab::activate_option(const std::string& opt_key, const wxString& category)
 {
+    // [r]evo Slicer: w poziomie Monek opcja znaleziona w wyszukiwarce zostaje odkryta
+    if (Revo::Monek::reveal(opt_key))
+        wxGetApp().update_mode();
+
     wxString page_title = translate_category(category, m_type);
 
     auto cur_item = m_tabctrl->GetFirstVisibleItem();

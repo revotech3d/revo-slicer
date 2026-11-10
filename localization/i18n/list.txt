@@ -86,6 +86,7 @@ src/slic3r/GUI/Gizmos/GLGizmoAlignment.cpp
 src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/RevoLicencja.cpp
+src/slic3r/GUI/RevoKreator.cpp
 src/slic3r/GUI/GUI_AuxiliaryList.cpp
 src/slic3r/GUI/GUI_Init.cpp
 src/slic3r/GUI/GUI_Factories.cpp
