@@ -8,6 +8,8 @@ if(NOT DEFINED BBL_INTERNAL_TESTING)
 set(BBL_INTERNAL_TESTING "0")
 endif()
 set(SoftFever_VERSION "2.5.0")
+# [r]evo Slicer: własny numer wersji (widoczny dla klienta); SoftFever_VERSION zostaje dla zgodności profili i projektów
+set(REVO_SLICER_VERSION "1.0.0")
 string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)"
        SoftFever_VERSION_MATCH ${SoftFever_VERSION})
 set(ORCA_VERSION_MAJOR ${CMAKE_MATCH_1})

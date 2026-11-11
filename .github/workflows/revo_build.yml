@@ -53,11 +53,9 @@ jobs:
         run: |
           set -e
           mkdir -p out
-          find art -name 'OrcaSlicer*.exe' ! -path '*portable*' -exec cp {} out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe \;
-          tgz=$(find art -name 'OrcaSlicer_Mac_bundle_arm64_*.tar.gz' | head -1)
-          mkdir mac && tar -xzf "$tgz" -C mac
-          app=$(find mac -maxdepth 2 -name '*.app' | head -1)
-          (cd "$(dirname "$app")" && zip -qry "$GITHUB_WORKSPACE/out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip" "$(basename "$app")")
+          find art -name 'RevoSlicer_Windows_Installer_*.exe' -exec cp {} out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe \;
+          find art -name 'RevoSlicer_Mac_arm64_*.zip' -exec cp {} out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip \;
+          test -f out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe && test -f out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip
           ls -la out
       - name: Publikacja
         env:
