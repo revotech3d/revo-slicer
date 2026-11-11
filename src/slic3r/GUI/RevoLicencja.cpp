@@ -135,7 +135,8 @@ bool usable(const Token& t)
     return t.licencja == "aktywna" && t.wygasa > (long long) std::time(nullptr);
 }
 
-// Jedno okno na wszystkie kroki: logowanie → (nowe hasło) → (numer licencji).
+// Jedno okno na wszystkie kroki: logowanie → (nowe hasło) → (czekanie na licencję maszyny).
+// Numer licencji wpisuje się tylko na ekranie drukarki; slicer działa, gdy aktywna jest maszyna przypisana do konta.
 class LoginDialog : public wxDialog
 {
 public:
@@ -176,6 +177,7 @@ public:
         m_step = st;
         m_a->Clear();
         m_b->Clear();
+        m_a->Show(st != Step::Licence);
         m_b->Show(st != Step::Licence);
         if (st == Step::Login) {
             m_title->SetLabel(_L("Sign in to [r]evo Slicer"));
@@ -191,15 +193,15 @@ public:
             m_b->SetHint(_L("Repeat the new password"));
             m_ok->SetLabel(_L("Save"));
         } else {
-            m_title->SetLabel(_L("Activate the licence"));
-            m_info->SetLabel(_L("Enter the licence number from Revotech (REVO-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX).\nIt activates [r]evo Slicer and your Revon printer."));
-            m_a->SetHint("REVO-");
-            m_ok->SetLabel(_L("Activate"));
+            m_title->SetLabel(_L("Activate your printer"));
+            m_info->SetLabel(_L("[r]evo Slicer starts when your Revon printer is activated.\nEnter the licence number on the printer screen: Settings → Licence,\nthen click Check again."));
+            m_ok->SetLabel(_L("Check again"));
         }
         m_err->SetLabel(err);
         Layout();
         Fit();
-        m_a->SetFocus();
+        if (m_a->IsShown())
+            m_a->SetFocus();
     }
 
 private:
@@ -228,7 +230,9 @@ private:
             store_token(m_cfg, r.body["token"]);
             return next();
         }
-        Reply r = post("aktywuj", {{"login", m_cfg.get("revo_login")}, {"sesja", m_cfg.get("revo_sesja")}, {"numer", a}});
+        Reply r = post("odnow", {{"login", m_cfg.get("revo_login")}, {"sesja", m_cfg.get("revo_sesja")}});
+        if (r.status == 401)
+            return set_step(Step::Login, from_u8(message(r)));
         if (r.status != 200)
             return set_step(Step::Licence, from_u8(message(r)));
         store_token(m_cfg, r.body["token"]);
@@ -240,7 +244,7 @@ private:
         if (g_token.licencja == "zablokowana")
             return set_step(Step::Login, _L("The licence is blocked. Contact Revotech: biuro@revo3d.pl"));
         if (g_token.licencja != "aktywna")
-            return set_step(Step::Licence);
+            return set_step(Step::Licence, m_step == Step::Licence ? _L("The printer is not activated yet.") : wxString());
         m_cfg.save();
         EndModal(wxID_OK);
     }
