@@ -463,6 +463,9 @@ void maybe_first_run_wizard(wxWindow* parent)
     AppConfig* c = wxGetApp().app_config;
     if (!c || c->get("revo_kreator_pokazany") == "1")
         return;
+    // pierwsze uruchomienie: maszyny Revon instaluje config_wizard_startup() – kreator dopiero po nim (wywoła go ponownie)
+    if (wxGetApp().preset_bundle->printers.only_default_printers())
+        return;
     c->set("revo_kreator_pokazany", "1");
     show_newbie_wizard(parent);
 }

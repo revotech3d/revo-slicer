@@ -10195,6 +10195,8 @@ bool GUI_App::config_wizard_startup()
         if (preset_bundle->apply_vendor_config(vendors, filaments, app_config, true, "Revon 600x600x600", "0.4", "Revo Generic PLA @Revon")) {
             app_config->set("firstguide", "finish", "true");
             load_current_presets();
+            if (get_saved_mode() == comSimple)
+                mainframe->CallAfter([this]() { Slic3r::GUI::Revo::maybe_first_run_wizard(mainframe); });
             return true;
         }
         BOOST_LOG_TRIVIAL(info) << "run wizard...";

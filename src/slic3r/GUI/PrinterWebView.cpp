@@ -6,6 +6,7 @@
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/RevoKreator.hpp"
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include <slic3r/GUI/Widgets/WebViewHostDialog.hpp>
 
@@ -124,6 +125,7 @@ static void add_page_strings(wxWebView *webView)
     const nlohmann::json strings = {
         {"printer_connection", _u8L("Printer Connection")},
         {"printer_connection_setup", _u8L("Please set up your printer connection to view the device.")},
+        {"revo_connect", _u8L("Connect to printer")},
     };
     webView->AddUserScript(wxString::FromUTF8(WebViewHostDialog::localized_strings_script(strings)));
 }
@@ -391,6 +393,10 @@ void PrinterWebView::OnNewWindow(wxWebViewEvent& evt)
 
 void PrinterWebView::OnScriptMessage(wxWebViewEvent& evt)
 {
+  if (evt.GetString() == "revo_connect") {   // [r]evo Slicer: przycisk na stronie „Printer Connection”
+    Revo::show_connect_wizard(this);
+    return;
+  }
   if (m_handler != nullptr)
     m_handler->on_script_message(evt);
 }
