@@ -62,6 +62,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if gh release view "v${{ inputs.wersja }}" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "v${{ inputs.wersja }}" out/* -R "${{ github.repository }}" --clobber
+            exit 0
+          fi
           gh release create "v${{ inputs.wersja }}" out/* -R "${{ github.repository }}" --target "${{ github.sha }}" \
             --title "[r]evo Slicer ${{ inputs.wersja }}" \
             --notes "[r]evo Slicer ${{ inputs.wersja }} – slicer Revotech dla drukarek Revon. Sometimes evolution. Sometimes [r]evolution.
