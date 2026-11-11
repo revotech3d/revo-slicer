@@ -427,6 +427,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(wxString title, wxS
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
+    translations.Clear(); // [r]evo Slicer: tylko angielski
     for (size_t i = 0; i < translations.GetCount(); ++i) {
         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
 
