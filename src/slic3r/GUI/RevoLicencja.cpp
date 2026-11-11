@@ -132,15 +132,15 @@ bool store_token(AppConfig& cfg, const nlohmann::json& tok)
 
 bool usable(const Token& t)
 {
-    return t.licencja == "aktywna" && t.wygasa > (long long) std::time(nullptr);
+    // licencja blokuje tylko drukarkę; slicer wymaga jedynie zalogowania kontem Revotech
+    return !t.login.empty() && t.wygasa > (long long) std::time(nullptr);
 }
 
-// Jedno okno na wszystkie kroki: logowanie → (nowe hasło) → (czekanie na licencję maszyny).
-// Numer licencji wpisuje się tylko na ekranie drukarki; slicer działa, gdy aktywna jest maszyna przypisana do konta.
+// Jedno okno na oba kroki: logowanie → (nowe hasło). Licencja blokuje tylko drukarkę, nie slicer.
 class LoginDialog : public wxDialog
 {
 public:
-    enum class Step { Login, NewPassword, Licence };
+    enum class Step { Login, NewPassword };
 
     LoginDialog(wxWindow* parent, AppConfig& cfg)
         : wxDialog(parent, wxID_ANY, "[r]evo Slicer", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE), m_cfg(cfg)
@@ -177,31 +177,24 @@ public:
         m_step = st;
         m_a->Clear();
         m_b->Clear();
-        m_a->Show(st != Step::Licence);
-        m_b->Show(st != Step::Licence);
         if (st == Step::Login) {
             m_title->SetLabel(_L("Sign in to [r]evo Slicer"));
             m_info->SetLabel(_L("Use the login and password you received from Revotech."));
             m_a->SetHint(_L("Login"));
             m_b->SetHint(_L("Password"));
             m_ok->SetLabel(_L("Sign in"));
-        } else if (st == Step::NewPassword) {
+        } else {
             m_title->SetLabel(_L("Set your own password"));
             m_info->SetLabel(_L("The password from Revotech is temporary. Enter a new one (at least 10 characters) twice."));
             m_a->SetHint(_L("New password"));
             m_a->SetWindowStyleFlag(m_a->GetWindowStyleFlag() | wxTE_PASSWORD);
             m_b->SetHint(_L("Repeat the new password"));
             m_ok->SetLabel(_L("Save"));
-        } else {
-            m_title->SetLabel(_L("Activate your printer"));
-            m_info->SetLabel(_L("[r]evo Slicer starts when your Revon printer is activated.\nEnter the licence number on the printer screen: Menu → Więcej → Licencja,\nthen click Check again."));
-            m_ok->SetLabel(_L("Check again"));
         }
         m_err->SetLabel(err);
         Layout();
         Fit();
-        if (m_a->IsShown())
-            m_a->SetFocus();
+        m_a->SetFocus();
     }
 
 private:
@@ -221,30 +214,17 @@ private:
                 return set_step(Step::NewPassword);
             return next();
         }
-        if (m_step == Step::NewPassword) {
-            if (a != b)
-                return set_step(Step::NewPassword, _L("The passwords are different."));
-            Reply r = post("haslo", {{"login", m_cfg.get("revo_login")}, {"sesja", m_cfg.get("revo_sesja")}, {"nowe", a}});
-            if (r.status != 200)
-                return set_step(Step::NewPassword, from_u8(message(r)));
-            store_token(m_cfg, r.body["token"]);
-            return next();
-        }
-        Reply r = post("odnow", {{"login", m_cfg.get("revo_login")}, {"sesja", m_cfg.get("revo_sesja")}});
-        if (r.status == 401)
-            return set_step(Step::Login, from_u8(message(r)));
+        if (a != b)
+            return set_step(Step::NewPassword, _L("The passwords are different."));
+        Reply r = post("haslo", {{"login", m_cfg.get("revo_login")}, {"sesja", m_cfg.get("revo_sesja")}, {"nowe", a}});
         if (r.status != 200)
-            return set_step(Step::Licence, from_u8(message(r)));
+            return set_step(Step::NewPassword, from_u8(message(r)));
         store_token(m_cfg, r.body["token"]);
         next();
     }
 
     void next()
     {
-        if (g_token.licencja == "zablokowana")
-            return set_step(Step::Login, _L("The licence is blocked. Contact Revotech: biuro@revo3d.pl"));
-        if (g_token.licencja != "aktywna")
-            return set_step(Step::Licence, m_step == Step::Licence ? _L("The printer is not activated yet.") : wxString());
         m_cfg.save();
         EndModal(wxID_OK);
     }
@@ -261,7 +241,7 @@ private:
 bool ensure_licence(AppConfig& cfg, wxWindow* parent)
 {
     load_token(cfg);
-    // z siecią: odnów token (blokada konta lub licencji działa od razu); bez sieci: zapisany token do 14 dni
+    // z siecią: odnów token (blokada konta działa od razu); bez sieci: zapisany token do 14 dni
     if (!cfg.get("revo_sesja").empty()) {
         Reply r = post("odnow", {{"login", cfg.get("revo_login")}, {"sesja", cfg.get("revo_sesja")}});
         if (r.status == 200) {
