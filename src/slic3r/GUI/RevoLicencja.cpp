@@ -51,7 +51,7 @@ std::vector<unsigned char> b64decode(const std::string& in)
 }
 
 // Podpis Ed25519 kluczem Revotech; treść tokenu tylko gdy podpis się zgadza.
-bool verify(const std::string& payload, const std::string& sig_b64, Token& out)
+bool sig_ok(const std::string& payload, const std::string& sig_b64)
 {
     auto der = b64decode(PUBLIC_KEY_B64), sig = b64decode(sig_b64);
     if (der.size() != 44 || sig.size() != 64)
@@ -64,7 +64,12 @@ bool verify(const std::string& payload, const std::string& sig_b64, Token& out)
               EVP_DigestVerify(ctx, sig.data(), sig.size(), reinterpret_cast<const unsigned char*>(payload.data()), payload.size()) == 1;
     EVP_MD_CTX_free(ctx);
     EVP_PKEY_free(key);
-    if (!ok)
+    return ok;
+}
+
+bool verify(const std::string& payload, const std::string& sig_b64, Token& out)
+{
+    if (!sig_ok(payload, sig_b64))
         return false;
     try {
         auto j = nlohmann::json::parse(payload);
@@ -257,6 +262,24 @@ bool ensure_licence(AppConfig& cfg, wxWindow* parent)
     LoginDialog dlg(parent, cfg);
     return dlg.ShowModal() == wxID_OK && usable(g_token);
 }
+
+bool is_revon_machine(const std::string& body)
+{
+    try {
+        auto j   = nlohmann::json::parse(body);
+        auto lic = j.at("licencja");
+        const std::string payload = lic.value("payload", "");
+        if (!sig_ok(payload, lic.value("signature", "")))
+            return false;
+        auto p = nlohmann::json::parse(payload);
+        return p.value("typ", "") == "licencja" && !p.value("machine_id", "").empty() &&
+               p.value("machine_id", "") == j.value("machine_id", "");
+    } catch (...) {
+        return false;
+    }
+}
+
+void load_saved(AppConfig& cfg) { load_token(cfg); }
 
 bool is_service() { return usable(g_token) && g_token.rola == "serwis"; }
 

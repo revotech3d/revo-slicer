@@ -1,4 +1,5 @@
 #include "Moonraker.hpp"
+#include "slic3r/GUI/RevoLicencja.hpp"
 
 #include <exception>
 #include <sstream>
@@ -108,6 +109,21 @@ bool Moonraker::test(wxString &msg) const
 #endif
     .perform_sync();
 
+
+    // [r]evo Slicer: tylko maszyny Revon z Revo OS – maszyna pokazuje licencję podpisaną kluczem Revotech
+    if (res) {
+        bool revon = false;
+        auto id = Http::get(make_url("revo/sesja/tozsamosc"));
+        id.on_complete([&](std::string body, unsigned) { revon = GUI::Revo::is_revon_machine(body); })
+#ifdef WIN32
+            .ssl_revoke_best_effort(m_ssl_revoke_best_effort)
+#endif
+            .perform_sync();
+        if (!revon) {
+            res = false;
+            msg = _L("[r]evo Slicer works only with Revon printers running Revo OS. Use the printer address (e.g. revon.local) without a port.");
+        }
+    }
     return res;
 }
 

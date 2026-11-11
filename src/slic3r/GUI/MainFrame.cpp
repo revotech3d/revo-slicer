@@ -1,4 +1,5 @@
 #include "RevoKreator.hpp"
+#include "RevoLicencja.hpp"
 #include "MainFrame.hpp"
 
 #include <wx/event.h>
@@ -2916,6 +2917,8 @@ wxMenu* MainFrame::generate_help_menu()
         [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/category/revo-os/"); });
     append_menu_item(helpMenu, wxID_ANY, _L("Contact Revotech service"), _L("Contact Revotech service"),
         [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/serwis-drukarek-3d/"); });
+    append_menu_item(helpMenu, wxID_ANY, _L("Revotech service sign-in"), _L("Sign in with a Revotech service account"),
+        [this](wxCommandEvent&) { Slic3r::GUI::Revo::ensure_licence(*wxGetApp().app_config, this); });
 
     helpMenu->AppendSeparator();
 

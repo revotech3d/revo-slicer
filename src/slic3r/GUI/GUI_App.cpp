@@ -3464,15 +3464,8 @@ bool GUI_App::on_init_inner()
         scrn->SetText(_L("Loading configuration") + dots, 5);
     }
 
-    // [r]evo Slicer: logowanie kontem Revotech i licencja przed wczytaniem profili
-    if (is_editor()) {
-        if (scrn) scrn->Hide();
-        if (!Slic3r::GUI::Revo::ensure_licence(*app_config, nullptr)) {
-            if (scrn) scrn->Destroy();
-            return false;
-        }
-        if (scrn) scrn->Show();
-    }
+    // [r]evo Slicer: bez logowania; zapisany token serwisu Revotech odblokowuje tworzenie własnych drukarek
+    Slic3r::GUI::Revo::load_saved(*app_config);
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
     preset_bundle = new PresetBundle();
