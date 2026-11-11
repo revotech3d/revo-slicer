@@ -65,4 +65,4 @@ jobs:
             --title "[r]evo Slicer ${{ inputs.wersja }}" \
             --notes "[r]evo Slicer ${{ inputs.wersja }} – slicer Revotech dla drukarek Revon. Sometimes evolution. Sometimes [r]evolution.
 
-          Windows: uruchom instalator. Mac (Apple Silicon): rozpakuj zip, przeciągnij aplikację do Programów, przy pierwszym uruchomieniu prawy przycisk → Otwórz."
+          Windows: uruchom instalator; jeśli pojawi się „System Windows ochronił ten komputer” – Więcej informacji → Uruchom mimo to. Mac (Apple Silicon): rozpakuj zip, przeciągnij [r]evo Slicer do Programów, przy pierwszym uruchomieniu prawy przycisk → Otwórz → Otwórz."
