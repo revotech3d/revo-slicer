@@ -185,7 +185,7 @@ TroubleshootDialog::TroubleshootDialog()
     m_header_logo     = new wxStaticBitmap(this, wxID_ANY, m_logo.bmp());
     auto logo_line    = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(2)));
     logo_line->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#009687")));
-    auto version      = new Label(this, wxString(SoftFever_VERSION), wxALIGN_CENTRE_HORIZONTAL);
+    auto version      = new Label(this, wxString(REVO_SLICER_VERSION), wxALIGN_CENTRE_HORIZONTAL);
     wxFont version_font = GetFont();
     version_font = version_font.Scaled(1.65f); // SetPointSize(18) not works on macOS because it uses a 72 PPI reference
     version->SetFont(version_font);
