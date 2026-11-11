@@ -194,7 +194,7 @@ public:
             m_ok->SetLabel(_L("Save"));
         } else {
             m_title->SetLabel(_L("Activate your printer"));
-            m_info->SetLabel(_L("[r]evo Slicer starts when your Revon printer is activated.\nEnter the licence number on the printer screen: Settings → Licence,\nthen click Check again."));
+            m_info->SetLabel(_L("[r]evo Slicer starts when your Revon printer is activated.\nEnter the licence number on the printer screen: Menu → Więcej → Licencja,\nthen click Check again."));
             m_ok->SetLabel(_L("Check again"));
         }
         m_err->SetLabel(err);
