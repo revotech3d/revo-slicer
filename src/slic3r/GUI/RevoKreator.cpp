@@ -1,3 +1,4 @@
+#include <boost/algorithm/string/predicate.hpp>
 #include "slic3r/GUI/I18N.hpp"
 
 #include "RevoKreator.hpp"
@@ -65,8 +66,21 @@ public:
         auto* s  = new wxBoxSizer(wxVERTICAL);
         auto* pb = wxGetApp().preset_bundle;
         s->Add(heading(this, _L("Three choices and you are ready to print")), 0, wxALL, FromDIP(16));
+        // [r]evo: najpierw maszyna (tylko Revon), potem materiał z profili Revotech
+        s->Add(new wxStaticText(this, wxID_ANY, _L("Printer")), 0, wxLEFT | wxRIGHT, FromDIP(16));
         auto* prow = new wxBoxSizer(wxHORIZONTAL);
-        prow->Add(new wxStaticText(this, wxID_ANY, from_u8(pb->printers.get_selected_preset_name())), 1, wxALIGN_CENTER_VERTICAL);
+        m_printer = new wxChoice(this, wxID_ANY);
+        for (const Preset& p : pb->printers)
+            if (p.is_system && p.is_visible && boost::starts_with(p.name, "Revon")) {
+                m_printers.push_back(p.name);
+                m_printer->Append(from_u8(p.name));
+                if (p.name == pb->printers.get_selected_preset_name())
+                    m_printer->SetSelection(int(m_printers.size()) - 1);
+            }
+        if (m_printer->GetSelection() == wxNOT_FOUND && !m_printers.empty())
+            m_printer->SetSelection(0);
+        m_printer->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) { select_printer(); fill_materials(); });
+        prow->Add(m_printer, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
         auto* con = new wxButton(this, wxID_ANY, _L("Connect to printer"));
         con->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { show_connect_wizard(this); });
         prow->Add(con, 0);
@@ -74,14 +88,9 @@ public:
 
         s->Add(new wxStaticText(this, wxID_ANY, _L("Material")), 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
         m_material = new wxChoice(this, wxID_ANY);
-        for (const Preset& p : pb->filaments)
-            if (p.is_visible && p.is_compatible) {
-                m_names.push_back(p.name);
-                m_material->Append(from_u8(p.alias.empty() ? p.name : p.alias));
-                if (p.name == pb->filaments.get_selected_preset_name())
-                    m_material->SetSelection(int(m_names.size()) - 1);
-            }
         s->Add(m_material, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(16));
+        select_printer();
+        fill_materials();
 
         wxString q[] = {_L("Fast"), _L("Standard"), _L("Fine")};
         m_quality = new wxRadioBox(this, wxID_ANY, _L("Quality"), wxDefaultPosition, wxDefaultSize, 3, q, 3);
@@ -102,8 +111,36 @@ public:
     }
 
 private:
+    void select_printer()
+    {
+        int i = m_printer->GetSelection();
+        if (i < 0 || size_t(i) >= m_printers.size())
+            return;
+        if (wxGetApp().preset_bundle->printers.get_selected_preset_name() != m_printers[i])
+            if (Tab* t = wxGetApp().get_tab(Preset::TYPE_PRINTER))
+                t->select_preset(m_printers[i]);
+    }
+
+    void fill_materials()
+    {
+        auto* pb = wxGetApp().preset_bundle;
+        m_material->Clear();
+        m_names.clear();
+        int pla = -1;
+        for (const Preset& p : pb->filaments)
+            if (p.is_visible && p.is_compatible && boost::starts_with(p.name, "Revo ")) {
+                m_names.push_back(p.name);
+                m_material->Append(from_u8(p.alias.empty() ? p.name : p.alias));
+                if (pla < 0 && p.name.find("PLA") != std::string::npos)
+                    pla = int(m_names.size()) - 1;
+            }
+        if (!m_names.empty())
+            m_material->SetSelection(pla >= 0 ? pla : 0);
+    }
+
     void apply()
     {
+        select_printer();
         int sel = m_material->GetSelection();
         if (sel >= 0 && size_t(sel) < m_names.size())
             if (Tab* t = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
@@ -124,6 +161,8 @@ private:
     }
 
     wxChoice*                m_material;
+    wxChoice*                m_printer;
+    std::vector<std::string> m_printers;
     wxRadioBox *             m_quality, *m_strength, *m_support;
     std::vector<std::string> m_names;
 };

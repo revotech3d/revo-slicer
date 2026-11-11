@@ -8614,6 +8614,11 @@ bool GUI_App::load_language(wxString language, bool initial)
         }
     }
 
+    // [r]evo Slicer: interfejs wyłącznie po angielsku (jak Revo OS)
+    language = "en_US";
+    app_config->set("language", "en_US");
+    m_language_info_system = nullptr;
+    m_language_info_best   = nullptr;
 	const wxLanguageInfo *language_info = language.empty() ? nullptr : wxLocale::FindLanguageInfo(language);
 	if (! language.empty() && (language_info == nullptr || language_info->CanonicalName.empty())) {
 		// Fix for wxWidgets issue, where the FindLanguageInfo() returns locales with undefined ANSII code (wxLANGUAGE_KONKANI or wxLANGUAGE_MANIPURI).
