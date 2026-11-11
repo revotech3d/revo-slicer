@@ -55,7 +55,8 @@ jobs:
           mkdir -p out
           find art -name 'RevoSlicer_Windows_Installer_*.exe' -exec cp {} out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe \;
           find art -name 'RevoSlicer_Mac_arm64_*.zip' -exec cp {} out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip \;
-          test -f out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe && test -f out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip
+          test -f out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe
+          test -f out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip
           ls -la out
       - name: Publikacja
         env:
