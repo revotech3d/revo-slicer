@@ -508,7 +508,7 @@ public:
         s->Add(heading(this, _L("Connect to your Revon printer")), 0, wxALL, FromDIP(16));
         auto* info = new wxStaticText(this, wxID_ANY,
             _L("Enter the printer address (revon.local or the IP shown on the printer screen in System) "
-               "and the login and PIN of the machine manager. The slicer gets the access key from the printer by itself."));
+               "and click Connect. The login and PIN of the machine manager are needed only if the printer requires them."));
         info->Wrap(FromDIP(440));
         s->Add(info, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
         // [r]evo: drukarka znaleziona w sieci (miniatura, numer, stan, IP) i ponowne szukanie
@@ -524,8 +524,8 @@ public:
         m_host  = new wxTextCtrl(this, wxID_ANY, "revon.local");
         m_login = new wxTextCtrl(this, wxID_ANY);
         m_pin   = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
-        m_login->SetHint(_L("Manager login"));
-        m_pin->SetHint("PIN");
+        m_login->SetHint(_L("Manager login (optional)"));
+        m_pin->SetHint(_L("PIN (optional)"));
         for (auto* c : {m_host, m_login, m_pin})
             s->Add(c, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
         m_err = new wxStaticText(this, wxID_ANY, "");
@@ -566,7 +566,6 @@ private:
             m_host->SetValue(from_u8(list[sel].ip));
             m_thumb->SetBitmap(model_thumb(this, list[sel].model));
             m_found->SetLabel(card_text(list[sel]));
-            m_login->SetFocus();
         }
         m_found->Wrap(FromDIP(330));
         Layout();
@@ -624,46 +623,76 @@ private:
             host.pop_back();
         std::string cookie, key, err;
         unsigned    st = 0;
-        nlohmann::json body = {{"login", into_u8(m_login->GetValue())}, {"pin", into_u8(m_pin->GetValue())}};
-        Http::post(host + "/revo/sesja/operator")
-            .header("Content-Type", "application/json")
-            .timeout_connect(5)
-            .timeout_max(15)
-            .set_post_body(body.dump())
-            .on_header_callback([&cookie](std::string h) {
-                // nagłówek „set-cookie: revo_sesja=…; Path=/…”
-                std::string low = h;
-                std::transform(low.begin(), low.end(), low.begin(), ::tolower);
-                auto p = low.find("revo_sesja=");
-                if (p != std::string::npos) {
-                    auto e = h.find(';', p);
-                    cookie = h.substr(p, e == std::string::npos ? std::string::npos : e - p);
-                }
-            })
-            .on_complete([&](std::string, unsigned s) { st = s; })
-            .on_error([&](std::string b, std::string e, unsigned s) {
-                st = s;
-                try { err = nlohmann::json::parse(b).value("message", e); } catch (...) { err = e; }
-            })
-            .perform_sync();
-        if (st == 0)
-            return fail(_L("The printer does not respond. Check the address and that the computer is in the same network.") +
-                        (err.empty() ? wxString() : "\n(" + from_u8(err) + ")"));
-        if (st != 200 || cookie.empty())
-            return fail(from_u8(err.empty() ? _u8L("Wrong login or PIN.") : err));
-        Http::get(host + "/revo/klucz-api")
-            .header("Cookie", cookie)
-            .timeout_connect(5)
-            .timeout_max(15)
-            .on_complete([&](std::string b, unsigned) {
-                try { key = nlohmann::json::parse(b).value("klucz", ""); } catch (...) {}
-            })
-            .on_error([&](std::string b, std::string e, unsigned) {
-                try { err = nlohmann::json::parse(b).value("message", e); } catch (...) { err = e; }
-            })
-            .perform_sync();
-        if (key.empty())
-            return fail(from_u8(err.empty() ? _u8L("Only the machine manager can connect the slicer.") : err));
+        if (m_login->GetValue().Trim().IsEmpty()) {
+            // [r]evo: bez logowania (jak Orca) – drukarka oddaje klucz, chyba że kierownik włączył wymóg logowania
+            bool need_login = false;
+            Http::get(host + "/revo/sesja/klucz-slicer")
+                .timeout_connect(5)
+                .timeout_max(15)
+                .on_complete([&](std::string b, unsigned s) {
+                    st = s;
+                    try { key = nlohmann::json::parse(b).value("klucz", ""); } catch (...) {}
+                })
+                .on_error([&](std::string b, std::string e, unsigned s) {
+                    st = s;
+                    try {
+                        const auto j = nlohmann::json::parse(b);
+                        need_login   = j.value("logowanie", false);
+                        err          = j.value("message", e);
+                    } catch (...) { err = e; }
+                })
+                .perform_sync();
+            if (st == 0)
+                return fail(_L("The printer does not respond. Check the address and that the computer is in the same network.") +
+                            (err.empty() ? wxString() : "\n(" + from_u8(err) + ")"));
+            if (need_login) {
+                m_login->SetFocus();
+                return fail(_L("This printer requires the manager login. Enter the login and PIN."));
+            }
+            if (key.empty())
+                return fail(from_u8(err.empty() ? _u8L("The printer did not give the access key. Update Revo OS on the printer.") : err));
+        } else {
+            nlohmann::json body = {{"login", into_u8(m_login->GetValue())}, {"pin", into_u8(m_pin->GetValue())}};
+            Http::post(host + "/revo/sesja/operator")
+                .header("Content-Type", "application/json")
+                .timeout_connect(5)
+                .timeout_max(15)
+                .set_post_body(body.dump())
+                .on_header_callback([&cookie](std::string h) {
+                    // nagłówek „set-cookie: revo_sesja=…; Path=/…”
+                    std::string low = h;
+                    std::transform(low.begin(), low.end(), low.begin(), ::tolower);
+                    auto p = low.find("revo_sesja=");
+                    if (p != std::string::npos) {
+                        auto e = h.find(';', p);
+                        cookie = h.substr(p, e == std::string::npos ? std::string::npos : e - p);
+                    }
+                })
+                .on_complete([&](std::string, unsigned s) { st = s; })
+                .on_error([&](std::string b, std::string e, unsigned s) {
+                    st = s;
+                    try { err = nlohmann::json::parse(b).value("message", e); } catch (...) { err = e; }
+                })
+                .perform_sync();
+            if (st == 0)
+                return fail(_L("The printer does not respond. Check the address and that the computer is in the same network.") +
+                            (err.empty() ? wxString() : "\n(" + from_u8(err) + ")"));
+            if (st != 200 || cookie.empty())
+                return fail(from_u8(err.empty() ? _u8L("Wrong login or PIN.") : err));
+            Http::get(host + "/revo/klucz-api")
+                .header("Cookie", cookie)
+                .timeout_connect(5)
+                .timeout_max(15)
+                .on_complete([&](std::string b, unsigned) {
+                    try { key = nlohmann::json::parse(b).value("klucz", ""); } catch (...) {}
+                })
+                .on_error([&](std::string b, std::string e, unsigned) {
+                    try { err = nlohmann::json::parse(b).value("message", e); } catch (...) { err = e; }
+                })
+                .perform_sync();
+            if (key.empty())
+                return fail(from_u8(err.empty() ? _u8L("Only the machine manager can connect the slicer.") : err));
+        }
 
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
         if (!tab)
