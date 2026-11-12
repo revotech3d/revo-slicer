@@ -34,6 +34,9 @@
 #include <wx/hyperlink.h>
 #include <wx/panel.h>
 #include <wx/timer.h>
+#include <wx/cursor.h>
+#include <wx/font.h>
+#include <wx/dcclient.h>
 
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Preset.hpp"
@@ -43,6 +46,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/Utils/Http.hpp"
@@ -463,148 +467,241 @@ wxBitmap model_thumb(wxWindow* w, const std::string& m)
     const auto path = boost::filesystem::path(resources_dir()) / "profiles" / "Revotech" / (f + "_cover.png");
     if (!img.LoadFile(from_u8(path.string()), wxBITMAP_TYPE_PNG))
         return wxBitmap();
-    const int px = w->FromDIP(84);
+    img = img.ConvertToGreyscale();
+    const int px = w->FromDIP(96);
     return wxBitmap(img.Rescale(px, px * img.GetHeight() / std::max(1, img.GetWidth()), wxIMAGE_QUALITY_HIGH));
 }
 
 wxString model_dims(const std::string& m)
 {
-    if (m == "belt") return _L("350 × 350 × 300 mm · belt");
-    if (m == "600x600x400") return "600 × 600 × 400 mm";
-    if (m == "600x600x600") return "600 × 600 × 600 mm";
-    if (m == "1200x600x500") return "1200 × 600 × 500 mm";
-    return "";
-}
-
-wxColour state_colour(const std::string& s)
-{
-    if (s == "gotowa") return wxColour(62, 214, 99);
-    if (s == "drukowanie" || s == "nagrzewanie" || s == "pauza") return wxColour(240, 160, 75);
-    if (s == "blad") return wxColour(255, 77, 82);
-    return wxColour(154, 160, 168);
+    if (m == "belt") return wxString::FromUTF8("350×350×300");
+    if (m == "600x600x400") return wxString::FromUTF8("600×600×400");
+    if (m == "600x600x600") return wxString::FromUTF8("600×600×600");
+    if (m == "1200x600x500") return wxString::FromUTF8("1200×600×500");
+    return "–";
 }
 
 constexpr double kPi = 3.14159265358979323846;
 
-// Kolory ekranu wyszukiwania (spójne z Revo OS)
-const wxColour kBg(22, 24, 27), kCard(32, 36, 40), kLine(44, 50, 56), kText(232, 234, 237), kMuted(154, 160, 168), kGreen(62, 214, 99);
+// Kolory ekranu wyszukiwania (styl startu rakiety: czerń, biel, chłodny błękit horyzontu)
+const wxColour kBg(0, 0, 0), kLine(42, 47, 54), kText(255, 255, 255), kMuted(154, 164, 178), kBlue(90, 160, 255), kGreen(127, 209, 139);
 
-// ---------------------------------------------------------------- Radar: obracająca się wiązka, znalezione maszyny jako punkty
-class RadarPanel : public wxPanel
+// Rozstrzelone wielkie litery (napisy w stylu telemetrii); tłumaczenie zostaje zwykłym tekstem
+wxString spaced(const wxString& t, int gap = 1)
+{
+    wxString out;
+    const wxString sep(wxUniChar(0x2009), gap); // cienka spacja
+    const wxString up = t.Upper();
+    for (size_t i = 0; i < up.length(); ++i) {
+        if (i)
+            out += sep;
+        out += up[i];
+    }
+    return out;
+}
+
+wxStaticText* label(wxWindow* p, const wxString& t, int pt, const wxColour& c, bool light = false)
+{
+    auto*  l = new wxStaticText(p, wxID_ANY, t);
+    wxFont f = l->GetFont();
+    f.SetPointSize(pt);
+    if (light)
+        f.SetWeight(wxFONTWEIGHT_LIGHT);
+    l->SetFont(f);
+    l->SetForegroundColour(c);
+    l->SetBackgroundColour(kBg);
+    return l;
+}
+
+// ---------------------------------------------------------------- Płaski przycisk (DOCK / UNDOCK): ramka, tekst, podświetlenie
+class FlatButton : public wxPanel
 {
 public:
-    explicit RadarPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY), m_timer(this)
+    FlatButton(wxWindow* parent, const wxString& text, bool primary, std::function<void()> on_click)
+        : wxPanel(parent, wxID_ANY), m_text(text), m_primary(primary), m_click(std::move(on_click))
     {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
-        SetMinSize(FromDIP(wxSize(230, 230)));
-        Bind(wxEVT_PAINT, &RadarPanel::on_paint, this);
-        Bind(wxEVT_TIMER, [this](wxTimerEvent&) { m_angle = std::fmod(m_angle + 3.0, 360.0); Refresh(false); });
-        m_timer.Start(33);
+        wxFont f = GetFont();
+        f.SetPointSize(primary ? 12 : 10);
+        SetFont(f);
+        wxClientDC dc(this);
+        dc.SetFont(f);
+        const wxSize t = dc.GetTextExtent(m_text);
+        SetMinSize(wxSize(t.x + FromDIP(primary ? 44 : 32), t.y + FromDIP(primary ? 18 : 12)));
+        SetCursor(wxCursor(wxCURSOR_HAND));
+        Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
+            wxAutoBufferedPaintDC dc(this);
+            const wxSize          s = GetClientSize();
+            dc.SetBackground(wxBrush(m_hover ? wxColour(m_primary ? 255 : 90, m_primary ? 255 : 100, m_primary ? 255 : 114) : kBg));
+            dc.Clear();
+            dc.SetPen(wxPen(m_primary ? kText : wxColour(90, 100, 114), 1));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRectangle(0, 0, s.x, s.y);
+            dc.SetFont(GetFont());
+            dc.SetTextForeground(m_hover ? (m_primary ? kBg : kText) : (m_primary ? kText : kMuted));
+            const wxSize t = dc.GetTextExtent(m_text);
+            dc.DrawText(m_text, (s.x - t.x) / 2, (s.y - t.y) / 2);
+        });
+        Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent&) { m_hover = true; Refresh(); });
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) { m_hover = false; Refresh(); });
+        Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) { if (auto f = m_click) wxTheApp->CallAfter([f] { f(); }); }); // przycisk może zniknąć po kliknięciu
     }
-    ~RadarPanel() override { m_timer.Stop(); }
-
-    // Punkt dla maszyny: kąt i odległość wyliczone z numeru seryjnego (zawsze w tym samym miejscu radaru)
-    void add_blip(const std::string& id)
-    {
-        const size_t h = std::hash<std::string>{}(id);
-        m_blips.push_back({double(h % 360), 0.35 + 0.5 * double((h / 360) % 100) / 100.0});
-    }
-    void clear_blips() { m_blips.clear(); }
 
 private:
+    wxString              m_text;
+    bool                  m_primary, m_hover = false;
+    std::function<void()> m_click;
+};
+
+// ---------------------------------------------------------------- Horyzont: łuk Ziemi, znacznik skanu ze smugą, błysk przy znalezieniu
+class HorizonPanel : public wxPanel
+{
+public:
+    HorizonPanel(wxWindow* parent, std::function<void()> on_manual) : wxPanel(parent, wxID_ANY), m_manual(std::move(on_manual))
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetMinSize(wxSize(-1, FromDIP(120)));
+        Bind(wxEVT_PAINT, &HorizonPanel::on_paint, this);
+        Bind(wxEVT_MOTION, [this](wxMouseEvent& e) { SetCursor(wxCursor(m_link.Contains(e.GetPosition()) ? wxCURSOR_HAND : wxCURSOR_ARROW)); });
+        Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) { if (m_link.Contains(e.GetPosition()) && m_manual) m_manual(); });
+    }
+
+    void set_time(double t) { m_t = t; Refresh(false); }
+    void flash() { m_flash_t = m_t; m_flash_u = phase(); }
+    void set_scanning(bool on) { m_scanning = on; }
+
+private:
+    static constexpr double kPeriod = 4.0;
+    double phase() const { return std::fmod(m_t, kPeriod) / kPeriod; }
+
+    // punkt łuku (krzywa Béziera przez środek u góry), u = 0…1 zakres skanu
+    wxPoint2DDouble arc(double u, double off = 0) const
+    {
+        const wxSize sz = GetClientSize();
+        const double k = 0.15 + 0.7 * u, a = -0.11 * sz.x, c = sz.x * 1.11, y0 = sz.y + FromDIP(30) + off, y1 = FromDIP(-10) + off;
+        return {(1 - k) * (1 - k) * a + 2 * k * (1 - k) * sz.x / 2.0 + k * k * c, (1 - k) * (1 - k) * y0 + 2 * k * (1 - k) * y1 + k * k * y0};
+    }
+
+    void stroke_arc(wxGraphicsContext* gc, double off)
+    {
+        wxGraphicsPath p = gc->CreatePath();
+        for (int i = 0; i <= 60; ++i) {
+            const double u = -0.22 + 1.44 * i / 60.0;
+            const auto   q = arc(u, off);
+            i ? p.AddLineToPoint(q) : p.MoveToPoint(q);
+        }
+        gc->StrokePath(p);
+    }
+
     void on_paint(wxPaintEvent&)
     {
         wxAutoBufferedPaintDC dc(this);
-        dc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
+        dc.SetBackground(wxBrush(kBg));
         dc.Clear();
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
         if (!gc)
             return;
         const wxSize sz = GetClientSize();
-        const double r  = std::min(sz.x, sz.y) / 2.0 - FromDIP(4);
-        const double cx = sz.x / 2.0, cy = sz.y / 2.0;
-        gc->SetPen(wxPen(wxColour(42, 58, 47), 1));
-        gc->SetBrush(wxBrush(wxColour(14, 16, 18)));
-        gc->DrawEllipse(cx - r, cy - r, 2 * r, 2 * r);
-        gc->SetBrush(*wxTRANSPARENT_BRUSH);
-        for (double k : {0.68, 0.36})
-            gc->DrawEllipse(cx - r * k, cy - r * k, 2 * r * k, 2 * r * k);
-        gc->StrokeLine(cx - r, cy, cx + r, cy);
-        gc->StrokeLine(cx, cy - r, cx, cy + r);
-        // wiązka: wycinek 60° zanikający za linią
-        const double a = m_angle * kPi / 180.0;
-        for (int i = 0; i < 30; ++i) {
-            const double a0 = a - (i + 1) * (kPi / 90.0), a1 = a - i * (kPi / 90.0);
-            wxGraphicsPath p = gc->CreatePath();
-            p.MoveToPoint(cx, cy);
-            p.AddArc(cx, cy, r, a0, a1, true);
-            p.CloseSubpath();
+        // poświata atmosfery i dwie linie horyzontu
+        gc->SetPen(wxPen(wxColour(90, 160, 255, 60), FromDIP(6)));
+        stroke_arc(gc.get(), FromDIP(14));
+        gc->SetPen(wxPen(wxColour(255, 255, 255, 90), 1));
+        stroke_arc(gc.get(), 0);
+        if (m_scanning) {
+            // smuga za znacznikiem
+            const double u = phase();
+            for (int i = 0; i < 24; ++i) {
+                const double v0 = std::max(0.0, u - 0.25 * (1 - i / 24.0)), v1 = std::max(0.0, u - 0.25 * (1 - (i + 1) / 24.0));
+                gc->SetPen(wxPen(wxColour(159, 208, 255, int(230 * i / 24.0)), FromDIP(3)));
+                const auto a = arc(v0), b = arc(v1);
+                gc->StrokeLine(a.m_x, a.m_y, b.m_x, b.m_y);
+            }
+            const auto m = arc(u);
+            gc->SetPen(wxPen(kText, 1));
+            gc->StrokeLine(m.m_x, m.m_y - FromDIP(14), m.m_x, m.m_y + FromDIP(6));
             gc->SetPen(*wxTRANSPARENT_PEN);
-            gc->SetBrush(wxBrush(wxColour(62, 214, 99, int(110 * (1.0 - i / 30.0)))));
-            gc->FillPath(p);
+            gc->SetBrush(wxBrush(kText));
+            gc->DrawEllipse(m.m_x - FromDIP(3), m.m_y - FromDIP(3), FromDIP(6), FromDIP(6));
         }
-        gc->SetPen(wxPen(kGreen, 2));
-        gc->StrokeLine(cx, cy, cx + r * std::cos(a), cy + r * std::sin(a));
-        // punkty maszyn: jaśniejsze tuż po przejściu wiązki
-        for (const auto& b : m_blips) {
-            const double ba   = b.angle * kPi / 180.0;
-            double       diff = std::fmod(m_angle - b.angle + 720.0, 360.0);
-            const int    alpha = int(255 - std::min(diff, 300.0) * 0.5);
-            const double bx = cx + r * b.dist * std::cos(ba), by = cy + r * b.dist * std::sin(ba), d = FromDIP(6);
+        // błysk w miejscu wykrycia
+        const double fd = m_t - m_flash_t;
+        if (m_flash_t >= 0 && fd < 0.8) {
+            const double k = 1 - fd / 0.8, r = FromDIP(20 + 40 * (1 - k));
+            const auto   f = arc(m_flash_u);
             gc->SetPen(*wxTRANSPARENT_PEN);
-            gc->SetBrush(wxBrush(wxColour(62, 214, 99, std::max(alpha, 110))));
-            gc->DrawEllipse(bx - d, by - d, 2 * d, 2 * d);
+            gc->SetBrush(gc->CreateRadialGradientBrush(f.m_x, f.m_y, f.m_x, f.m_y, r, wxColour(255, 255, 255, int(255 * k)), wxColour(90, 160, 255, 0)));
+            gc->DrawEllipse(f.m_x - r, f.m_y - r, 2 * r, 2 * r);
         }
-        gc->SetBrush(wxBrush(kGreen));
-        gc->DrawEllipse(cx - FromDIP(4), cy - FromDIP(4), FromDIP(8), FromDIP(8));
+        // SCANNING ● ● ● (fala) i link do adresu ręcznego
+        wxFont f = GetFont();
+        f.SetPointSize(9);
+        gc->SetFont(f, kMuted);
+        const wxString sc = spaced(m_scanning ? _L("Scanning") : _L("Paused"), 2);
+        double w, h;
+        gc->GetTextExtent(sc, &w, &h);
+        const double dots = FromDIP(m_scanning ? 40 : 0), x0 = (sz.x - w - dots) / 2, y = sz.y - FromDIP(26);
+        gc->DrawText(sc, x0, y);
+        if (m_scanning)
+            for (int i = 0; i < 3; ++i) {
+                const double ph = std::fmod(m_t * 1.5 - i * 0.33 + 3, 1.0), a = 0.2 + 0.8 * std::max(0.0, 1 - std::abs(ph - 0.2) * 3);
+                gc->SetPen(*wxTRANSPARENT_PEN);
+                gc->SetBrush(wxBrush(wxColour(255, 255, 255, int(255 * a))));
+                const double cx = x0 + w + FromDIP(12) + i * FromDIP(12), r = FromDIP(2.5);
+                gc->DrawEllipse(cx - r, y + h / 2 - r, 2 * r, 2 * r);
+            }
+        const wxString ml = spaced(_L("Manual address")) + wxString::FromUTF8(" ›");
+        gc->GetTextExtent(ml, &w, &h);
+        gc->DrawText(ml, FromDIP(40), y);
+        m_link = wxRect(FromDIP(36), int(y) - FromDIP(6), int(w) + FromDIP(10), int(h) + FromDIP(12));
     }
 
-    struct Blip { double angle, dist; };
-    wxTimer           m_timer;
-    double            m_angle = 0;
-    std::vector<Blip> m_blips;
+    std::function<void()> m_manual;
+    double                m_t = 0, m_flash_t = -1, m_flash_u = 0;
+    bool                  m_scanning = true;
+    wxRect                m_link;
 };
 
-// ---------------------------------------------------------------- Karta znalezionej maszyny
-class PrinterCard : public wxPanel
+// ---------------------------------------------------------------- Wiersz znalezionej maszyny: miniatura, nazwa, telemetria, DOCK/UNDOCK
+class VehicleRow : public wxPanel
 {
 public:
-    PrinterCard(wxWindow* parent, const FoundPrinter& f, std::function<void(PrinterCard*)> on_click)
-        : wxPanel(parent, wxID_ANY), m_on_click(std::move(on_click))
+    VehicleRow(wxWindow* parent, const FoundPrinter& f, std::function<void(VehicleRow*)> on_dock, std::function<void(VehicleRow*)> on_undock)
+        : wxPanel(parent, wxID_ANY), m_on_dock(std::move(on_dock)), m_on_undock(std::move(on_undock))
     {
-        SetBackgroundColour(kCard);
+        SetBackgroundColour(kBg);
         auto* row = new wxBoxSizer(wxHORIZONTAL);
-        m_thumb   = new wxStaticBitmap(this, wxID_ANY, model_thumb(this, f.model));
-        row->Add(m_thumb, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-        auto* col = new wxBoxSizer(wxVERTICAL);
-        auto* top = new wxBoxSizer(wxHORIZONTAL);
-        m_name    = new wxStaticText(this, wxID_ANY, model_name(f.model));
-        m_name->SetFont(m_name->GetFont().Bold().Larger());
-        m_name->SetForegroundColour(kText);
-        m_state = new wxStaticText(this, wxID_ANY, "");
-        top->Add(m_name, 0, wxALIGN_CENTER_VERTICAL);
-        top->Add(m_state, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
-        col->Add(top, 0, wxBOTTOM, FromDIP(2));
-        m_dims = new wxStaticText(this, wxID_ANY, model_dims(f.model));
-        m_id   = new wxStaticText(this, wxID_ANY, "");
-        m_net  = new wxStaticText(this, wxID_ANY, "");
-        for (auto* t : {m_dims, m_id})
-            t->SetForegroundColour(kText);
-        m_net->SetForegroundColour(kMuted);
-        for (auto* t : {m_dims, m_id, m_net})
-            col->Add(t, 0, wxBOTTOM, FromDIP(1));
-        row->Add(col, 1, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM | wxRIGHT, FromDIP(10));
-        SetSizer(row);
+        row->Add(new wxStaticBitmap(this, wxID_ANY, model_thumb(this, f.model)), 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, FromDIP(12));
+        auto* nc = new wxBoxSizer(wxVERTICAL);
+        m_name   = label(this, spaced(model_name(f.model)), 17, kText, true);
+        m_serial = label(this, spaced(from_u8(f.id)), 9, kMuted);
+        nc->Add(m_name);
+        nc->Add(m_serial, 0, wxTOP, FromDIP(2));
+        nc->SetMinSize(wxSize(FromDIP(230), -1));
+        row->Add(nc, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(18));
+        auto field = [&](const wxString& cap, int min_w) {
+            auto* c = new wxBoxSizer(wxVERTICAL);
+            c->Add(label(this, spaced(cap, 2), 8, kMuted));
+            auto* v = label(this, "", 15, kText, true);
+            c->Add(v, 0, wxTOP, FromDIP(2));
+            c->SetMinSize(wxSize(FromDIP(min_w), -1));
+            row->Add(c, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
+            return v;
+        };
+        m_status = field(_L("Status"), 150);
+        m_nozzle = field(_L("Nozzle"), 70);
+        m_build  = field(_L("Build"), 120);
+        m_addr   = field(_L("Address"), 110);
+        row->AddStretchSpacer();
+        m_action = new wxBoxSizer(wxVERTICAL);
+        row->Add(m_action, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
+        auto* outer = new wxBoxSizer(wxVERTICAL);
+        outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
+        auto* line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+        line->SetBackgroundColour(kLine);
+        outer->Add(line, 0, wxEXPAND);
+        SetSizer(outer);
         update(f);
-        for (wxWindow* w : std::initializer_list<wxWindow*>{this, m_thumb, m_name, m_state, m_dims, m_id, m_net})
-            w->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) { m_on_click(this); });
-        Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
-            wxPaintDC dc(this);
-            const wxSize s = GetClientSize();
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.SetPen(wxPen(m_selected ? kGreen : kLine, m_selected ? FromDIP(2) : 1));
-            dc.DrawRoundedRectangle(0, 0, s.x, s.y, FromDIP(8));
-        });
+        set_docked(false);
     }
 
     void update(const FoundPrinter& f)
@@ -613,101 +710,148 @@ public:
         wxString st = state_name(f.state);
         if (f.state == "drukowanie" && f.progress > 0)
             st += wxString::Format(" %d%%", f.progress);
-        m_state->SetLabel(wxString::FromUTF8("● ") + st + (m_added ? "   " + _L("✓ Added") : wxString()));
-        m_state->SetForegroundColour(state_colour(f.state));
-        // TRN %1% serial number, %2% nozzle diameter in mm
-        m_id->SetLabel(format_wxstr(_L("S/N %1% · Nozzle %2% mm"), f.id, f.nozzle > 0 ? wxString::Format("%.1f", f.nozzle) : wxString("?")));
-        m_net->SetLabel(from_u8(f.ip) + (f.os.empty() ? wxString() : " · Revo OS " + from_u8(f.os)));
+        m_status->SetLabel(st.Upper());
+        m_status->SetForegroundColour(f.state == "blad" ? wxColour(255, 77, 82) : kText);
+        m_nozzle->SetLabel(f.nozzle > 0 ? wxString::Format("%.1f", f.nozzle) : wxString("?"));
+        m_build->SetLabel(model_dims(f.model));
+        m_addr->SetLabel(from_u8(f.ip));
+        m_addr->SetToolTip(f.os.empty() ? wxString() : "Revo OS " + from_u8(f.os));
         Layout();
     }
-    void set_selected(bool s) { m_selected = s; Refresh(); }
-    void set_added(bool a) { m_added = a; update(m_f); }
-    bool added() const { return m_added; }
+
+    void set_docked(bool d)
+    {
+        m_docked = d;
+        m_action->Clear(true);
+        if (d) {
+            m_action->Add(label(this, wxString::FromUTF8("✓ ") + spaced(_L("Docked")), 8, kGreen), 0, wxALIGN_CENTER | wxBOTTOM, FromDIP(5));
+            m_action->Add(new FlatButton(this, spaced(_L("Undock"), 2), false, [this] { m_on_undock(this); }), 0, wxALIGN_CENTER);
+        } else
+            m_action->Add(new FlatButton(this, spaced(_L("Dock"), 2), true, [this] { m_on_dock(this); }), 0, wxALIGN_CENTER);
+        Layout();
+        GetParent()->Layout();
+    }
+
+    // podświetlenie świeżo znalezionej maszyny (1 → 0)
+    void set_glow(double k)
+    {
+        const wxColour c(int(kBlue.Red() * 0.18 * k), int(kBlue.Green() * 0.18 * k), int(kBlue.Blue() * 0.18 * k));
+        if (c == m_glow)
+            return;
+        m_glow = c;
+        SetBackgroundColour(c);
+        for (wxWindow* w : GetChildren())
+            if (dynamic_cast<wxStaticText*>(w))
+                w->SetBackgroundColour(c);
+        Refresh();
+    }
+
+    bool                docked() const { return m_docked; }
     const FoundPrinter& printer() const { return m_f; }
+    double              found_at = 0;
 
 private:
-    std::function<void(PrinterCard*)> m_on_click;
-    FoundPrinter                      m_f;
-    wxStaticBitmap*                   m_thumb;
-    wxStaticText *                    m_name, *m_state, *m_dims, *m_id, *m_net;
-    bool                              m_selected = false, m_added = false;
+    std::function<void(VehicleRow*)> m_on_dock, m_on_undock;
+    FoundPrinter                     m_f;
+    wxStaticText *                   m_name, *m_serial, *m_status, *m_nozzle, *m_build, *m_addr;
+    wxBoxSizer*                      m_action;
+    wxColour                         m_glow = kBg;
+    bool                             m_docked = false;
 };
 
-// ---------------------------------------------------------------- Ekran „Find your Revon printer”
-// Radar + karty maszyn znalezionych w sieci lokalnej (szukanie trwa, dopóki okno jest otwarte). Klik karty = wybór,
-// „Add …” dodaje maszynę jako obsługiwaną (profil maszyny i dyszy, wysyłanie wydruków). Adres można też wpisać ręcznie.
+// ---------------------------------------------------------------- Ekran „Find your Revon”
+// Maszyny znalezione w sieci lokalnej (szukanie trwa, dopóki okno jest otwarte), każda w swoim wierszu z DOCK
+// (dodanie do [r]evo Slicer: profil maszyny i dyszy, wysyłanie wydruków) albo UNDOCK (usunięcie). Adres można wpisać ręcznie.
 class ConnectWizard : public wxDialog
 {
 public:
     explicit ConnectWizard(wxWindow* parent)
-        : wxDialog(parent, wxID_ANY, _L("[r]evo – find your Revon printer"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+        : wxDialog(parent, wxID_ANY, _L("[r]evo – find your Revon printer"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+        , m_timer(this)
     {
         SetBackgroundColour(kBg);
-        auto* s = new wxBoxSizer(wxVERTICAL);
-        auto* h = heading(this, _L("Find your Revon printer"));
-        h->SetForegroundColour(kText);
-        s->Add(h, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
-        m_sub = new wxStaticText(this, wxID_ANY, _L("Searching the local network… Printers appear as soon as they answer."));
-        m_sub->SetForegroundColour(kMuted);
-        s->Add(m_sub, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20) / 4);
-        s->AddSpacer(FromDIP(14));
+        auto* s   = new wxBoxSizer(wxVERTICAL);
+        auto* top = new wxBoxSizer(wxHORIZONTAL);
+        auto* tl  = new wxBoxSizer(wxVERTICAL);
+        tl->Add(label(this, spaced(_L("[r]evo Slicer · network acquisition"), 3), 9, kMuted));
+        tl->Add(label(this, spaced(_L("Find your Revon"), 3), 32, kText, true), 0, wxTOP, FromDIP(14));
+        m_sub = label(this, "", 10, kMuted);
+        tl->Add(m_sub, 0, wxTOP, FromDIP(6));
+        top->Add(tl, 1);
+        auto* tr = new wxBoxSizer(wxVERTICAL);
+        tr->Add(label(this, spaced(_L("Scan time"), 3), 8, kMuted), 0, wxALIGN_RIGHT);
+        m_clock = label(this, "T+00:00", 26, kText, true);
+        tr->Add(m_clock, 0, wxALIGN_RIGHT);
+        top->Add(tr, 0);
+        s->Add(top, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(40));
+        auto* rule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+        rule->SetBackgroundColour(kText);
+        s->Add(rule, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(40));
 
-        auto* mid = new wxBoxSizer(wxHORIZONTAL);
-        m_radar   = new RadarPanel(this);
-        mid->Add(m_radar, 0, wxLEFT | wxRIGHT, FromDIP(20));
         m_list = new wxScrolledWindow(this, wxID_ANY);
         m_list->SetBackgroundColour(kBg);
         m_list->SetScrollRate(0, FromDIP(10));
-        m_list->SetMinSize(FromDIP(wxSize(440, 250)));
+        m_list->SetMinSize(FromDIP(wxSize(900, 250)));
         m_list_sizer = new wxBoxSizer(wxVERTICAL);
         m_list->SetSizer(m_list_sizer);
-        mid->Add(m_list, 1, wxEXPAND | wxRIGHT, FromDIP(20));
-        s->Add(mid, 1, wxEXPAND);
+        s->Add(m_list, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
 
         // ręczny adres (sieć, w której wyszukiwanie nie działa) i logowanie kierownika, gdy maszyna go wymaga
-        auto* manual = new wxHyperlinkCtrl(this, wxID_ANY, _L("Not on the list? Enter the address manually"), "");
-        manual->SetNormalColour(kMuted);
-        manual->SetVisitedColour(kMuted);
-        manual->Bind(wxEVT_HYPERLINK, [this](wxHyperlinkEvent&) { show_manual(!m_manual->IsShown()); });
-        s->Add(manual, 0, wxLEFT | wxTOP, FromDIP(20));
         m_manual = new wxPanel(this);
-        auto* ms = new wxBoxSizer(wxVERTICAL);
+        m_manual->SetBackgroundColour(kBg);
+        auto* ms = new wxBoxSizer(wxHORIZONTAL);
         m_host   = new wxTextCtrl(m_manual, wxID_ANY, "");
         m_login  = new wxTextCtrl(m_manual, wxID_ANY);
         m_pin    = new wxTextCtrl(m_manual, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
         m_host->SetHint(_L("Printer address, e.g. revon.local or 192.168.0.38"));
         m_login->SetHint(_L("Manager login (only if the printer requires it)"));
         m_pin->SetHint(_L("PIN (only if the printer requires it)"));
-        m_host->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { if (!m_host->IsEmpty()) select(nullptr); update_add(); e.Skip(); });
-        for (auto* c : {m_host, m_login, m_pin})
-            ms->Add(c, 0, wxEXPAND | wxTOP, FromDIP(6));
+        ms->Add(m_host, 2, wxRIGHT, FromDIP(8));
+        ms->Add(m_login, 2, wxRIGHT, FromDIP(8));
+        ms->Add(m_pin, 1, wxRIGHT, FromDIP(12));
+        ms->Add(new FlatButton(m_manual, spaced(_L("Dock"), 2), true, [this] { dock(into_u8(m_host->GetValue().Trim().Trim(false)), nullptr); }), 0, wxALIGN_CENTER_VERTICAL);
         m_manual->SetSizer(ms);
         m_manual->Hide();
-        s->Add(m_manual, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+        s->Add(m_manual, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(40) / 2);
 
-        m_msg = new wxStaticText(this, wxID_ANY, "");
-        s->Add(m_msg, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
-        auto* btns = new wxBoxSizer(wxHORIZONTAL);
-        auto* again = new wxButton(this, wxID_ANY, _L("Search again"));
-        again->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { restart(); });
-        auto* close = new wxButton(this, wxID_CANCEL, _L("Close"));
-        m_add = new wxButton(this, wxID_ANY, _L("Add printer"));
-        m_add->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { add(); });
-        m_add->Disable();
-        btns->Add(again, 0, wxRIGHT, FromDIP(8));
-        btns->AddStretchSpacer();
-        btns->Add(close, 0, wxRIGHT, FromDIP(8));
-        btns->Add(m_add, 0);
-        s->Add(btns, 0, wxEXPAND | wxALL, FromDIP(20));
+        m_msg = label(this, "", 10, kGreen);
+        s->Add(m_msg, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(40) / 2);
+        m_horizon = new HorizonPanel(this, [this] { show_manual(!m_manual->IsShown()); });
+        s->Add(m_horizon, 0, wxEXPAND | wxTOP, FromDIP(10));
         SetSizerAndFit(s);
+        SetMinSize(GetSize());
         CentreOnParent();
+
+        m_start = std::chrono::steady_clock::now();
+        Bind(wxEVT_TIMER, [this](wxTimerEvent&) { tick(); });
+        m_timer.Start(33);
+        update_sub();
         CallAfter([this] { restart(); });
     }
 
-    ~ConnectWizard() override { *m_stop = true; } // wątek szukania kończy się sam, wyniki do zamkniętego okna nie trafią
+    ~ConnectWizard() override
+    {
+        m_timer.Stop();
+        *m_stop = true; // wątek szukania kończy się sam, wyniki do zamkniętego okna nie trafią
+    }
 
 private:
-    // Szukanie w tle, powtarzane co kilka sekund, dopóki okno jest otwarte (karty pojawiają się i odświeżają na bieżąco)
+    double now() const { return std::chrono::duration<double>(std::chrono::steady_clock::now() - m_start).count(); }
+
+    void tick()
+    {
+        const double t = now();
+        m_horizon->set_time(t);
+        const int sec = int(t);
+        if (sec != m_last_sec) {
+            m_last_sec = sec;
+            m_clock->SetLabel(wxString::Format("T+%02d:%02d", (sec / 60) % 100, sec % 60));
+        }
+        for (auto* r : m_rows)
+            r->set_glow(std::max(0.0, 1.0 - (t - r->found_at) / 1.2));
+    }
+
+    // Szukanie w tle, powtarzane co kilka sekund, dopóki okno jest otwarte (wiersze pojawiają się i odświeżają na bieżąco)
     void restart()
     {
         *m_stop = true;
@@ -728,20 +872,19 @@ private:
 
     void on_found(const FoundPrinter& f)
     {
-        for (auto* c : m_cards)
-            if (c->printer().id == f.id) {
-                c->update(f);
+        for (auto* r : m_rows)
+            if (r->printer().id == f.id) {
+                r->update(f);
                 return;
             }
-        m_radar->add_blip(f.id);
-        auto* c = new PrinterCard(m_list, f, [this](PrinterCard* c) { select(c); });
-        c->set_added(already_added(f.ip));
-        m_cards.push_back(c);
-        m_list_sizer->Add(c, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
+        auto* r = new VehicleRow(m_list, f, [this](VehicleRow* r) { dock(r->printer().ip, r); }, [this](VehicleRow* r) { undock(r); });
+        r->set_docked(already_added(f.ip));
+        r->found_at = now();
+        m_rows.push_back(r);
+        m_list_sizer->Add(r, 0, wxEXPAND);
         m_list->FitInside();
         m_list->Layout();
-        if (m_cards.size() == 1 && !c->added())
-            select(c); // pierwsza znaleziona od razu zaznaczona
+        m_horizon->flash();
         update_sub();
     }
 
@@ -753,56 +896,36 @@ private:
 
     void update_sub()
     {
-        if (m_cards.empty())
+        std::string net = local_ipv4();
+        if (const auto d = net.rfind('.'); d != std::string::npos)
+            net = net.substr(0, d) + ".0/24";
+        if (m_rows.empty())
             m_sub->SetLabel(m_rounds == 0 ? _L("Searching the local network… Printers appear as soon as they answer.")
                                           : _L("Still searching… Check that the printer is on and in the same network. "
                                                "If your computer asks for access to the local network, allow it."));
         else
-            m_sub->SetLabel(format_wxstr(_L_PLURAL("Found %1% printer. Click it and add it to [r]evo Slicer.",
-                                                   "Found %1% printers. Click one and add it to [r]evo Slicer.", m_cards.size()),
-                                         m_cards.size()));
+            // TRN %1% number of printers found, %2% network address, e.g. 192.168.0.0/24
+            m_sub->SetLabel(format_wxstr(_L_PLURAL("%1% printer found on %2%", "%1% printers found on %2%", m_rows.size()), m_rows.size(),
+                                         from_u8(net.empty() ? std::string("revon.local") : net))
+                                .Upper());
         m_sub->Wrap(FromDIP(700));
-        Layout();
-    }
-
-    void select(PrinterCard* c)
-    {
-        m_sel = c;
-        for (auto* x : m_cards)
-            x->set_selected(x == c);
-        if (c && !m_host->IsEmpty()) {
-            m_host->ChangeValue("");
-        }
-        update_add();
-    }
-
-    void update_add()
-    {
-        if (m_sel) {
-            // TRN %1% printer model name, e.g. "Revon Belt 350"
-            m_add->SetLabel(format_wxstr(_L("Add %1%"), model_name(m_sel->printer().model)));
-            m_add->Enable(true);
-        } else {
-            m_add->SetLabel(_L("Add printer"));
-            m_add->Enable(!m_host->GetValue().Trim().IsEmpty());
-        }
         Layout();
     }
 
     void show_manual(bool on)
     {
         m_manual->Show(on);
+        if (on)
+            m_host->SetFocus();
         Layout();
-        Fit();
     }
 
     void message(const wxString& t, bool error)
     {
         m_msg->SetForegroundColour(error ? wxColour(255, 77, 82) : kGreen);
         m_msg->SetLabel(t);
-        m_msg->Wrap(FromDIP(700));
+        m_msg->Wrap(FromDIP(800));
         Layout();
-        Fit();
     }
 
     // Czy maszyna o tym adresie jest już dodana (profil drukarki z takim adresem wysyłania)
@@ -815,23 +938,57 @@ private:
         return false;
     }
 
-    void add()
+    void dock(const std::string& host, VehicleRow* row)
     {
-        const std::string host = m_sel ? m_sel->printer().ip : into_u8(m_host->GetValue().Trim().Trim(false));
         if (host.empty())
-            return;
+            return show_manual(true);
         wxString err;
         bool     need_login = false;
         if (!connect(host, into_u8(m_login->GetValue()), into_u8(m_pin->GetValue()), err, need_login)) {
             if (need_login) {
+                m_host->ChangeValue(from_u8(host));
                 show_manual(true);
                 m_login->SetFocus();
             }
             return message(err, true);
         }
-        if (m_sel)
-            m_sel->set_added(true);
-        message(_L("Printer added. Send prints with the Print button. You can add another printer or close this window."), false);
+        if (row)
+            row->set_docked(true);
+        else
+            for (auto* r : m_rows)
+                if (r->printer().ip == host)
+                    r->set_docked(true);
+        message(_L("Printer docked. Send prints with the Print button."), false);
+    }
+
+    // Usuwa z [r]evo Slicer profile drukarki z adresem tej maszyny (ustawienia i pliki użytkownika zostają)
+    void undock(VehicleRow* row)
+    {
+        const std::string ip = row->printer().ip;
+        // TRN %1% printer model name, e.g. "Revon Belt 350"
+        MessageDialog dlg(this, format_wxstr(_L("Undock %1%? [r]evo Slicer forgets its address. You can dock it again at any time."), model_name(row->printer().model)),
+                          _L("Undock printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+        if (dlg.ShowModal() != wxID_YES)
+            return;
+        auto&                    pr = wxGetApp().preset_bundle->printers;
+        std::vector<std::string> names;
+        for (const Preset& p : pr)
+            if (!p.is_system && !p.is_default)
+                if (const auto* h = p.config.option<ConfigOptionString>("print_host"); h && h->value == ip)
+                    names.push_back(p.name);
+        Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+        for (const auto& n : names) {
+            if (pr.get_selected_preset_name() == n && tab) {
+                const Preset* parent = pr.get_selected_preset_parent();
+                tab->select_preset(parent ? parent->name : pr.default_preset().name);
+            }
+            pr.delete_preset(n);
+        }
+        if (tab)
+            tab->update_tab_ui();
+        wxGetApp().plater()->sidebar().update_presets(Preset::TYPE_PRINTER);
+        row->set_docked(already_added(ip));
+        message(_L("Printer undocked."), false);
     }
 
     // Nazwa profilu „Revon … <dysza> nozzle” dla maszyny pod adresem host (Moonraker przez klucz API), pusta gdy się nie da.
@@ -971,17 +1128,17 @@ private:
         return true;
     }
 
-    RadarPanel*               m_radar;
-    wxScrolledWindow*         m_list;
-    wxBoxSizer*               m_list_sizer;
-    wxStaticText *            m_sub, *m_msg;
-    wxPanel*                  m_manual;
-    wxTextCtrl *              m_host, *m_login, *m_pin;
-    wxButton*                 m_add;
-    std::vector<PrinterCard*> m_cards;
-    PrinterCard*              m_sel    = nullptr;
-    int                       m_rounds = 0;
-    std::shared_ptr<std::atomic<bool>> m_stop = std::make_shared<std::atomic<bool>>(false);
+    wxTimer                  m_timer;
+    HorizonPanel*            m_horizon;
+    wxScrolledWindow*        m_list;
+    wxBoxSizer*              m_list_sizer;
+    wxStaticText *           m_sub, *m_msg, *m_clock;
+    wxPanel*                 m_manual;
+    wxTextCtrl *             m_host, *m_login, *m_pin;
+    std::vector<VehicleRow*> m_rows;
+    int                      m_rounds = 0, m_last_sec = -1;
+    std::chrono::steady_clock::time_point m_start;
+    std::shared_ptr<std::atomic<bool>>    m_stop = std::make_shared<std::atomic<bool>>(false);
 };
 
 } // namespace
