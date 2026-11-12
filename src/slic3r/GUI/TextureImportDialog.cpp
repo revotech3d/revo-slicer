@@ -301,7 +301,7 @@ void AccentSlider::OnPaint(wxPaintEvent&)
     int ts = FromDIP(8);
     int pen_w = FromDIP(2);
 
-    wxColour accent_clr = IsEnabled() ? wxColour("#1FA34A") : StateColor::darkModeColorFor(wxColour("#ACACAC")); // use original accent color here to make it more readable
+    wxColour accent_clr = IsEnabled() ? wxColour("#3D8BEA") : StateColor::darkModeColorFor(wxColour("#ACACAC")); // use original accent color here to make it more readable
     wxColour track_clr  = StateColor::darkModeColorFor(IsEnabled() ? wxColour("#CECECE") : wxColour("#DFDFDF"));
 
     int tx = xFromValue();
@@ -587,7 +587,7 @@ public:
         add_label->SetFont(af);
         decompose_label->SetFont(af);
         const bool add_enabled = !m_can_add_filament || m_can_add_filament();
-        const wxColour action_clr = wxColour("#1FA34A");
+        const wxColour action_clr = wxColour("#3D8BEA");
         add_label->SetForegroundColour(add_enabled ? action_clr : header_clr);
         decompose_label->SetForegroundColour(add_enabled ? action_clr : header_clr);
         add_label->SetCursor(wxCursor(add_enabled ? wxCURSOR_HAND : wxCURSOR_ARROW));
@@ -956,9 +956,9 @@ private:
     wxPanel* create_item_row(wxWindow* parent, TextureAutoMixMode mode, int row_h)
     {
         wxColour row_bg   = StateColor::darkModeColorFor(*wxWHITE);
-        wxColour checked_bg = StateColor::darkModeColorFor(wxColour("#C3EBCF"));
+        wxColour checked_bg = StateColor::darkModeColorFor(wxColour("#C7DCF8"));
         wxColour text_fg  = texture_import_text_colour();
-        wxColour accent   = StateColor::darkModeColorFor(wxColour("#1FA34A"));
+        wxColour accent   = StateColor::darkModeColorFor(wxColour("#3D8BEA"));
 
         wxPanel* row = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, row_h),
                                    wxTAB_TRAVERSAL | wxFULL_REPAINT_ON_RESIZE);

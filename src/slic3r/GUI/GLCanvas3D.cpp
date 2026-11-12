@@ -8936,8 +8936,12 @@ void GLCanvas3D::_render_background()
     GLShaderProgram* shader = wxGetApp().get_shader("background");
     if (shader != nullptr) {
         shader->start_using();
-        shader->set_uniform("top_color", bottom_color);
-        shader->set_uniform("bottom_color", bottom_color);
+        // [r]evo: ciemny motyw – czerń u góry, granatowa poświata horyzontu u dołu (styl ekranów startowych)
+        const bool      revo_sky  = m_is_dark && !use_error_color;
+        const ColorRGBA sky_top   = revo_sky ? ColorRGBA{0.012f, 0.016f, 0.024f, 1.0f} : bottom_color;
+        const ColorRGBA sky_floor = revo_sky ? ColorRGBA{0.051f, 0.098f, 0.169f, 1.0f} : bottom_color;
+        shader->set_uniform("top_color", sky_top);
+        shader->set_uniform("bottom_color", sky_floor);
         m_background.render();
         shader->stop_using();
     }

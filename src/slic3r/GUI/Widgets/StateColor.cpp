@@ -11,7 +11,7 @@ static bool gDarkMode = false;
 static bool operator<(wxColour const &l, wxColour const &r) { return l.GetRGBA() < r.GetRGBA(); }
 
 static std::map<wxColour, wxColour> gDarkColors{
-    {"#1FA34A", "#2BC15C"}, // Revo green (ciemny motyw jaśniejszy, jak Revo OS)
+    {"#3D8BEA", "#5AA0FF"}, // Revo green (ciemny motyw jaśniejszy, jak Revo OS)
     {"#1F8EEA", "#2778D2"}, // rgb(31, 142, 234)   ???
     {"#FF6F00", "#D15B00"}, // rgb(255, 111, 0)    Secondary color
     {"#D01B1B", "#BB2A3A"}, // rgb(208, 27, 27)    ???
@@ -19,7 +19,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#DFDFDF", "#262A2F"}, // rgb(223, 223, 223)  Button Background color
     {"#D4D4D4", "#4D4D54"}, // rgb(212, 212, 212)  Button Background color on Hover
     {"#6B6A6A", "#909090"}, // rgb(107, 107, 106)  Button Dimmed text
-    {"#2BC15C", "#3ED663"}, // Revo green hover | | ORCA Color Hover
+    {"#5AA0FF", "#7DB5FF"}, // Revo green hover | | ORCA Color Hover
     {"#6B6B6A", "#B3B3B5"}, // rgb(107, 107, 106)  Input box side text
     {"#2C2C2E", "#B3B3B4"}, // rgb(44, 44, 46)     ???
     {"#6B6B6B", "#818183"}, // rgb(107, 107, 107)  Disabled Text
@@ -27,16 +27,16 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#EEEEEE", "#2A2E33"}, // rgb(238, 238, 238)  Separator Line | Title Line Color
     {"#E8E8E8", "#262A2F"}, // rgb(232, 232, 232)  ???
     {"#323A3D", "#E5E5E4"}, // rgb(50, 58, 61)     Softer text color
-    {"#FFFFFF", "#16181B"}, // rgb(255, 255, 255)  Window background
-    {"#F8F8F8", "#1D2024"}, // rgb(248, 248, 248)  Sidebar > Titlebar > Gradient Top | BBL monitor page titlebar bg
-    {"#F1F1F1", "#1D2024"}, // rgb(241, 241, 241)  Sidebar > Titlebar > Gradient Bottom
-    {"#3B4446", "#0E0F11"}, // rgb(59, 68, 78)     Top Bar / Main tab bar bg color
+    {"#FFFFFF", "#0B0E12"}, // rgb(255, 255, 255)  Window background
+    {"#F8F8F8", "#12161B"}, // rgb(248, 248, 248)  Sidebar > Titlebar > Gradient Top | BBL monitor page titlebar bg
+    {"#F1F1F1", "#12161B"}, // rgb(241, 241, 241)  Sidebar > Titlebar > Gradient Bottom
+    {"#3B4446", "#07090B"}, // rgb(59, 68, 78)     Top Bar / Main tab bar bg color
     {"#CECECE", "#2E3236"}, // rgb(206, 206, 206)  Sidebar wxPanel bg | 
     {"#DBFDD5", "#3B3B40"}, // rgb(219, 253, 213)  Not Used anymore // Was used for BBS combo boxes etc
     {"#000000", "#FFFFFE"}, // rgb(0, 0, 0)        Mostly Text color wxBlack
     {"#F4F4F4", "#1D2024"}, // rgb(244, 244, 244)  ???
     {"#DBDBDB", "#2E3236"}, // rgb(219, 219, 219)  Input/Combo Box Border Color
-    {"#EDFAF2", "#1F2B24"}, // rgb(229, 240, 238)  Not Used anymore // Was used for BBS Combo / Dropdown focused background color
+    {"#EDFAF2", "#1A2230"}, // rgb(229, 240, 238)  Not Used anymore // Was used for BBS Combo / Dropdown focused background color
     {"#323A3C", "#E5E5E6"}, // rgb(50, 58, 60)     Text color used on search list | 
     {"#303A3C", "#E5E5E5"}, // rgb(48, 58, 60)     Object Table > Column header text color | StaticBox Border Color
     {"#FEFFFF", "#121417"}, // rgb(254, 255, 255)  Side Tabbar bg | 
@@ -49,11 +49,11 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#ABABAB", "#ABABAB"},
     {"#D9D9D9", "#27272A"}, // rgb(217, 217, 217)  Sidebar > Toggle button track color
     {"#FFFEFE", "#D8D9D9"}, // rgb(255, 254, 254)  Sidebar > Toggle button thumb color
-    {"#EBF9F0", "#293F34"},
+    {"#EBF3FD", "#223550"},
     //{"#F0F0F0", "#4C4C54"},
     // ORCA
-    {"#C3EBCF", "#1E3A28"}, // rgb(191, 225, 222)  Dropdown checked item background color > ORCA color with %25 opacity
-    {"#E6F6EB", "#1F2B24"}, // rgb(229, 240, 238)  Combo / Dropdown focused background color > ORCA color with %10 opacity
+    {"#C7DCF8", "#1A2B42"}, // rgb(191, 225, 222)  Dropdown checked item background color > ORCA color with %25 opacity
+    {"#E8F1FD", "#1A2230"}, // rgb(229, 240, 238)  Combo / Dropdown focused background color > ORCA color with %10 opacity
 };
 
 std::tuple<double, double, double> StateColor::GetLAB(const wxColour& color) {

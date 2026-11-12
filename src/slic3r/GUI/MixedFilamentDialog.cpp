@@ -115,7 +115,7 @@ private:
         }
 
         dc.SetFont(GetFont());
-        dc.SetTextForeground(m_hovered ? StateColor::darkModeColorFor(wxColour("#1FA34A"))
+        dc.SetTextForeground(m_hovered ? StateColor::darkModeColorFor(wxColour("#3D8BEA"))
                                        : StateColor::darkModeColorFor(wxColour("#262E30")));
         wxSize ts = dc.GetTextExtent(m_text);
         int x = (sz.GetWidth()  - ts.GetWidth())  / 2;

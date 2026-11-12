@@ -37,7 +37,7 @@
 namespace Slic3r {
 namespace GUI {
 
-static const wxColour TEXT_NORMAL_CLR = wxColour(31, 163, 74);
+static const wxColour TEXT_NORMAL_CLR = wxColour(61, 139, 234);
 static const wxColour TEXT_FAILED_CLR = wxColour(255, 111, 0);
 
 static const std::unordered_map<wxString, wxString> ACCESSORY_DISPLAY_STR = {

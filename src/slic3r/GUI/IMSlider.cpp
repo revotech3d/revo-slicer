@@ -939,7 +939,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     const ImU32 handle_clr = BRAND_COLOR;
     const ImU32 handle_border_clr = m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT;
     const wxColour label_bg = StateColor::darkModeColorFor(wxGetApp().get_window_default_clr());
-    const wxColour label_bg_active = StateColor::darkModeColorFor(wxColour("#E6F6EB"));
+    const wxColour label_bg_active = StateColor::darkModeColorFor(wxColour("#E8F1FD"));
     const wxColour label_border = StateColor::darkModeColorFor(wxColour("#CECECE"));
     const wxColour rail_inner_bg = m_is_dark ? StateColor::darkModeColorFor(wxColour("#CECECE")) : wxGetApp().get_highlight_default_clr();
     const wxColour rail_border = m_is_dark ? StateColor::darkModeColorFor(wxColour("#F0F0F1")) : wxColour("#CECECE");

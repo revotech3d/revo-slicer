@@ -245,18 +245,18 @@ ModeSwitchButton::ModeSwitchButton(wxWindow* parent, wxWindowID id)
     border_color = StateColor(
         std::make_pair(wxColour("#D9D9D9"), (int) StateColor::Disabled),
         std::make_pair(wxColour("#D9D9D9"), (int) StateColor::Hovered | ~StateColor::Focused),
-        std::make_pair(wxColour("#2BC15C"), (int) StateColor::Focused),
+        std::make_pair(wxColour("#5AA0FF"), (int) StateColor::Focused),
         std::make_pair(wxColour("#D9D9D9"), (int) StateColor::Normal)
     );
     track_background = StateColor(
-        std::make_pair(wxColour("#1FA34A"), (int) StateColor::Disabled),
-        std::make_pair(wxColour("#1FA34A"), (int) StateColor::Normal)
+        std::make_pair(wxColour("#3D8BEA"), (int) StateColor::Disabled),
+        std::make_pair(wxColour("#3D8BEA"), (int) StateColor::Normal)
     );
     track_border = StateColor(
         std::make_pair(wxColour("#D9D9D9"), (int) StateColor::Disabled),
-        std::make_pair(wxColour("#1FA34A"), (int) StateColor::Hovered | ~StateColor::Focused),
-        std::make_pair(wxColour("#2BC15C"), (int) StateColor::Focused),
-        std::make_pair(wxColour("#1FA34A"), (int) StateColor::Normal)
+        std::make_pair(wxColour("#3D8BEA"), (int) StateColor::Hovered | ~StateColor::Focused),
+        std::make_pair(wxColour("#5AA0FF"), (int) StateColor::Focused),
+        std::make_pair(wxColour("#3D8BEA"), (int) StateColor::Normal)
     );
     dot_active = StateColor(
         std::make_pair(wxColour("#FFFEFE"), (int) StateColor::Disabled),
@@ -577,7 +577,7 @@ void SwitchBoard::doRender(wxDC &dc)
 
 	/*left*/
     if (switch_left) {
-        is_enable ? dc.SetBrush(wxBrush(wxColour(31, 163, 74))) : dc.SetBrush(disable_color);
+        is_enable ? dc.SetBrush(wxBrush(wxColour(61, 139, 234))) : dc.SetBrush(disable_color);
         dc.DrawRoundedRectangle(0, 0, GetSize().x / 2, GetSize().y, 8);
 	}
 
@@ -595,7 +595,7 @@ void SwitchBoard::doRender(wxDC &dc)
 
 	/*right*/
     if (switch_right) {
-        if (is_enable) {dc.SetBrush(wxBrush(wxColour(31, 163, 74)));
+        if (is_enable) {dc.SetBrush(wxBrush(wxColour(61, 139, 234)));
         } else {dc.SetBrush(disable_color);}
         dc.DrawRoundedRectangle(GetSize().x / 2, 0, GetSize().x / 2, GetSize().y, 8);
 	}

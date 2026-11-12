@@ -133,7 +133,7 @@ void ButtonsListCtrl::SetSelection(int sel)
     if (m_selection == sel && sel >= 0 && sel < static_cast<int>(m_pageButtons.size()))
         return;
     // BBS: change button color
-    wxColour selected_btn_bg("#1FA34A");    // Gradient #1FA34A
+    wxColour selected_btn_bg("#3D8BEA");    // Gradient #3D8BEA
     if (m_selection >= 0 && m_selection < static_cast<int>(m_pageButtons.size())) {
         StateColor bg_color = StateColor(
         std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
@@ -154,8 +154,8 @@ void ButtonsListCtrl::SetSelection(int sel)
     m_selection = sel;
 
     StateColor bg_color = StateColor(
-        std::pair{wxColour(31, 163, 74), (int) StateColor::Hovered},
-        std::pair{wxColour(31, 163, 74), (int) StateColor::Normal});
+        std::pair{wxColour(61, 139, 234), (int) StateColor::Hovered},
+        std::pair{wxColour(61, 139, 234), (int) StateColor::Normal});
     m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
 
     StateColor text_color = StateColor(

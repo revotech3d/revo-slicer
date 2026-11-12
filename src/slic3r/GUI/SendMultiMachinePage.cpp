@@ -280,7 +280,7 @@ void SendDeviceItem::doRender(wxDC& dc)
 
     //device state
     if (state_printable <= 2) {
-        dc.SetTextForeground(wxColour(31, 163, 74));
+        dc.SetTextForeground(wxColour(61, 139, 234));
     }
     else {
         dc.SetTextForeground(wxColour(208, 27, 27));
@@ -305,7 +305,7 @@ void SendDeviceItem::doRender(wxDC& dc)
     }
 
     if (m_hover) {
-        dc.SetPen(wxPen(wxColour(31, 163, 74)));
+        dc.SetPen(wxPen(wxColour(61, 139, 234)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
     }

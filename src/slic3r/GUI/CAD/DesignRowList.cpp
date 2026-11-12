@@ -263,9 +263,9 @@ void DesignRowList::OnDrawBackground(wxDC& dc, const wxRect& rect, size_t n) con
     // ObjectList's selection teal, and the dropdowns' lighter hover teal; both are dark-mapped.
     wxColour bg;
     if (IsSelected(n))
-        bg = StateColor::darkModeColorFor(wxColour("#C3EBCF"));
+        bg = StateColor::darkModeColorFor(wxColour("#C7DCF8"));
     else if (m_selectable && int(n) == m_hover.row)   // a non-selectable row lights only its icons
-        bg = StateColor::darkModeColorFor(wxColour("#E6F6EB"));
+        bg = StateColor::darkModeColorFor(wxColour("#E8F1FD"));
     if (!bg.IsOk())
         return;   // the list already cleared to its background colour
     dc.SetPen(*wxTRANSPARENT_PEN);
