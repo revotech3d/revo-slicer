@@ -37,7 +37,7 @@ jobs:
       arch: ${{ matrix.arch }}
     secrets: inherit
 
-  # Wydanie: tylko z ręcznego uruchomienia z „wydaj: true”. Instalator Windows + aplikacja Mac (zip, bez podpisu Apple).
+  # Wydanie: tylko z ręcznego uruchomienia z „wydaj: true”. Instalator Windows + aplikacja Mac (DMG, bez podpisu Apple).
   wydanie:
     name: Wydanie [r]evo Slicer
     needs: [windows, macos_arch]
@@ -54,9 +54,9 @@ jobs:
           set -e
           mkdir -p out
           find art -name 'RevoSlicer_Windows_Installer_*.exe' -exec cp {} out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe \;
-          find art -name 'RevoSlicer_Mac_arm64_*.zip' -exec cp {} out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip \;
+          find art -name 'RevoSlicer_Mac_arm64_*.dmg' -exec cp {} out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.dmg \;
           test -f out/RevoSlicer_Windows_x64_${{ inputs.wersja }}.exe
-          test -f out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.zip
+          test -f out/RevoSlicer_Mac_AppleSilicon_${{ inputs.wersja }}.dmg
           ls -la out
       - name: Publikacja
         env:
@@ -70,4 +70,4 @@ jobs:
             --title "[r]evo Slicer ${{ inputs.wersja }}" \
             --notes "[r]evo Slicer ${{ inputs.wersja }} – slicer Revotech dla drukarek Revon. Sometimes evolution. Sometimes [r]evolution.
 
-          Windows: uruchom instalator; jeśli pojawi się „System Windows ochronił ten komputer” – Więcej informacji → Uruchom mimo to. Mac (Apple Silicon): rozpakuj zip, przeciągnij [r]evo Slicer do Programów, przy pierwszym uruchomieniu prawy przycisk → Otwórz → Otwórz."
+          Windows: uruchom instalator; jeśli pojawi się „System Windows ochronił ten komputer” – Więcej informacji → Uruchom mimo to. Mac (Apple Silicon): otwórz plik .dmg i przeciągnij [r]evo Slicer do Aplikacji; przy pierwszym uruchomieniu prawy przycisk → Otwórz → Otwórz."

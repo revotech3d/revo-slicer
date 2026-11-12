@@ -236,21 +236,39 @@ jobs:
           name: OrcaSlicer_Mac_bundle_${{ inputs.arch }}_${{ github.sha }}
           path: ${{ github.workspace }}/OrcaSlicer_Mac_bundle_${{ inputs.arch }}_${{ github.sha }}.tar.gz
 
-      # [r]evo Slicer: paczka dla klienta – aplikacja „[r]evo Slicer.app” w zipie (ditto zachowuje dowiązania i podpis)
+      # [r]evo Slicer: paczka dla klienta – obraz DMG „przeciągnij do Aplikacji” (tło z instrukcją, skrót do /Applications).
+      # Uruchomienie z Dokumentów w iCloud potrafi zawiesić program przy starcie, dlatego instalacja przez przeciągnięcie.
       - name: Pack [r]evo Slicer for customers ${{ inputs.arch }}
         if: runner.os == 'macOS' && !inputs.macos-combine-only
         working-directory: ${{ github.workspace }}
         run: |
           mkdir -p revo_pkg
           ditto build/${{ inputs.arch }}/OrcaSlicer/OrcaSlicer.app "revo_pkg/[r]evo Slicer.app"
-          ditto -c -k --keepParent "revo_pkg/[r]evo Slicer.app" RevoSlicer_Mac_${{ inputs.arch }}_${{ env.ver }}.zip
+          OUT=RevoSlicer_Mac_${{ inputs.arch }}_${{ env.ver }}.dmg
+          tiffutil -cathidpicheck scripts/revo_dmg/dmg_background.png "scripts/revo_dmg/dmg_background@2x.png" -out revo_bg.tiff
+          brew install create-dmg >/dev/null 2>&1 || true
+          ok=0
+          for i in 1 2 3; do
+            rm -f "$OUT"
+            if create-dmg --volname "[r]evo Slicer" --background revo_bg.tiff --window-pos 200 120 --window-size 640 430 \
+                 --icon-size 110 --icon "[r]evo Slicer.app" 170 200 --hide-extension "[r]evo Slicer.app" \
+                 --app-drop-link 470 200 --no-internet-enable "$OUT" revo_pkg/; then ok=1; break; fi
+            sleep 10
+          done
+          if [ $ok = 0 ]; then   # zapas: zwykły DMG bez tła (aplikacja + skrót do Aplikacji)
+            ln -sfn /Applications revo_pkg/Applications
+            source scripts/retry.sh 2>/dev/null || retry() { "$@"; }
+            source scripts/create_dmg.sh
+            create_dmg "[r]evo Slicer" revo_pkg "$OUT"
+          fi
+          ls -la "$OUT"
 
       - name: Upload [r]evo Slicer for customers ${{ inputs.arch }}
         if: runner.os == 'macOS' && !inputs.macos-combine-only
         uses: actions/upload-artifact@v7
         with:
           name: RevoSlicer_Mac_${{ inputs.arch }}_${{ env.ver }}
-          path: ${{ github.workspace }}/RevoSlicer_Mac_${{ inputs.arch }}_${{ env.ver }}.zip
+          path: ${{ github.workspace }}/RevoSlicer_Mac_${{ inputs.arch }}_${{ env.ver }}.dmg
 
       - name: Download macOS app bundles
         if: runner.os == 'macOS' && inputs.macos-combine-only
