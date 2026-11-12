@@ -60,6 +60,10 @@
 #include <boost/filesystem/path.hpp>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/calib.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
+#include "slic3r/GUI/Widgets/Label.hpp"
+#include <wx/gdicmn.h>
 
 namespace Slic3r::GUI::Revo {
 
@@ -78,12 +82,6 @@ wxStaticText* heading(wxWindow* p, const wxString& t)
     return s;
 }
 
-std::string fmt(double v, int prec = 2)
-{
-    char b[32];
-    snprintf(b, sizeof(b), "%.*f", prec, v);
-    return b;
-}
 
 // ---------------------------------------------------------------- Newbie
 class NewbieWizard : public wxDialog
@@ -210,164 +208,6 @@ private:
     std::vector<std::string> m_names;
 };
 
-// ---------------------------------------------------------------- Monek
-struct Step
-{
-    wxString   title, how;
-    CalibKind  kind;
-    wxString   unit;
-    double     def, min, max, inc;
-    int        digits;
-};
-
-class MonekWizard : public wxDialog
-{
-public:
-    explicit MonekWizard(wxWindow* parent)
-        : wxDialog(parent, wxID_ANY, _L("[r]evo – filament profile wizard"), wxDefaultPosition, wxDefaultSize,
-                   wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP)
-    {
-        const auto& cfg  = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
-        auto        get  = [&](const char* k, double d) {
-            const ConfigOption* o = cfg.option(k);
-            if (auto* f = dynamic_cast<const ConfigOptionFloats*>(o); f && !f->values.empty()) return f->values.front();
-            if (auto* i = dynamic_cast<const ConfigOptionInts*>(o); i && !i->values.empty()) return double(i->values.front());
-            return d;
-        };
-        m_steps = {
-            {_L("Temperature"), _L("Print the temperature tower. Pick the floor with the best surface and bridges, enter its temperature."),
-             CalibKind::Temperature, "°C", get("nozzle_temperature", 210), 150, 320, 5, 0},
-            {_L("Max flowrate"), _L("Print the flow test. Find the height where the surface starts to break, read the flow from the scale."),
-             CalibKind::MaxVolumetric, "mm³/s", get("filament_max_volumetric_speed", 20), 1, 80, 1, 1},
-            {_L("Pressure advance"), _L("Print the pressure advance pattern. Pick the line with the sharpest corners, enter its value."),
-             CalibKind::PressureAdvance, "", get("pressure_advance", 0.04), 0, 1, 0.005, 3},
-            {_L("Flow ratio"), _L("Print the flow ratio test. Pick the smoothest top surface, enter the resulting flow ratio."),
-             CalibKind::FlowRatio, "", get("filament_flow_ratio", 0.98), 0.7, 1.3, 0.01, 3},
-            {_L("Retraction"), _L("Print the retraction tower. Pick the floor without strings, enter its retraction length."),
-             CalibKind::Retraction, "mm", get("filament_retraction_length", 0.8), 0, 10, 0.1, 2},
-        };
-        auto* s = new wxBoxSizer(wxVERTICAL);
-        m_title = heading(this, "");
-        m_info  = new wxStaticText(this, wxID_ANY, "");
-        m_info->Wrap(FromDIP(460));
-        m_name  = new wxTextCtrl(this, wxID_ANY);
-        m_value = new wxSpinCtrlDouble(this, wxID_ANY);
-        m_print = new wxButton(this, wxID_ANY, _L("Prepare test print"));
-        auto* row = new wxBoxSizer(wxHORIZONTAL);
-        m_back = new wxButton(this, wxID_ANY, _L("Back"));
-        m_next = new wxButton(this, wxID_ANY, _L("Next"));
-        row->Add(m_back);
-        row->AddStretchSpacer();
-        row->Add(m_next);
-        s->Add(m_title, 0, wxALL, FromDIP(16));
-        s->Add(m_info, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
-        s->Add(m_name, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
-        s->Add(m_print, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
-        s->Add(m_value, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
-        s->Add(row, 0, wxEXPAND | wxALL, FromDIP(16));
-        m_name->SetMinSize(wxSize(FromDIP(460), -1));
-        m_name->SetValue("Revo " + from_u8(wxGetApp().preset_bundle->filaments.get_edited_preset().alias));
-        m_values.resize(m_steps.size());
-        for (size_t i = 0; i < m_steps.size(); ++i)
-            m_values[i] = m_steps[i].def;
-        m_print->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-            if (m_page >= 1 && m_page <= int(m_steps.size()))
-                wxGetApp().mainframe->run_calibration(m_steps[m_page - 1].kind);
-        });
-        m_back->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { keep(); show(m_page - 1); });
-        m_next->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-            keep();
-            if (m_page == int(m_steps.size()) + 1)
-                return save();
-            show(m_page + 1);
-        });
-        SetSizerAndFit(s);
-        show(0);
-        CentreOnParent();
-    }
-
-private:
-    void keep()
-    {
-        if (m_page >= 1 && m_page <= int(m_steps.size()))
-            m_values[m_page - 1] = m_value->GetValue();
-    }
-
-    void show(int page)
-    {
-        m_page = std::max(0, std::min(page, int(m_steps.size()) + 1));
-        const bool step = m_page >= 1 && m_page <= int(m_steps.size());
-        m_name->Show(m_page == 0);
-        m_print->Show(step);
-        m_value->Show(step);
-        m_back->Enable(m_page > 0);
-        if (m_page == 0) {
-            m_title->SetLabel(_L("New filament profile"));
-            m_info->SetLabel(_L("The wizard starts from the selected filament and walks you through five test prints. "
-                                "Load the filament, then name the new profile."));
-            m_next->SetLabel(_L("Start"));
-        } else if (step) {
-            const Step& st = m_steps[m_page - 1];
-            m_title->SetLabel(wxString::Format(_L("Step %d of %d: %s"), m_page, int(m_steps.size()), st.title));
-            m_info->SetLabel(st.how + (st.unit.empty() ? "" : " [" + st.unit + "]"));
-            m_value->SetRange(st.min, st.max);
-            m_value->SetIncrement(st.inc);
-            m_value->SetDigits(st.digits);
-            m_value->SetValue(m_values[m_page - 1]);
-            m_next->SetLabel(_L("Next"));
-        } else {
-            m_title->SetLabel(_L("Save the profile"));
-            m_info->SetLabel(wxString::Format(_L("Profile \"%s\" will be saved with the calibrated values."), m_name->GetValue()));
-            m_next->SetLabel(_L("Save"));
-        }
-        m_info->Wrap(FromDIP(460));
-        Layout();
-        Fit();
-    }
-
-    void save()
-    {
-        const std::string name = into_u8(m_name->GetValue().Trim().Trim(false));
-        if (name.empty())
-            return show(0);
-        Tab* tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT);
-        if (!tab)
-            return;
-        DynamicPrintConfig cfg = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
-        auto set_all = [&cfg](const char* key, double v) {
-            if (auto* f = cfg.option<ConfigOptionFloats>(key)) {
-                for (double& x : f->values) x = v;
-            } else if (auto* fn = cfg.option<ConfigOptionFloatsNullable>(key)) {
-                for (double& x : fn->values) x = v;
-            } else if (auto* i = cfg.option<ConfigOptionInts>(key)) {
-                for (int& x : i->values) x = int(std::lround(v));
-            } else if (auto* in = cfg.option<ConfigOptionIntsNullable>(key)) {
-                for (int& x : in->values) x = int(std::lround(v));
-            }
-        };
-        set_all("nozzle_temperature", m_values[0]);
-        set_all("nozzle_temperature_initial_layer", m_values[0] + 5);
-        set_all("filament_max_volumetric_speed", m_values[1]);
-        set_all("pressure_advance", m_values[2]);
-        if (auto* e = cfg.option<ConfigOptionBools>("enable_pressure_advance"))
-            for (size_t i = 0; i < e->values.size(); ++i) e->values[i] = true;
-        set_all("filament_flow_ratio", m_values[3]);
-        set_all("filament_retraction_length", m_values[4]);
-        tab->load_config(cfg);
-        tab->save_preset(name);
-        MessageDialog(this, wxString::Format(_L("Profile \"%s\" saved. Sometimes evolution. Sometimes [r]evolution."), from_u8(name)),
-                      "[r]evo Slicer", wxOK | wxICON_INFORMATION).ShowModal();
-        Destroy();
-    }
-
-    std::vector<Step>   m_steps;
-    std::vector<double> m_values;
-    int                 m_page = 0;
-    wxStaticText *      m_title, *m_info;
-    wxTextCtrl*         m_name;
-    wxSpinCtrlDouble*   m_value;
-    wxButton *          m_print, *m_back, *m_next;
-};
 
 
 // ---------------------------------------------------------------- Wyszukiwanie drukarek w sieci
@@ -762,6 +602,537 @@ private:
     bool                             m_docked = false;
 };
 
+// ---------------------------------------------------------------- Kreator nowego filamentu (styl startu: sekwencja, wzór źle/dobrze, wybór wydrukowanych wartości)
+std::map<int, Calib_Params> g_calib;   // ostatnio wydrukowane testy wg rodzaju
+int                         g_flow_pass = 1;
+
+struct WizStep
+{
+    wxString  seq, title, sub, q, bad, good, help;
+    std::string art;
+    CalibKind kind;
+    int       calib_key;
+    wxString  unit;
+    int       digits;
+};
+
+// Kafelek wyboru / materiału: ramka, tekst, zaznaczenie na niebiesko.
+class PickTile : public wxPanel
+{
+public:
+    PickTile(wxWindow* parent, const wxString& text, bool on, int min_w, std::function<void()> click)
+        : wxPanel(parent, wxID_ANY), m_text(text), m_on(on), m_click(std::move(click))
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        wxFont f = GetFont();
+        f.SetPointSize(12);
+        SetFont(f);
+        SetMinSize(wxSize(FromDIP(min_w), FromDIP(46)));
+        SetCursor(wxCursor(wxCURSOR_HAND));
+        Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
+            wxAutoBufferedPaintDC dc(this);
+            const wxSize s = GetClientSize();
+            dc.SetBackground(wxBrush(m_on ? wxColour(11, 22, 38) : (m_hover ? wxColour(14, 18, 24) : kBg)));
+            dc.Clear();
+            dc.SetPen(wxPen(m_on ? kBlue : (m_hover ? wxColour(90, 100, 114) : kLine), m_on ? 2 : 1));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRectangle(0, 0, s.x, s.y);
+            dc.SetFont(GetFont());
+            dc.SetTextForeground(m_on ? kBlue : kMuted);
+            const wxString t = (m_on ? wxString::FromUTF8("\xE2\x9C\x93 ") : wxString()) + m_text;
+            const wxSize ts = dc.GetTextExtent(t);
+            dc.DrawText(t, (s.x - ts.x) / 2, (s.y - ts.y) / 2);
+        });
+        Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent&) { m_hover = true; Refresh(); });
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) { m_hover = false; Refresh(); });
+        Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) { if (auto f = m_click) wxTheApp->CallAfter([f] { f(); }); });
+    }
+
+private:
+    wxString              m_text;
+    bool                  m_on, m_hover = false;
+    std::function<void()> m_click;
+};
+
+class NewFilamentWizard : public wxDialog
+{
+public:
+    explicit NewFilamentWizard(wxWindow* parent)
+        : wxDialog(parent, wxID_ANY, _L("[r]evo – new filament"), wxDefaultPosition, wxDefaultSize,
+                   wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxSTAY_ON_TOP)
+    {
+        SetBackgroundColour(kBg);
+        const auto& preset = wxGetApp().preset_bundle->filaments.get_edited_preset();
+        const auto& cfg    = preset.config;
+        auto get = [&](const char* k, double d) {
+            const ConfigOption* o = cfg.option(k);
+            if (auto* f = dynamic_cast<const ConfigOptionFloats*>(o); f && !f->values.empty()) return f->values.front();
+            if (auto* f = dynamic_cast<const ConfigOptionFloatsNullable*>(o); f && !f->values.empty() && !std::isnan(f->values.front())) return f->values.front();
+            if (auto* i = dynamic_cast<const ConfigOptionInts*>(o); i && !i->values.empty()) return double(i->values.front());
+            return d;
+        };
+        m_cur  = {get("nozzle_temperature", 220), get("filament_flow_ratio", 0.98), get("filament_max_volumetric_speed", 16),
+                  get("pressure_advance", 0.04), get("filament_retraction_length", 0.8)};
+        m_type = cfg.opt_string("filament_type", 0u);
+        m_brand = from_u8(cfg.opt_string("filament_vendor", 0u));
+        m_name  = "Revo " + from_u8(preset.alias);
+
+        m_steps = {
+            {_L("Temperature"), _L("Which part of the tower looks cleanest?"),
+             _L("Take the printed tower in your hand. Look at it from the side, in good light."),
+             _L("Tap the part that looks most like GOOD:"), _L("Thin hairs between the pillars, droopy bridge, rough surface."),
+             _L("No hairs, straight bridge, smooth shiny walls."), _L("Not sure? Pick the middle one - it will still print fine."),
+             "temp", CalibKind::Temperature, int(CalibMode::Calib_Temp_Tower), wxString::FromUTF8("\xC2\xB0""C"), 0},
+            {_L("Flow ratio"), _L("Which square has the smoothest top?"),
+             _L("Run your fingertip across the top of each printed square."), _L("Tap the square that feels smoothest:"),
+             _L("Visible gaps between lines, or rough ridges you can feel."), _L("Flat, closed surface, feels like glass."),
+             _L("Not sure? Pick the middle one - it will still print fine."), "flow", CalibKind::FlowRatio,
+             int(CalibMode::Calib_Flow_Rate), "%", 0},
+            {_L("Max flow"), _L("Where does the wall start to tear?"), _L("Look at the tall wall from the side, from bottom to top."),
+             _L("Tap the LAST band that still looks good:"), _L("Torn, frayed layers, holes in the wall."),
+             _L("Even, solid layers all the way."), _L("Not sure? Pick one lower - safer, a bit slower."), "mf",
+             CalibKind::MaxVolumetric, int(CalibMode::Calib_Vol_speed_Tower), wxString::FromUTF8("mm\xC2\xB3/s"), 1},
+            {_L("Pressure adv."), _L("Which line has no holes?"), _L("Look closely where each line changes speed - the middle part."),
+             _L("Tap the line that looks most even:"), _L("A hole or thin spot in the middle of the line."),
+             _L("One even line, same width everywhere."), _L("Not sure? Pick the middle one - it will still print fine."), "pa",
+             CalibKind::PressureAdvance, int(CalibMode::Calib_PA_Line), "", 3},
+            {_L("Retraction"), _L("Where do the hairs disappear?"), _L("Look between the two towers, from bottom to top."),
+             _L("Tap the LOWEST band with no hairs:"), _L("Thin hairs / strings between the towers."),
+             _L("Clean air between the towers."), _L("Not sure? Pick one higher - no hairs is what matters."), "ret",
+             CalibKind::Retraction, int(CalibMode::Calib_Retraction_tower), "mm", 1},
+        };
+        m_sel.assign(m_steps.size(), -1);
+
+        auto* root = new wxBoxSizer(wxVERTICAL);
+        m_head = new wxPanel(this);
+        m_head->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        m_head->SetMinSize(FromDIP(wxSize(1100, 170)));
+        m_head->Bind(wxEVT_PAINT, [this](wxPaintEvent&) { paint_head(); });
+        root->Add(m_head, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(24));
+        auto* mid = new wxBoxSizer(wxHORIZONTAL);
+        m_body = new wxPanel(this);
+        m_body->SetBackgroundColour(kBg);
+        m_side = new wxPanel(this);
+        m_side->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        m_side->SetMinSize(FromDIP(wxSize(260, 330)));
+        m_side->Bind(wxEVT_PAINT, [this](wxPaintEvent&) { paint_side(); });
+        mid->Add(m_body, 1, wxEXPAND | wxRIGHT, FromDIP(20));
+        mid->Add(m_side, 0, wxEXPAND);
+        root->Add(mid, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(24));
+        auto* bar = new wxBoxSizer(wxHORIZONTAL);
+        bar->Add(new FlatButton(this, spaced(_L("Back")), true, [this] { show(m_page - 1); }), 0, wxALIGN_CENTER_VERTICAL);
+        m_help = label(this, "", 11, kMuted);
+        bar->Add(m_help, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(24));
+        m_next_box = new wxBoxSizer(wxHORIZONTAL);
+        bar->Add(m_next_box, 0, wxALIGN_CENTER_VERTICAL);
+        root->Add(bar, 0, wxEXPAND | wxALL, FromDIP(24));
+        SetSizer(root);
+        Bind(wxEVT_ACTIVATE, [this](wxActivateEvent& e) {
+            e.Skip();
+            if (e.GetActive() && is_step())
+                CallAfter([this] { show(m_page); }); // po wydruku testu pokaż jego wartości
+        });
+        show(0);
+        SetMinSize(FromDIP(wxSize(1180, 720)));
+        Fit();
+        CentreOnParent();
+    }
+
+private:
+    int  pages() const { return int(m_steps.size()) + 2; }
+    bool is_step() const { return m_page >= 1 && m_page <= int(m_steps.size()); }
+    wxString seq_name(int i) const
+    {
+        if (i == 0) return _L("Setup");
+        if (i == pages() - 1) return _L("Save");
+        return m_steps[i - 1].seq;
+    }
+
+    // Wartości wydrukowane w ostatnim teście (od góry wydruku), albo rozsądny zakres wokół obecnej.
+    std::vector<double> options(int s) const
+    {
+        const WizStep& st = m_steps[s];
+        std::vector<double> v;
+        auto range = [&v](double a, double b, double step) {
+            step = std::abs(step);
+            if (step <= 0) return;
+            const int n = std::min(60, int(std::lround(std::abs(b - a) / step)) + 1);
+            const double d = b >= a ? step : -step;
+            for (int i = 0; i < n; ++i) v.push_back(a + d * i);
+        };
+        if (s == 1) { // przepływ: płytki z przesunięciem w %
+            if (g_flow_pass == 2) range(0, -9, 1); else range(20, -20, 5);
+            return v;
+        }
+        auto it = g_calib.find(st.calib_key);
+        if (it != g_calib.end()) {
+            const Calib_Params& p = it->second;
+            if (s == 0) range(std::min(p.start, p.end), std::max(p.start, p.end), p.step);       // wieża: góra = najchłodniej
+            else if (s == 3) range(p.start, p.end, p.step);                                     // linie PA po kolei
+            else range(std::max(p.start, p.end), std::min(p.start, p.end), p.step);             // wieże: góra = najwięcej
+        }
+        if (v.empty()) {
+            const double c = m_cur[s == 0 ? 0 : s == 2 ? 2 : s == 3 ? 3 : 4];
+            if (s == 0) range(c - 20, c + 20, 5);
+            else if (s == 2) range(c + 8, std::max(2.0, c - 8), 2);
+            else if (s == 3) range(std::max(0.0, c - 0.04), c + 0.04, 0.005);
+            else range(c + 1.0, std::max(0.0, c - 1.0), 0.2);
+        }
+        return v;
+    }
+
+    wxString fmt_val(int s, double v) const
+    {
+        const WizStep& st = m_steps[s];
+        if (s == 1) return wxString::Format("%+d %%", int(std::lround(v)));
+        wxString t = wxString::FromDouble(v, st.digits);
+        return st.unit.empty() ? t : t + " " + st.unit;
+    }
+
+    double value(int s) const
+    {
+        if (m_sel[s] < 0) return s == 1 ? m_cur[1] : m_cur[s == 0 ? 0 : s];
+        const double v = options(s)[std::min(size_t(m_sel[s]), options(s).size() - 1)];
+        return s == 1 ? m_cur[1] * (1.0 + v / 100.0) : v;
+    }
+
+    wxString profile_val(int s) const
+    {
+        if (m_sel[s] < 0) return wxString::FromUTF8("\xE2\x80\x94");
+        if (s == 1) return fmt_val(1, options(1)[size_t(m_sel[1])]);
+        return fmt_val(s, value(s));
+    }
+
+    void paint_head()
+    {
+        wxAutoBufferedPaintDC dc(m_head);
+        const wxSize sz = m_head->GetClientSize();
+        dc.SetBackground(wxBrush(kBg));
+        dc.Clear();
+        wxString title, sub;
+        if (m_page == 0) { title = _L("What filament are you loading?"); sub = _L("Read it from the box or the spool label."); }
+        else if (is_step()) { title = m_steps[m_page - 1].title; sub = m_steps[m_page - 1].sub; }
+        else { title = _L("Your filament is ready"); sub = _L("We save everything you picked as a new profile."); }
+        wxFont f = m_head->GetFont();
+        f.SetPointSize(9);
+        dc.SetFont(f);
+        dc.SetTextForeground(kMuted);
+        dc.DrawText(spaced(wxString::Format(_L("New filament · step %d of %d"), m_page + 1, pages()), 2), 0, 0);
+        f.SetPointSize(26);
+        f.SetWeight(wxFONTWEIGHT_BOLD);
+        dc.SetFont(f);
+        dc.SetTextForeground(kText);
+        dc.DrawText(title, 0, m_head->FromDIP(18));
+        f.SetPointSize(13);
+        f.SetWeight(wxFONTWEIGHT_NORMAL);
+        dc.SetFont(f);
+        dc.SetTextForeground(wxColour(207, 214, 223));
+        dc.DrawText(sub, 0, m_head->FromDIP(62));
+        // sekwencja
+        const int n = pages(), y = m_head->FromDIP(112), r = m_head->FromDIP(6);
+        const int w = sz.x / n;
+        f.SetPointSize(9);
+        dc.SetFont(f);
+        for (int i = 0; i < n; ++i) {
+            const int cx = w * i + w / 2;
+            if (i + 1 < n) {
+                dc.SetPen(wxPen(i < m_page ? kBlue : kLine, 1));
+                dc.DrawLine(cx + r, y, cx + w - r, y);
+            }
+            const bool done = i < m_page, cur = i == m_page;
+            if (cur) {
+                dc.SetPen(wxPen(wxColour(90, 160, 255, 90), m_head->FromDIP(5)));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                dc.DrawCircle(cx, y, r + 1);
+            }
+            dc.SetPen(wxPen(done || cur ? kBlue : wxColour(58, 66, 80), 2));
+            dc.SetBrush(wxBrush(done ? kBlue : kBg));
+            dc.DrawCircle(cx, y, r);
+            const wxString t = spaced(seq_name(i), 2);
+            dc.SetTextForeground(cur ? kText : done ? kMuted : wxColour(90, 98, 112));
+            const wxSize ts = dc.GetTextExtent(t);
+            dc.DrawText(t, cx - ts.x / 2, y + r + m_head->FromDIP(10));
+        }
+    }
+
+    void paint_side()
+    {
+        wxAutoBufferedPaintDC dc(m_side);
+        const wxSize sz = m_side->GetClientSize();
+        dc.SetBackground(wxBrush(kBg));
+        dc.Clear();
+        dc.SetPen(wxPen(kLine, 1));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle(0, 0, sz.x, sz.y);
+        const int pad = m_side->FromDIP(14);
+        wxFont f = m_side->GetFont();
+        f.SetPointSize(9);
+        dc.SetFont(f);
+        dc.SetTextForeground(kMuted);
+        dc.DrawText(spaced(_L("Your profile"), 2), pad, pad);
+        std::vector<std::pair<wxString, wxString>> rows = {{_L("Type"), m_type.empty() ? wxString::FromUTF8("\xE2\x80\x94") : from_u8(m_type)}};
+        const wxString names[] = {_L("Nozzle"), _L("Flow ratio"), _L("Max flow"), _L("PA"), _L("Retraction")};
+        for (int s = 0; s < 5; ++s) rows.push_back({names[s], profile_val(s)});
+        int y = pad + m_side->FromDIP(24);
+        f.SetPointSize(11);
+        dc.SetFont(f);
+        for (auto& [k, v] : rows) {
+            dc.SetPen(wxPen(wxColour(26, 31, 38), 1));
+            dc.DrawLine(pad, y, sz.x - pad, y);
+            dc.SetTextForeground(kText);
+            dc.DrawText(spaced(k), pad, y + m_side->FromDIP(9));
+            const bool empty = v == wxString::FromUTF8("\xE2\x80\x94");
+            dc.SetTextForeground(empty ? wxColour(58, 66, 80) : kBlue);
+            const wxSize ts = dc.GetTextExtent(v);
+            dc.DrawText(v, sz.x - pad - ts.x, y + m_side->FromDIP(9));
+            y += m_side->FromDIP(38);
+        }
+        f.SetPointSize(9);
+        dc.SetFont(f);
+        dc.SetTextForeground(kMuted);
+        dc.DrawText(spaced(m_name, 2), pad, y + m_side->FromDIP(10));
+    }
+
+    // Pudełko ✗ BAD / ✓ GOOD: rysunek wzoru i krótki opis.
+    wxPanel* example(wxWindow* p, const std::string& svg, bool good, const wxString& text)
+    {
+        auto* box = new wxPanel(p);
+        box->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        box->SetMinSize(FromDIP(wxSize(300, 104)));
+        wxBitmap bmp = create_scaled_bitmap(svg, this, 70);
+        box->Bind(wxEVT_PAINT, [box, bmp, good, text](wxPaintEvent&) {
+            wxAutoBufferedPaintDC dc(box);
+            const wxSize s = box->GetClientSize();
+            dc.SetBackground(wxBrush(kBg));
+            dc.Clear();
+            dc.SetPen(wxPen(good ? kBlue : kLine, 1));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRectangle(0, 0, s.x, s.y);
+            const int pad = box->FromDIP(16);
+            int x = pad;
+            if (bmp.IsOk()) {
+                dc.DrawBitmap(bmp, x, (s.y - bmp.GetScaledHeight()) / 2, true);
+                x += bmp.GetScaledWidth() + pad;
+            }
+            wxFont f = box->GetFont();
+            f.SetPointSize(15);
+            f.SetWeight(wxFONTWEIGHT_BOLD);
+            dc.SetFont(f);
+            dc.SetTextForeground(good ? kBlue : wxColour(224, 85, 85));
+            dc.DrawText(good ? wxString::FromUTF8("\xE2\x9C\x93 ") + spaced(_L("Good")) : wxString::FromUTF8("\xE2\x9C\x97 ") + spaced(_L("Bad")), x, pad);
+            f.SetPointSize(12);
+            f.SetWeight(wxFONTWEIGHT_NORMAL);
+            dc.SetFont(f);
+            dc.SetTextForeground(wxColour(207, 214, 223));
+            wxString wrapped;
+            ::Label::split_lines(dc, s.x - x - pad, text, wrapped);
+            dc.DrawText(wrapped, x, pad + box->FromDIP(28));
+        });
+        return box;
+    }
+
+    wxTextCtrl* field(wxWindow* p, wxSizer* s, const wxString& caption, const wxString& value)
+    {
+        s->Add(label(p, spaced(caption, 2), 9, kMuted), 0, wxTOP, FromDIP(16));
+        auto* t = new wxTextCtrl(p, wxID_ANY, value, wxDefaultPosition, FromDIP(wxSize(-1, 34)), wxBORDER_SIMPLE);
+        t->SetBackgroundColour(kBg);
+        t->SetForegroundColour(kText);
+        wxFont f = t->GetFont();
+        f.SetPointSize(14);
+        t->SetFont(f);
+        s->Add(t, 0, wxEXPAND | wxTOP, FromDIP(6));
+        return t;
+    }
+
+    void keep_setup()
+    {
+        if (m_name_ctrl) m_name = m_name_ctrl->GetValue();
+        if (m_brand_ctrl) m_brand = m_brand_ctrl->GetValue();
+        m_name_ctrl = m_brand_ctrl = nullptr;
+    }
+
+    void show(int page)
+    {
+        keep_setup();
+        m_page = std::max(0, std::min(page, pages() - 1));
+        Freeze();
+        m_body->DestroyChildren();
+        m_next_box->Clear(true);
+        auto* s = new wxBoxSizer(wxVERTICAL);
+        if (m_page == 0) {
+            s->Add(label(m_body, spaced(_L("Material"), 2), 9, kMuted));
+            auto* row = new wxBoxSizer(wxHORIZONTAL);
+            for (const char* m : {"PLA", "PETG", "ABS", "ASA", "TPU", "PA-CF", "PET-CF"}) {
+                const std::string mat = m;
+                row->Add(new PickTile(m_body, mat, m_type == mat, 90, [this, mat] { m_type = mat; show(0); }), 1, wxRIGHT, FromDIP(8));
+            }
+            s->Add(row, 0, wxEXPAND | wxTOP, FromDIP(6));
+            m_brand_ctrl = field(m_body, s, _L("Brand"), m_brand);
+            m_name_ctrl  = field(m_body, s, _L("Name on your list"), m_name);
+            // Suszenie obowiązkowe – nowy nie znaczy suchy
+            auto* dry = new wxPanel(m_body);
+            dry->SetBackgroundStyle(wxBG_STYLE_PAINT);
+            dry->SetMinSize(FromDIP(wxSize(-1, 84)));
+            dry->Bind(wxEVT_PAINT, [dry](wxPaintEvent&) {
+                wxAutoBufferedPaintDC dc(dry);
+                const wxSize z = dry->GetClientSize();
+                dc.SetBackground(wxBrush(wxColour(11, 22, 38)));
+                dc.Clear();
+                dc.SetPen(wxPen(kBlue, 1));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                dc.DrawRectangle(0, 0, z.x, z.y);
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.SetBrush(wxBrush(kBlue));
+                dc.DrawRectangle(0, 0, dry->FromDIP(3), z.y);
+                wxFont f = dry->GetFont();
+                f.SetPointSize(14);
+                f.SetWeight(wxFONTWEIGHT_BOLD);
+                dc.SetFont(f);
+                dc.SetTextForeground(kBlue);
+                const int pad = dry->FromDIP(14);
+                dc.DrawText(wxString::FromUTF8("\xE2\x9A\xA0 ") + spaced(_L("Dry it first - always")), pad, pad);
+                f.SetPointSize(11);
+                f.SetWeight(wxFONTWEIGHT_NORMAL);
+                dc.SetFont(f);
+                dc.SetTextForeground(wxColour(207, 214, 223));
+                wxString txt;
+                ::Label::split_lines(dc, z.x - 2 * pad, _L("New does not mean dry. Every spool soaks up moisture in the factory, in transport and on the shelf. Wet filament ruins every test - dry it before you start, no exceptions."), txt);
+                dc.DrawText(txt, pad, pad + dry->FromDIP(26));
+            });
+            s->Add(dry, 0, wxEXPAND | wxTOP, FromDIP(18));
+            auto* chk = label(m_body, wxString::FromUTF8("\xE2\x98\x90 ") + _L("Filament dried - required, also for a brand new spool") + "\n" +
+                                          wxString::FromUTF8("\xE2\x98\x90 ") + _L("Spool loaded in Revo OS: Filament, Load") + "\n" +
+                                          wxString::FromUTF8("\xE2\x98\x90 ") + _L("Plate clean, no fingerprints"), 12, wxColour(207, 214, 223));
+            s->Add(label(m_body, spaced(_L("Before you start"), 2), 9, kMuted), 0, wxTOP, FromDIP(16));
+            s->Add(chk, 0, wxTOP, FromDIP(6));
+            m_help->SetLabel(_L("We fill good starting values for you."));
+            m_next_box->Add(new FlatButton(this, spaced(_L("Start tests")) + wxString::FromUTF8(" \xE2\x86\x92"), true, [this] { show(1); }));
+        } else if (is_step()) {
+            const int si = m_page - 1;
+            const WizStep& st = m_steps[si];
+            auto* top = new wxBoxSizer(wxHORIZONTAL);
+            top->Add(label(m_body, _L("1. Print the test, then look at the result:"), 13, kText), 1, wxALIGN_CENTER_VERTICAL);
+            top->Add(new FlatButton(m_body, spaced(_L("Print this test")), false,
+                                    [kind = st.kind] { wxGetApp().mainframe->run_calibration(kind); }), 0, wxALIGN_CENTER_VERTICAL);
+            s->Add(top, 0, wxEXPAND | wxBOTTOM, FromDIP(14));
+            auto* ex = new wxBoxSizer(wxHORIZONTAL);
+            ex->Add(example(m_body, "revo_wz_" + st.art + "_bad", false, st.bad), 1, wxRIGHT, FromDIP(16));
+            ex->Add(example(m_body, "revo_wz_" + st.art + "_good", true, st.good), 1);
+            s->Add(ex, 0, wxEXPAND);
+            s->Add(label(m_body, "2. " + st.q, 15, kText), 0, wxTOP | wxBOTTOM, FromDIP(16));
+            const auto opts = options(si);
+            if (m_sel[si] >= int(opts.size())) m_sel[si] = -1;
+            const bool towers = si == 0 || si == 2 || si == 4;
+            auto* grid = new wxGridSizer(std::max(1, std::min(10, int(opts.size()))), FromDIP(8), FromDIP(8));
+            for (size_t i = 0; i < opts.size(); ++i) {
+                wxString t = fmt_val(si, opts[i]);
+                if (towers && opts.size() > 1 && i == 0) t = spaced(_L("Top")) + " · " + t;
+                if (towers && opts.size() > 1 && i + 1 == opts.size()) t = spaced(_L("Bottom")) + " · " + t;
+                grid->Add(new PickTile(m_body, t, m_sel[si] == int(i), 70, [this, si, i] { m_sel[si] = int(i); show(m_page); }), 0, wxEXPAND);
+            }
+            s->Add(grid, 0, wxEXPAND);
+            m_help->SetLabel(st.help);
+            m_next_box->Add(new FlatButton(this, spaced(_L("Next")) + wxString::FromUTF8(" \xE2\x86\x92"), true, [this] { show(m_page + 1); }));
+        } else {
+            auto* box = new wxPanel(m_body);
+            box->SetBackgroundStyle(wxBG_STYLE_PAINT);
+            box->SetMinSize(FromDIP(wxSize(-1, 260)));
+            box->Bind(wxEVT_PAINT, [this, box](wxPaintEvent&) {
+                wxAutoBufferedPaintDC dc(box);
+                const wxSize z = box->GetClientSize();
+                dc.SetBackground(wxBrush(kBg));
+                dc.Clear();
+                dc.SetPen(wxPen(kLine, 1));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                dc.DrawRectangle(0, 0, z.x, z.y);
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.SetBrush(wxBrush(kBlue));
+                dc.DrawRectangle(0, 0, box->FromDIP(3), z.y);
+                wxFont f = box->GetFont();
+                f.SetPointSize(14);
+                dc.SetFont(f);
+                const wxString names[] = {_L("Nozzle"), _L("Flow ratio"), _L("Max flow"), _L("PA"), _L("Retraction")};
+                int y = box->FromDIP(14);
+                const int pad = box->FromDIP(18);
+                for (int s = 0; s < 5; ++s) {
+                    dc.SetTextForeground(kText);
+                    dc.DrawText(spaced(names[s]), pad, y);
+                    const wxString v = s == 1 ? wxString::FromDouble(value(1), 3) : fmt_val(s, value(s));
+                    dc.SetTextForeground(kBlue);
+                    const wxSize ts = dc.GetTextExtent(v);
+                    dc.DrawText(v, z.x - pad - ts.x, y);
+                    y += box->FromDIP(46);
+                    dc.SetPen(wxPen(wxColour(26, 31, 38), 1));
+                    dc.DrawLine(pad, y - box->FromDIP(10), z.x - pad, y - box->FromDIP(10));
+                }
+            });
+            s->Add(box, 0, wxEXPAND);
+            s->Add(label(m_body, wxString::Format(_L("The profile \"%s\" will appear in your filament list. Pick it before you slice - that's it."), m_name),
+                         13, wxColour(207, 214, 223)), 0, wxTOP, FromDIP(16));
+            m_help->SetLabel(_L("You can run any single test again later from Calibration."));
+            m_next_box->Add(new FlatButton(this, spaced(_L("Save profile")), true, [this] { save(); }));
+        }
+        m_body->SetSizer(s);
+        m_body->Layout();
+        Layout();
+        m_head->Refresh();
+        m_side->Refresh();
+        Thaw();
+    }
+
+    void save()
+    {
+        const std::string name = into_u8(m_name.Trim().Trim(false));
+        if (name.empty())
+            return show(0);
+        Tab* tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT);
+        if (!tab)
+            return;
+        DynamicPrintConfig cfg = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+        auto set_all = [&cfg](const char* key, double v) {
+            if (auto* f = cfg.option<ConfigOptionFloats>(key)) {
+                for (double& x : f->values) x = v;
+            } else if (auto* fn = cfg.option<ConfigOptionFloatsNullable>(key)) {
+                for (double& x : fn->values) x = v;
+            } else if (auto* i = cfg.option<ConfigOptionInts>(key)) {
+                for (int& x : i->values) x = int(std::lround(v));
+            } else if (auto* in = cfg.option<ConfigOptionIntsNullable>(key)) {
+                for (int& x : in->values) x = int(std::lround(v));
+            }
+        };
+        set_all("nozzle_temperature", value(0));
+        set_all("nozzle_temperature_initial_layer", value(0) + 5);
+        set_all("filament_flow_ratio", value(1));
+        set_all("filament_max_volumetric_speed", value(2));
+        set_all("pressure_advance", value(3));
+        if (auto* e = cfg.option<ConfigOptionBools>("enable_pressure_advance"))
+            for (size_t i = 0; i < e->values.size(); ++i) e->values[i] = true;
+        set_all("filament_retraction_length", value(4));
+        if (!m_type.empty())
+            if (auto* t = cfg.option<ConfigOptionStrings>("filament_type"))
+                for (auto& x : t->values) x = m_type;
+        if (!m_brand.IsEmpty())
+            if (auto* v = cfg.option<ConfigOptionStrings>("filament_vendor"))
+                for (auto& x : v->values) x = into_u8(m_brand);
+        tab->load_config(cfg);
+        tab->save_preset(name);
+        MessageDialog(this, wxString::Format(_L("Profile \"%s\" saved. Sometimes evolution. Sometimes [r]evolution."), from_u8(name)),
+                      "[r]evo Slicer", wxOK | wxICON_INFORMATION).ShowModal();
+        Destroy();
+    }
+
+    std::vector<WizStep> m_steps;
+    std::vector<int>     m_sel;
+    std::vector<double>  m_cur;
+    std::string          m_type;
+    wxString             m_brand, m_name;
+    int                  m_page = 0;
+    wxPanel *            m_head, *m_body, *m_side;
+    wxStaticText*        m_help;
+    wxBoxSizer*          m_next_box;
+    wxTextCtrl *         m_name_ctrl = nullptr, *m_brand_ctrl = nullptr;
+};
+
 // ---------------------------------------------------------------- Ekran „Find your Revon”
 // Maszyny znalezione w sieci lokalnej (szukanie trwa, dopóki okno jest otwarte), każda w swoim wierszu z DOCK
 // (dodanie do [r]evo Slicer: profil maszyny i dyszy, wysyłanie wydruków) albo UNDOCK (usunięcie). Adres można wpisać ręcznie.
@@ -1152,6 +1523,16 @@ private:
 
 } // namespace
 
+void note_calib(const Calib_Params& params)
+{
+    CalibMode m = params.mode;
+    if (m == CalibMode::Calib_PA_Pattern || m == CalibMode::Calib_PA_Tower || m == CalibMode::Calib_Auto_PA_Line)
+        m = CalibMode::Calib_PA_Line;
+    g_calib[int(m)] = params;
+}
+
+void note_flow_pass(int pass, bool /*linear*/) { g_flow_pass = pass; }
+
 void show_newbie_wizard(wxWindow* parent)
 {
     NewbieWizard dlg(parent);
@@ -1161,7 +1542,7 @@ void show_newbie_wizard(wxWindow* parent)
 void show_monek_wizard(wxWindow* parent)
 {
     // niemodalny – zostaje otwarty, gdy drukujesz testy
-    (new MonekWizard(parent))->Show();
+    (new NewFilamentWizard(parent))->Show();
 }
 
 void show_connect_wizard(wxWindow* parent)

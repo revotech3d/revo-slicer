@@ -5,6 +5,8 @@
 
 #include <string>
 
+namespace Slic3r { struct Calib_Params; }
+
 class wxWindow;
 
 namespace Slic3r::GUI::Revo {
@@ -18,6 +20,10 @@ void show_connect_wizard(wxWindow* parent);
 void send_my_printers(bool refresh = true);
 void select_my_printer(const std::string& name);
 void remove_my_printer(const std::string& name);
+
+// Zapamiętuje zakres ostatnio wydrukowanego testu – kreator filamentu pokazuje dokładnie te wartości do wyboru.
+void note_calib(const Slic3r::Calib_Params& params);
+void note_flow_pass(int pass, bool linear);
 
 // Pierwsze uruchomienie (poziom Newbie): otwiera kreator raz.
 void maybe_first_run_wizard(wxWindow* parent);

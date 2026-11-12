@@ -276,12 +276,12 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     if (dynamic_cast<Notebook*>(parent)) {
         // BBS: new layout
         m_top_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition);
-        m_top_panel->SetBackgroundColor(0xF8F8F8);
-        m_top_panel->SetBackgroundColor2(0xF1F1F1);
+        m_top_panel->SetBackgroundColor(0x020202); // [r]evo: black launch-style title
+        m_top_panel->SetBackgroundColor2(0x020202);
 
         m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "process");
 
-        m_title_label = new Label(m_top_panel, ::Label::Spaced(_L("Process")));
+        m_title_label = new Label(m_top_panel, ::Label::Spaced(_L("Flight plan · Process")));
 
         //int width, height;
         // BBS: new layout
@@ -450,6 +450,11 @@ void ParamsPanel::create_layout()
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
         m_mode_sizer->SetMinSize(-1, FromDIP(30));
+        {   // [r]evo: blue launch bar on the left of the section title
+        auto bar = new wxPanel(m_top_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), -1));
+        bar->SetBackgroundColour(wxColour(90, 160, 255));
+        m_mode_sizer->Insert(0, bar, 0, wxEXPAND);
+    }
         m_top_panel->SetSizer(m_mode_sizer);
         //m_left_sizer->Add( m_top_panel, 0, wxEXPAND );
     }

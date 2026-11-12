@@ -368,7 +368,7 @@ wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_THUMBNAIL_SIZE (wxSize(40, 40)) // ORCA
 #define PRINTER_PANEL_SIZE (    wxSize(70, 60)) // ORCA
-#define PRINTER_PANEL_RADIUS (6) // ORCA
+#define PRINTER_PANEL_RADIUS (0) // [r]evo: square boxes, launch style
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
 
 static std::string get_diameter_string(float diameter)
@@ -1153,7 +1153,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     if (m_panel_printer_content){
         bool isShown = m_panel_printer_content->IsShown();
         if(!isShown && m_text_printer_settings){
-            m_text_printer_settings->SetLabel(::Label::Spaced(_L("Printer"))); // ensure title returns to default state
+            m_text_printer_settings->SetLabel(::Label::Spaced(_L("Vehicle · Printer"))); // ensure title returns to default state
             m_panel_printer_content->Show();
         }
     }
@@ -2817,7 +2817,7 @@ Sidebar::Sidebar(Plater *parent)
     auto* scrolled_sizer = m_scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     p->scrolled->SetSizer(scrolled_sizer);
 
-    wxColour title_bg = wxColour(248, 248, 248);
+    wxColour title_bg = wxColour(2, 2, 2); // [r]evo: black launch-style titles
     wxColour inactive_text = wxColour(86, 86, 86);
     wxColour active_text = wxColour(0, 0, 0);
     wxColour static_line_col = wxColour(166, 169, 170);
@@ -2832,10 +2832,10 @@ Sidebar::Sidebar(Plater *parent)
         // 1.1 create title bar resources
         p->m_panel_printer_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
         p->m_panel_printer_title->SetBackgroundColor(title_bg);
-        p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
+        p->m_panel_printer_title->SetBackgroundColor2(0x020202);
 
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
-        p->m_text_printer_settings = new Label(p->m_panel_printer_title, ::Label::Spaced(_L("Printer")), LB_PROPAGATE_MOUSE_EVENT | wxST_ELLIPSIZE_END);
+        p->m_text_printer_settings = new Label(p->m_panel_printer_title, ::Label::Spaced(_L("Vehicle · Printer")), LB_PROPAGATE_MOUSE_EVENT | wxST_ELLIPSIZE_END);
 
         p->m_printer_icon->Bind(wxEVT_BUTTON, [](wxCommandEvent& e) {
             //auto wizard_t = new ConfigWizard(wxGetApp().mainframe);
@@ -2875,6 +2875,11 @@ Sidebar::Sidebar(Plater *parent)
         h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
         h_sizer_title->SetMinSize(-1, 3 * em);
+    {   // [r]evo: blue launch bar on the left of the section title
+        auto bar = new wxPanel(p->m_panel_printer_title, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), -1));
+        bar->SetBackgroundColour(wxColour(90, 160, 255));
+        h_sizer_title->Insert(0, bar, 0, wxEXPAND);
+    }
 
         p->m_panel_printer_title->SetSizer(h_sizer_title);
         p->m_panel_printer_title->Layout();
@@ -2889,7 +2894,7 @@ Sidebar::Sidebar(Plater *parent)
                 return;
             // ORCA Show printer name on title when its folded to inform user without expanding it again
             bool     isShown = p->m_panel_printer_content->IsShown();
-            wxString title   = ::Label::Spaced(_L("Printer")) + wxString(!isShown ? "" : ("  |  " + p->combo_printer->GetValue()));
+            wxString title   = ::Label::Spaced(_L("Vehicle · Printer")) + wxString(!isShown ? "" : ("  |  " + p->combo_printer->GetValue()));
             p->m_text_printer_settings->SetLabel(title);
             p->m_panel_printer_content->Show(!isShown);
             p->m_panel_printer_separator->Show(isShown);
@@ -3285,7 +3290,7 @@ Sidebar::Sidebar(Plater *parent)
     // add filament title
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
-    p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
+    p->m_panel_filament_title->SetBackgroundColor2(0x020202);
     // ORCA Bind with LEFT_DOWN, since closing a dialog over the title bar can send it a stray LEFT_UP
     auto toggle_filament_section = ([this](wxMouseEvent &e) {
         if (!p || !p->m_filament_area_wrapper || !m_scrolled_sizer || !p->m_bpButton_set_filament || !p->m_purge_mode_btn || !p->m_flushing_volume_btn || !p->m_bpButton_add_filament || !ams_btn)
@@ -3312,7 +3317,7 @@ Sidebar::Sidebar(Plater *parent)
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
     p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "filament");
-    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, ::Label::Spaced(_L("Project Filaments")), LB_PROPAGATE_MOUSE_EVENT);
+    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, ::Label::Spaced(_L("Payload · Filament")), LB_PROPAGATE_MOUSE_EVENT);
     bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::TitlebarMargin()));
     bSizer39->Add(p->m_staticText_filament_settings, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
     bSizer39->SetMinSize(-1, FromDIP(30));
@@ -3321,6 +3326,11 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(p->m_staticText_filament_count, 0, wxALIGN_CENTER );
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0);
 
+    {   // [r]evo: blue launch bar on the left of the section title
+        auto bar = new wxPanel(p->m_panel_filament_title, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), -1));
+        bar->SetBackgroundColour(wxColour(90, 160, 255));
+        bSizer39->Insert(0, bar, 0, wxEXPAND);
+    }
     p->m_panel_filament_title->SetSizer( bSizer39 );
     p->m_panel_filament_title->Layout();
     scrolled_sizer->Add(p->m_panel_filament_title, 0, wxEXPAND | wxALL, 0);
@@ -3893,10 +3903,10 @@ void Sidebar::update_all_preset_comboboxes()
     }
 
     if (cfg.opt_bool("pellet_modded_printer")) {
-		p->m_staticText_filament_settings->SetLabel(::Label::Spaced(_L("Pellets")));
+		p->m_staticText_filament_settings->SetLabel(::Label::Spaced(_L("Payload · Pellets")));
         p->m_filament_icon->SetBitmap_("pellets");
     } else {
-		p->m_staticText_filament_settings->SetLabel(::Label::Spaced(_L("Filament")));
+		p->m_staticText_filament_settings->SetLabel(::Label::Spaced(_L("Payload · Filament")));
         p->m_filament_icon->SetBitmap_("filament");
     }
 
@@ -16940,6 +16950,7 @@ void Plater::_calib_apply_belt_mode()
 
 void Plater::calib_pa(const Calib_Params& params)
 {
+    Revo::note_calib(params);
     // ORCA-Belt: PA Line / PA Pattern have the belt plumbing in place
     // (belt kinematics in world-coordinates mode draws them on the belt surface)
     // but are not validated yet — keep them gated to the PA Tower for now.
@@ -17429,6 +17440,7 @@ void adjust_settings_for_flowrate_calib(ModelObjectPtrs& objects, bool linear, i
 
 // ORCA: Add pattern parameter
 void Plater::calib_flowrate(bool is_linear, int pass, InfillPattern pattern) {
+    Revo::note_flow_pass(pass, is_linear);
     if (pass != 1 && pass != 2)
         return;
     wxString calib_name;
@@ -17483,6 +17495,7 @@ static std::string belt_temp_tower_asset(const Calib_Params &params)
 }
 
 void Plater::calib_temp(const Calib_Params& params) {
+    Revo::note_calib(params);
     constexpr double base_temp_tower_nozzle_diameter = 0.4;
     constexpr double base_temp_tower_block_height = 10.0;
     constexpr int base_temp_tower_temp_step = 5;
@@ -17777,6 +17790,7 @@ void Plater::_calib_temp_belt_sectioned(const Calib_Params& params, double belt_
 
 void Plater::calib_max_vol_speed(const Calib_Params& params)
 {
+    Revo::note_calib(params);
     const auto calib_vol_speed_name = _L("Max volumetric speed test");
     new_project(false, false, calib_vol_speed_name);
     wxGetApp().mainframe->select_tab(TAB_ID_PREPARE);
@@ -17858,6 +17872,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
 
 void Plater::calib_retraction(const Calib_Params& params)
 {
+    Revo::note_calib(params);
     const auto calib_retraction_name = _L("Retraction");
     new_project(false, false, calib_retraction_name);
     wxGetApp().mainframe->select_tab(TAB_ID_PREPARE);
