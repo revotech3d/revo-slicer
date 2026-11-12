@@ -3103,6 +3103,7 @@ void MainFrame::init_menubar_as_editor()
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #endif
 
+#if 0 // [r]evo: Publish 3MF nie używamy
         // BBS: publish
         fileMenu->AppendSeparator();
         auto publish_handler = [this](wxCommandEvent&) { publish_project(); };
@@ -3115,6 +3116,7 @@ void MainFrame::init_menubar_as_editor()
         append_shortcut_item(fileMenu, Shortcut::Publish3mf, true, _L("Publish 3MF") + dots, _L("Export a 3MF file with the selected settings embedded"),
             publish_handler, "", nullptr,
             [this](){return can_export_model(); }, this);
+#endif
 #endif
 
 
