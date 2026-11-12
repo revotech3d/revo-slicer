@@ -3600,7 +3600,7 @@ Sidebar::Sidebar(Plater *parent)
         {   // [r]evo: flight plan summary – the key process values in telemetry rows
             auto plan = new wxPanel(p->scrolled, wxID_ANY);
             plan->SetBackgroundStyle(wxBG_STYLE_PAINT);
-            plan->SetMinSize(wxSize(-1, FromDIP(4 * 26 + 12)));
+            plan->SetMinSize(wxSize(-1, FromDIP(5 * 26 + 12)));
             auto rows = []() {
                 std::vector<std::pair<wxString, wxString>> r;
                 auto* bundle = wxGetApp().preset_bundle;
@@ -3618,6 +3618,13 @@ Sidebar::Sidebar(Plater *parent)
                 r.push_back({_L("Infill"), d ? wxString::Format("%d%%", int(std::lround(d->value))) : wxString("-")});
                 r.push_back({_L("Walls"), wxString::Format("%d", int(num("wall_loops")))});
                 r.push_back({_L("Support"), sp && sp->value ? _L("On") : _L("Off")});
+                // max przepływ bierzemy z filamentu (to on go ogranicza)
+                double mvs = 0;
+                if (!bundle->filament_presets.empty())
+                    if (const Preset* fp = bundle->filaments.find_preset(bundle->filament_presets.front()))
+                        if (auto* f = fp->config.option<ConfigOptionFloats>("filament_max_volumetric_speed"); f && !f->values.empty())
+                            mvs = f->values.front();
+                r.push_back({_L("Max flow"), wxString::Format("%g mm", mvs) + wxString::FromUTF8("\xC2\xB3/s")});
                 return r;
             };
             plan->Bind(wxEVT_PAINT, [plan, rows](wxPaintEvent&) {
