@@ -2343,9 +2343,9 @@ void PreferencesDialog::create_items()
     //////////////////////////
     //// DEVELOPER TAB
     /////////////////////////////////////
-    m_pref_tabs->AppendItem(_L("Developer"));
-    f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
-    g_sizer = f_sizers.back();
+    // [r]evo: zakładka Developer ukryta całkowicie (opcje Bambu/AMS, tryb deweloperski – nie dla klientów)
+    wxFlexGridSizer* revo_hidden_dev = new wxFlexGridSizer(1, 1, v_gap, 0);
+    g_sizer = revo_hidden_dev;
     g_sizer->AddGrowableCol(0, 1);
 
     //// DEVELOPER > Settings
@@ -2400,6 +2400,7 @@ void PreferencesDialog::create_items()
 
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);
+    revo_hidden_dev->Show(false);
 
     /////////////////////////////////////
     //////////////////////////
