@@ -8954,9 +8954,11 @@ void GLCanvas3D::_render_background()
         const Size     cnv = get_canvas_size();
         const float    w = float(cnv.get_width()), h = float(cnv.get_height());
         ImDrawList*    dl = ImGui::GetBackgroundDrawList();
-        const ImVec2   a(-0.1f * w, h + 0.06f * h), c(0.5f * w, h - 0.22f * h), b(1.1f * w, h + 0.06f * h);
-        dl->AddBezierQuadratic(a, c, b, IM_COL32(90, 160, 255, 60), 6.0f);
-        dl->AddBezierQuadratic(ImVec2(a.x, a.y - 4), ImVec2(c.x, c.y - 4), ImVec2(b.x, b.y - 4), IM_COL32(255, 255, 255, 70), 1.0f);
+        // łuk na całą szerokość – końce zostają w kadrze, żeby linia nie znikała po bokach
+        const ImVec2   a(0.0f, h - 0.015f * h), c(0.5f * w, h - 0.17f * h), b(w, h - 0.015f * h);
+        dl->AddBezierQuadratic(a, c, b, IM_COL32(90, 160, 255, 45), 12.0f);
+        dl->AddBezierQuadratic(a, c, b, IM_COL32(90, 160, 255, 90), 5.0f);
+        dl->AddBezierQuadratic(ImVec2(a.x, a.y - 2), ImVec2(c.x, c.y - 2), ImVec2(b.x, b.y - 2), IM_COL32(220, 235, 255, 150), 1.2f);
     }
 }
 
