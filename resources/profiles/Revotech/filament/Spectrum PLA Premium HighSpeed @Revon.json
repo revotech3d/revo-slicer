@@ -71,6 +71,6 @@
 		"50"
 	],
 	"filament_notes": [
-		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 190–250 °C, stół 0–45 °C.\nŹródło: Open Filament Database."
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 190–250 °C, stół do 45 °C (zalecane 45 °C).\nŹródło: Open Filament Database."
 	]
 }

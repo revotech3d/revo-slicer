@@ -71,6 +71,6 @@
 		"50"
 	],
 	"filament_notes": [
-		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 190–230 °C, stół 0–45 °C.\nKarta techniczna: https://spectrumfilaments.com/wp-content/uploads/2022/05/en_tds_spectrum_pla_matt.pdf\nŹródło: Open Filament Database."
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 190–230 °C, stół do 45 °C (zalecane 45 °C).\nKarta techniczna: https://spectrumfilaments.com/wp-content/uploads/2022/05/en_tds_spectrum_pla_matt.pdf\nŹródło: Open Filament Database."
 	]
 }
