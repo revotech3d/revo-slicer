@@ -82,7 +82,10 @@ public:
         m_printer->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) { select_printer(); fill_materials(); });
         prow->Add(m_printer, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
         auto* con = new wxButton(this, wxID_ANY, _L("Connect to printer"));
-        con->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { show_connect_wizard(this); });
+        con->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+            show_connect_wizard(this);
+            sync_printer(); // połączenie mogło przełączyć profil na podłączoną maszynę
+        });
         prow->Add(con, 0);
         s->Add(prow, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(16));
 
@@ -111,12 +114,23 @@ public:
     }
 
 private:
+    void sync_printer()
+    {
+        const std::string cur = wxGetApp().preset_bundle->printers.get_selected_preset().name;
+        for (size_t i = 0; i < m_printers.size(); ++i)
+            if (boost::starts_with(cur, m_printers[i]) && int(i) != m_printer->GetSelection()) {
+                m_printer->SetSelection(int(i));
+                fill_materials();
+            }
+    }
+
     void select_printer()
     {
         int i = m_printer->GetSelection();
         if (i < 0 || size_t(i) >= m_printers.size())
             return;
-        if (wxGetApp().preset_bundle->printers.get_selected_preset_name() != m_printers[i])
+        // profil zapisany po połączeniu („<system> @ host”) zostaje – nie wracamy do systemowego
+        if (!boost::starts_with(wxGetApp().preset_bundle->printers.get_selected_preset_name(), m_printers[i]))
             if (Tab* t = wxGetApp().get_tab(Preset::TYPE_PRINTER))
                 t->select_preset(m_printers[i]);
     }
@@ -368,6 +382,39 @@ private:
         Fit();
     }
 
+    // Nazwa profilu „Revon … <dysza> nozzle” dla maszyny pod adresem host (Moonraker przez klucz API), pusta gdy się nie da.
+    static std::string printer_profile(const std::string& host, const std::string& key)
+    {
+        std::string out;
+        Http::get(host + "/printer/objects/query?toolhead=axis_maximum&save_variables")
+            .header("X-Api-Key", key)
+            .timeout_connect(5)
+            .timeout_max(10)
+            .on_complete([&out](std::string b, unsigned) {
+                try {
+                    const auto st  = nlohmann::json::parse(b).at("result").at("status");
+                    const auto ax  = st.at("toolhead").at("axis_maximum");
+                    const double x = ax.at(0).get<double>(), z = ax.at(2).get<double>();
+                    std::string m;
+                    if (x < 500)
+                        m = "Revon Belt 350x350x300";
+                    else if (x > 900)
+                        m = "Revon 1200x600x500";
+                    else
+                        m = z > 500 ? "Revon 600x600x600" : "Revon 600x600x400";
+                    double d = 0.4;
+                    const auto& v = st.at("save_variables").at("variables");
+                    if (v.contains("revo_nozzle_diameter") && v["revo_nozzle_diameter"].is_number())
+                        d = v["revo_nozzle_diameter"].get<double>();
+                    char buf[16];
+                    std::snprintf(buf, sizeof(buf), "%.1f", d < 0.3 ? 0.4 : d); // profile od 0.4 mm
+                    out = m + " " + buf + " nozzle";
+                } catch (...) {}
+            })
+            .perform_sync();
+        return out;
+    }
+
     void connect()
     {
         wxBusyCursor      busy;
@@ -422,7 +469,14 @@ private:
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
         if (!tab)
             return;
-        auto&              pr  = wxGetApp().preset_bundle->printers;
+        auto& pr = wxGetApp().preset_bundle->printers;
+        // [r]evo: profil drukarki dobrany do podłączonej maszyny (rozmiar osi + założona dysza z Revo OS)
+        const std::string model = printer_profile(host, key);
+        if (!model.empty() && model != pr.get_selected_preset_name()) {
+            const Preset* p = pr.find_preset(model, false);
+            if (p && p->is_visible)
+                tab->select_preset(model);
+        }
         DynamicPrintConfig cfg = pr.get_edited_preset().config;
         cfg.set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(htMoonraker));
         cfg.set_key_value("print_host", new ConfigOptionString(host.substr(host.find("//") + 2)));

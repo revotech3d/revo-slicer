@@ -271,7 +271,7 @@ AboutDialog::AboutDialog()
         wxStaticText* credits_string = new wxStaticText(this, wxID_ANY, wxString::Format(_L("Build %s"), build_commit_label), wxDefaultPosition, wxDefaultSize);
         credits_string->SetFont(_build_string_font);
         wxFont version_font = GetFont();
-        version_font = version_font.Scaled(1.85f); // SetPointSize(20) not works on macOS because it uses a 72 PPI reference
+        version_font = version_font.Scaled(1.4f); // [r]evo: mniejsza, by zmieścić się pod logo // SetPointSize(20) not works on macOS because it uses a 72 PPI reference
         version->SetFont(version_font);
         version->SetForegroundColour(wxColour("#949494"));
         credits_string->SetForegroundColour(wxColour("#949494"));
@@ -281,7 +281,7 @@ AboutDialog::AboutDialog()
         vesizer->Add(version, 0, wxRIGHT | wxALIGN_RIGHT, FromDIP(20));
         vesizer->AddSpacer(FromDIP(5));
         vesizer->Add(credits_string, 0, wxRIGHT | wxALIGN_RIGHT, FromDIP(20));
-        vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
+        vesizer->AddSpacer(FromDIP(12)); // [r]evo: wersja pod logo (szeroki napis [r]evo SLICER zajmuje środek)
     }
 
     wxBoxSizer *text_sizer_horiz = new wxBoxSizer(wxHORIZONTAL);
