@@ -3653,6 +3653,7 @@ void MainFrame::init_menubar_as_editor()
         "", nullptr, []() { return true; }, this);
     top_menu->AppendSeparator();
 
+#if 0 // [r]evo: Preset Bundle, Sync Presets (OrcaCloud) i Plugins nie są używane
     append_menu_item(
         top_menu, wxID_ANY, _L("Preset Bundle") + "\t", "",
         [this](wxCommandEvent &) {
@@ -3688,6 +3689,7 @@ void MainFrame::init_menubar_as_editor()
         },
         "", nullptr, []() { return true; }, this);
 
+#endif
     //m_topbar->AddDropDownMenuItem(preference_item);
     //m_topbar->AddDropDownMenuItem(printer_item);
     //m_topbar->AddDropDownMenuItem(language_item);
@@ -3767,6 +3769,7 @@ void MainFrame::init_menubar_as_editor()
         fileMenu, Shortcut::SpeedDial, false, _L("Open Speed Dial"), "",
         [](wxCommandEvent&) { wxGetApp().open_speed_dial(); },
         "", nullptr, []() { return true; }, this);
+#if 0 // [r]evo: Preset Bundle, Sync Presets (OrcaCloud) i Plugins nie są używane
     append_menu_item(
         fileMenu, wxID_ANY, _L("Preset Bundle"), "",
         [this](wxCommandEvent&) {
@@ -3798,6 +3801,7 @@ void MainFrame::init_menubar_as_editor()
         fileMenu, wxID_ANY, _L("Plugins"), "", [](wxCommandEvent&) { wxGetApp().open_plugins_dialog(); }, "", nullptr,
         []() { return true; }, this);
 
+#endif
     fileMenu->AppendSeparator();
 
     m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
