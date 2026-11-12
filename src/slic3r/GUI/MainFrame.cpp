@@ -1,6 +1,7 @@
 #include "RevoKreator.hpp"
 #include "RevoLicencja.hpp"
 #include "MainFrame.hpp"
+#include "Widgets/Label.hpp"
 
 #include <wx/event.h>
 #include "slic3r/GUI/Event.hpp"
@@ -2322,9 +2323,9 @@ wxBoxSizer* MainFrame::create_side_tools()
     slice_panel->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#3B4446")));
     print_panel->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#3B4446")));
 
-    m_slice_btn = new SideButton(slice_panel, _L("Slice plate"), "");
+    m_slice_btn = new SideButton(slice_panel, _L("Slice plate"), "revo_btn_slice", 0, 22);
     m_slice_option_btn = new SideButton(slice_panel, "", "sidebutton_dropdown", 0, 14);
-    m_print_btn = new SideButton(print_panel, _L("Print plate"), "");
+    m_print_btn = new SideButton(print_panel, _L("Print plate"), "revo_btn_print", 0, 22);
     m_print_option_btn = new SideButton(print_panel, "", "sidebutton_dropdown", 0, 14);
 
     // Orca: restore the last used print/export action if the user opted to remember it
@@ -2336,12 +2337,12 @@ wxBoxSizer* MainFrame::create_side_tools()
     }
 
     auto slice_sizer = new wxBoxSizer(wxHORIZONTAL);
-    slice_sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    slice_sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxEXPAND, FromDIP(1));
     slice_sizer->Add(m_slice_btn, 1, wxLEFT | wxEXPAND, FromDIP(1)); // [r]evo: przycisk na całą szerokość karty
     slice_panel->SetSizer(slice_sizer);
 
     auto print_sizer = new wxBoxSizer(wxHORIZONTAL);
-    print_sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    print_sizer->Add(m_print_option_btn, 0, wxRIGHT | wxEXPAND, FromDIP(1));
     print_sizer->Add(m_print_btn, 1, wxLEFT | wxEXPAND, FromDIP(1));
     print_panel->SetSizer(print_sizer);
 
@@ -2688,7 +2689,12 @@ void MainFrame::update_side_button_style()
     // m_publish_btn->SetBackgroundColour(wxColour(59,68,70));
     // m_publish_btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
 
-    m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
+    // [r]evo: duże, graficzne przyciski – ikona + tekst na środku, każdy na pół wiersza
+    for (SideButton* b : {m_slice_btn, m_print_btn}) {
+        b->SetFont(Label::Head_16);
+        b->SetIconOffset(FromDIP(10));
+    }
+    m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
     m_slice_btn->SetCornerRadius(0);
     // [r]evo: SLICE w białej ramce na tle paska, PRINT pełny niebieski (jak na ekranie startowym)
     m_slice_btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(20, 24, 29), StateColor::Disabled),
@@ -2697,25 +2703,25 @@ void MainFrame::update_side_button_style()
                                                std::pair<wxColour, int>(wxColour(7, 9, 11), StateColor::Normal)));
     m_slice_btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(42, 47, 54), StateColor::Disabled),
                                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)));
-    m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
-    m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(26)));
+    m_slice_btn->SetMinSize(wxSize(-1, FromDIP(52)));
 
     m_slice_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_slice_option_btn->SetCornerRadius(0);
     m_slice_option_btn->SetExtraSize(wxSize(FromDIP(10), FromDIP(10)));
     m_slice_option_btn->SetIconOffset(FromDIP(2));
-    m_slice_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+    m_slice_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(52)));
 
-    m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
+    m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
     m_print_btn->SetCornerRadius(0);
-    m_print_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
-    m_print_btn->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_print_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(26)));
+    m_print_btn->SetMinSize(wxSize(-1, FromDIP(52)));
 
     m_print_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_print_option_btn->SetCornerRadius(0);
     m_print_option_btn->SetExtraSize(wxSize(FromDIP(10), FromDIP(10)));
     m_print_option_btn->SetIconOffset(FromDIP(2));
-    m_print_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+    m_print_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(52)));
 
     // Keep panel backgrounds in sync with SideButton's darkModeColorFor(#3B4446) bottom strip
     auto bg = StateColor::darkModeColorFor(wxColour("#3B4446"));
