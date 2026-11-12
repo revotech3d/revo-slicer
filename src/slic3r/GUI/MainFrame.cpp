@@ -2924,9 +2924,9 @@ wxMenu* MainFrame::generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, _L("Quick print setup"), _L("Quick print setup"),
         [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_newbie_wizard(this); });
     append_menu_item(helpMenu, wxID_ANY, _L("Revo guides"), _L("Guides for Revon printers and [r]evo Slicer"),
-        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/category/revo-os/"); });
+        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/en/wiki/"); });
     append_menu_item(helpMenu, wxID_ANY, _L("Contact Revotech service"), _L("Contact Revotech service"),
-        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/serwis-drukarek-3d/"); });
+        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/en/contact/"); });
     append_menu_item(helpMenu, wxID_ANY, _L("Revotech service sign-in"), _L("Sign in with a Revotech service account"),
         [this](wxCommandEvent&) { Slic3r::GUI::Revo::ensure_licence(*wxGetApp().app_config, this); });
 
@@ -3751,7 +3751,7 @@ void MainFrame::init_menubar_as_editor()
 
     // help
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Calibration Guide"), _L("Calibration Guide"), [](wxCommandEvent &)
-                     { wxLaunchDefaultBrowser("https://www.orcaslicer.com/wiki/calibration_guide", wxBROWSER_NEW_WINDOW); }, "", nullptr, [this]()
+                     { wxLaunchDefaultBrowser("https://revo3d.pl/en/wiki/revo-slicer/", wxBROWSER_NEW_WINDOW); }, "", nullptr, [this]()
                      {return m_plater->is_view3D_shown();; }, this);
 
 #else
@@ -3867,7 +3867,7 @@ void MainFrame::init_menubar_as_editor()
         [this]() {return m_plater->is_view3D_shown();; }, this);
     // help
     append_menu_item(calib_menu, wxID_ANY, _L("Calibration Guide"), _L("Calibration Guide"),
-        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://www.orcaslicer.com/wiki/calibration_guide", wxBROWSER_NEW_WINDOW); }, "", nullptr,
+        [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/en/wiki/revo-slicer/", wxBROWSER_NEW_WINDOW); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
     m_menubar->Append(calib_menu,wxString::Format("&%s", _L("Calibration")));
