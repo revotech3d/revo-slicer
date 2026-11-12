@@ -52,3 +52,35 @@
 .PbBoard .PbGuide:hover svg { opacity: 1; transform: scale(1.06) rotate(-4deg); }
 .PbBoard .PbGuide b, .PbBoard .PbGuide span { position: relative; padding-right: 50px; }
 .PbBoard .PbTile.PbGuide .PbRec { right: 120px; }
+
+/* ---- My printers: kafelki jak w Calibration/Guides, duża sylwetka maszyny przy krawędzi ---- */
+#PbList { border-top: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.PbBoard .PbRow { display: block; position: relative; overflow: hidden; min-height: 150px; padding: 18px 20px; gap: 0;
+  border: 1px solid #2a2f36; border-left: 1px solid #2a2f36; }
+.PbBoard .PbRow:hover { border-color: #fff; background: rgba(90,160,255,.07); }
+.PbBoard .PbActive { border-color: #5aa0ff; background: linear-gradient(135deg, rgba(90,160,255,.15), transparent); }
+.PbBoard .PbActive:hover { border-color: #5aa0ff; }
+.PbBoard .PbImg { position: absolute; right: -24px; bottom: -58px; width: 230px; height: auto; filter: invert(1) grayscale(1); opacity: .5; transition: opacity .2s, transform .3s; }
+.PbBoard .PbRow:hover .PbImg, .PbBoard .PbActive .PbImg { opacity: .85; }
+.PbBoard .PbRow:hover .PbImg { transform: scale(1.04); }
+.PbBoard .PbN, .PbBoard .PbRow .PbCapS, .PbBoard .PbRow .PbV, .PbBoard .PbSpec, .PbBoard .PbAct { position: relative; }
+.PbBoard .PbN { font-size: 22px; letter-spacing: 3px; padding-right: 40px; }
+.PbBoard .PbRow .PbV { margin-top: 14px; font-size: 18px; }
+.PbBoard .PbSpec { font-size: 12px; color: #9aa4b2; letter-spacing: 1px; margin-top: 2px; }
+.PbBoard .PbAct { margin-top: 16px; }
+.PbBoard .PbAct .PbBtn { display: inline-block; }
+.PbBoard .PbDel { position: absolute; right: 10px; top: 10px; z-index: 2; }
+
+/* ---- menu po lewej w tym samym stylu ---- */
+body #LeftBoard { background: #07090b !important; border-right: 1px solid #1c2026 !important; }
+#BtnArea .RevoLogo { font-family: "Barlow Condensed", "Helvetica Neue", Arial, sans-serif; font-size: 24px; letter-spacing: 6px; color: #fff; padding: 0 22px 26px; }
+#BtnArea .BtnItem { height: 40px; padding-left: 22px; border: none !important; border-left: 3px solid transparent !important; background: transparent !important;
+  color: #9aa4b2 !important; font-weight: 400 !important; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; font-family: "Barlow Condensed", "Helvetica Neue", Arial, sans-serif; }
+#BtnArea .BtnItem:hover { color: #fff !important; background: rgba(90,160,255,.06) !important; }
+#BtnArea .BtnItemSelected { color: #fff !important; border-left-color: #5aa0ff !important; background: linear-gradient(90deg, rgba(90,160,255,.16), transparent) !important; }
+#BtnArea .BtnItem .icon16 { background-color: #5a6472 !important; }
+#BtnArea .BtnItemSelected .icon16 { background-color: #5aa0ff !important; }
+body, #RightBoard { background: #000 !important; }
+.PbBoard .PbImg { right: -36px; bottom: -64px; width: 210px; opacity: .2; }
+.PbBoard .PbRow:hover .PbImg, .PbBoard .PbActive .PbImg { opacity: .32; }
+.PbBoard .PbRow { min-height: 160px; }
