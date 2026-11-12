@@ -3045,11 +3045,13 @@ Sidebar::Sidebar(Plater *parent)
 
         // "Variant", not "Nozzle": picking one switches the printer preset (see panel_nozzle_dia).
         // TRN Sidebar label of the printer variant (nozzle) selector; picking one switches the printer preset.
-        p->label_nozzle_title = new Label(p->panel_nozzle_dia, _L("Variant"), LB_PROPAGATE_MOUSE_EVENT);
+        p->label_nozzle_title = new Label(p->panel_nozzle_dia, ::Label::Spaced(_L("Nozzle")), LB_PROPAGATE_MOUSE_EVENT);
         p->label_nozzle_title->SetFont(Label::Body_10);
+        p->label_nozzle_title->SetForegroundColour(wxColour(154, 164, 178)); // [r]evo: podpis jak w telemetrii
 
         p->combo_nozzle_dia = new ComboBox(p->panel_nozzle_dia, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
         p->combo_nozzle_dia->SetBorderWidth(0);
+        p->combo_nozzle_dia->SetFont(Label::Head_14); // [r]evo: wyraźna średnica dyszy
         p->combo_nozzle_dia->GetDropDown().SetUseContentWidth(true);
         p->combo_nozzle_dia->SetMinSize(FromDIP(wxSize(PRINTER_PANEL_SIZE.GetWidth() - 4, 26))); // requires a static value in here
         p->combo_nozzle_dia->SetMaxSize(FromDIP(wxSize(PRINTER_PANEL_SIZE.GetWidth() - 4, 26))); // using -1 with wxEXPAND has issues
@@ -3176,6 +3178,17 @@ Sidebar::Sidebar(Plater *parent)
         wxBoxSizer *bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
         bed_type_sizer->Add(p->combo_printer_bed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
         bed_type_sizer->Add(p->image_printer_bed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+        {   // [r]evo: nazwa płyty obok ikony – sama ikona była nieczytelna
+            auto* bed_name = new Label(p->panel_printer_bed, "", LB_PROPAGATE_MOUSE_EVENT | wxST_ELLIPSIZE_END);
+            bed_name->SetFont(Label::Body_12);
+            bed_name->SetForegroundColour(wxColour(207, 214, 223));
+            bed_name->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt); });
+            bed_name->Bind(wxEVT_IDLE, [this, bed_name](wxIdleEvent&) {
+                const wxString v = p->combo_printer_bed->GetValue();
+                if (bed_name->GetLabel() != v) { bed_name->SetLabel(v); bed_name->GetParent()->Layout(); }
+            });
+            bed_type_sizer->Add(bed_name, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(4));
+        }
 
         p->panel_printer_bed->SetSizer(bed_type_sizer);
 
