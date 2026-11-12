@@ -10,6 +10,7 @@
 
 #include <wx/bookctrl.h>
 #include <wx/statbmp.h>
+#include <wx/cursor.h>
 #include <cmath>
 #include <cstddef>
 #include <utility>
@@ -52,9 +53,21 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
 
     // [r]evo: logo [r]evo na początku górnego paska (krój z revo3d.pl)
     if (side_tools != NULL) {
-        auto* logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("revo_topbar_logo", this, 16));
+        // [r]evo: duże logo; kliknięcie = ekran startowy (Home), osobny przycisk domku jest ukryty
+        auto* logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("revo_topbar_logo", this, 30));
         logo->SetBackgroundColour(GetBackgroundColour());
-        m_sizer->Add(logo, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(14));
+        logo->SetCursor(wxCursor(wxCURSOR_HAND));
+        logo->SetToolTip(_L("Home"));
+        logo->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) {
+            for (size_t i = 0; i < m_pageButtons.size(); ++i)
+                if (m_pageLabels[i].empty()) {
+                    wxCommandEvent evt(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED);
+                    evt.SetId(int(i));
+                    wxPostEvent(this->GetParent(), evt);
+                    break;
+                }
+        });
+        m_sizer->Add(logo, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(16));
     }
     m_buttons_sizer = new wxFlexGridSizer(1, m_btn_margin, m_btn_margin);
     if (side_tools != NULL)
@@ -236,6 +249,8 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     m_pageLabels.insert(m_pageLabels.begin() + n, text); // ORCA
     m_pageIcons.insert(m_pageIcons.begin() + n, bmp_name);
     m_buttons_sizer->Insert(n, new wxSizerItem(btn));
+    if (text.empty() && bmp_name.find("home") != std::string::npos)
+        btn->Hide(); // [r]evo: Home pod logo
     m_buttons_sizer->SetCols(m_buttons_sizer->GetCols() + 1);
     m_sizer->Layout();
     return true;
