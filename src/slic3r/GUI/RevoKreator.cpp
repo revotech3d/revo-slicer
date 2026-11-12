@@ -31,6 +31,9 @@
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/combobox.h>
+#include <wx/clrpicker.h>
+#include <set>
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
 #include <wx/hyperlink.h>
@@ -674,8 +677,8 @@ public:
         m_cur  = {get("nozzle_temperature", 220), get("filament_flow_ratio", 0.98), get("filament_max_volumetric_speed", 16),
                   get("pressure_advance", 0.04), get("filament_retraction_length", 0.8)};
         m_type = cfg.opt_string("filament_type", 0u);
-        m_brand = from_u8(cfg.opt_string("filament_vendor", 0u));
-        m_name  = "Revo " + from_u8(preset.alias);
+        m_brand.clear(); // własna marka – użytkownik wpisuje albo wybiera z listy
+        m_name.clear();
 
         m_steps = {
             {_L("Temperature"), _L("Which part of the tower looks cleanest?"),
@@ -706,7 +709,7 @@ public:
         auto* root = new wxBoxSizer(wxVERTICAL);
         m_head = new wxPanel(this);
         m_head->SetBackgroundStyle(wxBG_STYLE_PAINT);
-        m_head->SetMinSize(FromDIP(wxSize(1100, 170)));
+        m_head->SetMinSize(FromDIP(wxSize(960, 170)));
         m_head->Bind(wxEVT_PAINT, [this](wxPaintEvent&) { paint_head(); });
         root->Add(m_head, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(24));
         auto* mid = new wxBoxSizer(wxHORIZONTAL);
@@ -733,7 +736,7 @@ public:
                 CallAfter([this] { show(m_page); }); // po wydruku testu pokaż jego wartości
         });
         show(0);
-        SetMinSize(FromDIP(wxSize(1180, 720)));
+        SetMinSize(FromDIP(wxSize(1040, 720)));
         Fit();
         CentreOnParent();
     }
@@ -944,11 +947,38 @@ private:
         return t;
     }
 
+    wxString auto_name() const
+    {
+        wxString n = m_brand.IsEmpty() ? wxString("Revo") : m_brand;
+        if (!m_type.empty()) n += " " + from_u8(m_type);
+        if (!m_color_name.IsEmpty()) n += " " + m_color_name;
+        return n;
+    }
+
+    // Marki z zainstalowanych profili filamentu – do wyboru, ale można wpisać własną.
+    static wxArrayString known_brands()
+    {
+        std::set<std::string> b;
+        for (const Preset& p : wxGetApp().preset_bundle->filaments.get_presets()) {
+            const std::string v = p.config.opt_string("filament_vendor", 0u);
+            if (!v.empty() && v != "Generic") b.insert(v);
+        }
+        wxArrayString out;
+        for (const auto& v : b) out.Add(from_u8(v));
+        return out;
+    }
+
     void keep_setup()
     {
         if (m_name_ctrl) m_name = m_name_ctrl->GetValue();
         if (m_brand_ctrl) m_brand = m_brand_ctrl->GetValue();
-        m_name_ctrl = m_brand_ctrl = nullptr;
+        if (m_color_ctrl) m_color_name = m_color_ctrl->GetValue();
+        if (m_color_pick) m_color = m_color_pick->GetColour();
+        m_name_ctrl = nullptr;
+        m_brand_ctrl = nullptr;
+        m_color_ctrl = nullptr;
+        m_color_pick = nullptr;
+        if (!m_name_edited) m_name = auto_name();
     }
 
     void show(int page)
@@ -971,8 +1001,40 @@ private:
             if (m_type.find("CF") != std::string::npos || m_type.find("GF") != std::string::npos)
                 s->Add(label(m_body, wxString::FromUTF8("\xE2\x9A\xA0 ") + _L("Carbon or glass fibre filament: a hardened steel nozzle is required. Brass wears out within hours."),
                              12, wxColour(255, 196, 92)), 0, wxTOP, FromDIP(10));
-            m_brand_ctrl = field(m_body, s, _L("Brand"), m_brand);
-            m_name_ctrl  = field(m_body, s, _L("Name on your list"), m_name);
+            // Marka: własna (wpisz) albo z listy; kolor: nazwa + próbnik – różne kolory potrafią drukować się inaczej
+            auto* bc = new wxBoxSizer(wxHORIZONTAL);
+            auto* bcol = new wxBoxSizer(wxVERTICAL);
+            bcol->Add(label(m_body, spaced(_L("Brand - type your own or pick from the list"), 2), 9, kMuted), 0, wxTOP, FromDIP(16));
+            m_brand_ctrl = new wxComboBox(m_body, wxID_ANY, m_brand, wxDefaultPosition, FromDIP(wxSize(-1, 34)), known_brands(), wxCB_DROPDOWN | wxCB_SORT);
+            m_brand_ctrl->SetHint(_L("Your own brand"));
+            bcol->Add(m_brand_ctrl, 0, wxEXPAND | wxTOP, FromDIP(6));
+            bc->Add(bcol, 1, wxRIGHT, FromDIP(16));
+            auto* ccol = new wxBoxSizer(wxVERTICAL);
+            ccol->Add(label(m_body, spaced(_L("Colour"), 2), 9, kMuted), 0, wxTOP, FromDIP(16));
+            auto* crow = new wxBoxSizer(wxHORIZONTAL);
+            m_color_pick = new wxColourPickerCtrl(m_body, wxID_ANY, m_color, wxDefaultPosition, FromDIP(wxSize(44, 34)));
+            m_color_ctrl = new wxTextCtrl(m_body, wxID_ANY, m_color_name, wxDefaultPosition, FromDIP(wxSize(-1, 34)), wxBORDER_SIMPLE);
+            m_color_ctrl->SetHint(_L("e.g. Orange"));
+            m_color_ctrl->SetBackgroundColour(kBg);
+            m_color_ctrl->SetForegroundColour(kText);
+            crow->Add(m_color_pick, 0, wxRIGHT, FromDIP(8));
+            crow->Add(m_color_ctrl, 1);
+            ccol->Add(crow, 0, wxEXPAND | wxTOP, FromDIP(6));
+            bc->Add(ccol, 1);
+            s->Add(bc, 0, wxEXPAND);
+            s->Add(label(m_body, _L("Colour matters: pigments change how a filament melts, so each colour gets its own profile."), 11, kMuted), 0, wxTOP, FromDIP(6));
+            m_name_ctrl = field(m_body, s, _L("Name on your list"), m_name_edited ? m_name : auto_name());
+            auto refresh_name = [this](wxCommandEvent& e) {
+                e.Skip();
+                if (m_name_edited || !m_name_ctrl) return;
+                if (m_brand_ctrl) m_brand = m_brand_ctrl->GetValue();
+                if (m_color_ctrl) m_color_name = m_color_ctrl->GetValue();
+                m_name_ctrl->ChangeValue(auto_name());
+            };
+            m_brand_ctrl->Bind(wxEVT_TEXT, refresh_name);
+            m_brand_ctrl->Bind(wxEVT_COMBOBOX, refresh_name);
+            m_color_ctrl->Bind(wxEVT_TEXT, refresh_name);
+            m_name_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { e.Skip(); m_name_edited = true; });
             // Suszenie obowiązkowe – nowy nie znaczy suchy
             auto* dry = new wxPanel(m_body);
             dry->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -1119,6 +1181,8 @@ private:
         if (!m_brand.IsEmpty())
             if (auto* v = cfg.option<ConfigOptionStrings>("filament_vendor"))
                 for (auto& x : v->values) x = into_u8(m_brand);
+        if (auto* c = cfg.option<ConfigOptionStrings>("filament_colour"))
+            for (auto& x : c->values) x = into_u8(m_color.GetAsString(wxC2S_HTML_SYNTAX));
         tab->load_config(cfg);
         tab->save_preset(name);
         MessageDialog(this, wxString::Format(_L("Profile \"%s\" saved. Sometimes evolution. Sometimes [r]evolution."), from_u8(name)),
@@ -1135,7 +1199,13 @@ private:
     wxPanel *            m_head, *m_body, *m_side;
     wxStaticText*        m_help;
     wxBoxSizer*          m_next_box;
-    wxTextCtrl *         m_name_ctrl = nullptr, *m_brand_ctrl = nullptr;
+    wxTextCtrl *         m_name_ctrl = nullptr;
+    wxComboBox*          m_brand_ctrl = nullptr;
+    wxTextCtrl*          m_color_ctrl = nullptr;
+    wxColourPickerCtrl*  m_color_pick = nullptr;
+    wxString             m_color_name;
+    wxColour             m_color = wxColour(255, 255, 255);
+    bool                 m_name_edited = false;
 };
 
 // ---------------------------------------------------------------- Ekran „Find your Revon”
