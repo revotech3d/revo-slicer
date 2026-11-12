@@ -2337,12 +2337,12 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     auto slice_sizer = new wxBoxSizer(wxHORIZONTAL);
     slice_sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    slice_sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    slice_sizer->Add(m_slice_btn, 1, wxLEFT | wxEXPAND, FromDIP(1)); // [r]evo: przycisk na całą szerokość karty
     slice_panel->SetSizer(slice_sizer);
 
     auto print_sizer = new wxBoxSizer(wxHORIZONTAL);
     print_sizer->Add(m_print_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    print_sizer->Add(m_print_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    print_sizer->Add(m_print_btn, 1, wxLEFT | wxEXPAND, FromDIP(1));
     print_panel->SetSizer(print_sizer);
 
     update_side_button_style();

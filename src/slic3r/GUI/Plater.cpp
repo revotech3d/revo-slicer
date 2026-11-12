@@ -3275,7 +3275,8 @@ Sidebar::Sidebar(Plater *parent)
         p->m_revo_actions = new wxPanel(p->scrolled, wxID_ANY);
         p->m_revo_actions->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
         p->m_revo_actions->SetSizer(new wxBoxSizer(wxHORIZONTAL));
-        scrolled_sizer->Add(p->m_revo_actions, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(SidebarProps::ContentMargin()));
+        // na samej górze panelu, nad kartą drukarki
+        scrolled_sizer->Insert(0, p->m_revo_actions, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(SidebarProps::ContentMargin()));
     }
 
     {
