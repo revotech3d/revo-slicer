@@ -66,6 +66,7 @@
 #include "libslic3r/calib.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
+#include "slic3r/GUI/calib_dlg.hpp"
 #include <wx/gdicmn.h>
 
 namespace Slic3r::GUI::Revo {
@@ -822,7 +823,7 @@ private:
             return v;
         }
         auto it = g_calib.find(st.calib_key);
-        if (it != g_calib.end()) {
+        if (it != g_calib.end() && m_printed[s]) {
             const Calib_Params& p = it->second;
             if (s == 0) range(std::min(p.start, p.end), std::max(p.start, p.end), p.step);       // wieża: góra = najchłodniej
             else if (s == 3) range(p.start, p.end, p.step);                                     // linie PA po kolei
@@ -830,7 +831,15 @@ private:
         }
         if (v.empty()) {
             const double c = m_cur[s == 0 ? 0 : s == 2 ? 2 : s == 3 ? 3 : 4];
-            if (s == 0) range(c - 20, c + 20, 5);
+            if (s == 0) { // zakres wieży dla gatunku (jak w oknie kalibracji temperatury)
+                const std::string& m = m_type;
+                double hi = 230, lo = 190;
+                if (m == "ABS" || m == "ASA") { hi = 270; lo = 230; }
+                else if (m == "PETG") { hi = 250; lo = 230; }
+                else if (m == "TPU") { hi = 240; lo = 210; }
+                else if (m == "PA-CF" || m == "PA-GF" || m == "PET-CF") { hi = 320; lo = 280; }
+                range(lo, hi, 5);
+            }
             else if (s == 2) range(c + 8, std::max(2.0, c - 8), 2);
             else if (s == 3) range(std::max(0.0, c - 0.04), c + 0.04, 0.005);
             else range(c + 1.0, std::max(0.0, c - 1.0), 0.2);
@@ -1134,7 +1143,7 @@ private:
             auto* top = new wxBoxSizer(wxHORIZONTAL);
             top->Add(label(m_body, m_printed[si] ? _L("1. Test sent - look at the printed result:") : _L("1. First print the test:"), 15, kText), 1, wxALIGN_CENTER_VERTICAL);
             top->Add(new PulseButton(m_body, spaced(_L("Print this test")), !m_printed[si],
-                                     [this, si, kind = st.kind] { m_printed[si] = true; wxGetApp().mainframe->run_calibration(kind); }), 0, wxALIGN_CENTER_VERTICAL);
+                                     [this, si, kind = st.kind] { m_printed[si] = true; if (kind == CalibKind::Temperature) g_revo_wizard_material = m_type; wxGetApp().mainframe->run_calibration(kind); }), 0, wxALIGN_CENTER_VERTICAL);
             s->Add(top, 0, wxEXPAND | wxBOTTOM, FromDIP(14));
             auto* ex = new wxBoxSizer(wxHORIZONTAL);
             ex->Add(example(m_body, "revo_wz_" + st.art + "_bad", false, st.bad), 1, wxRIGHT, FromDIP(16));

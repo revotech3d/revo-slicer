@@ -52,6 +52,9 @@ protected:
 	Plater* m_plater;
 };
 
+// [r]evo: material chosen in the filament wizard; the temperature dialog preselects it on the next show.
+extern std::string g_revo_wizard_material;
+
 class Temp_Calibration_Dlg : public DPIDialog
 {
 public:

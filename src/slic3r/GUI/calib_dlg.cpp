@@ -45,6 +45,8 @@
 
 namespace Slic3r { namespace GUI {
 
+std::string g_revo_wizard_material;
+
 std::vector<InputShaperType> input_shaper_types_for_flavor(GCodeFlavor flavor);
 
 namespace {
@@ -673,6 +675,22 @@ void Temp_Calibration_Dlg::on_show(wxShowEvent& event) {
     // ORCA-Belt: the dialog is cached across printer switches, so refresh the
     // belt-only "Test model" picker on every show. The Overhang model only
     // applies to belt printers; hide it (and resize the dialog) otherwise.
+    // [r]evo: opened from the filament wizard - preselect the material so the tower range fits it
+    if (event.IsShown() && !g_revo_wizard_material.empty()) {
+        const std::string m = g_revo_wizard_material;
+        g_revo_wizard_material.clear();
+        int idx = 0; // PLA
+        if (m == "ABS" || m == "ASA") idx = 1;
+        else if (m == "PETG") idx = 2;
+        else if (m == "PCTG") idx = 3;
+        else if (m == "TPU") idx = 4;
+        else if (m == "PA-CF" || m == "PA-GF") idx = 5;
+        else if (m == "PET-CF") idx = 6;
+        m_rbFilamentType->SetSelection(idx);
+        wxCommandEvent sel(wxEVT_COMMAND_RADIOBOX_SELECTED);
+        sel.SetInt(idx);
+        on_filament_type_changed(sel);
+    }
     const bool belt = is_belt_printer_selected();
     if (m_model_box->AreAnyItemsShown() != belt) {
         m_model_box->ShowItems(belt);
