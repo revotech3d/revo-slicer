@@ -1027,7 +1027,7 @@ private:
         std::set<std::string> b;
         for (const Preset& p : wxGetApp().preset_bundle->filaments.get_presets()) {
             const std::string v = p.config.opt_string("filament_vendor", 0u);
-            if (!v.empty() && v != "Generic") b.insert(v);
+            if (!v.empty() && v != "Generic" && v.front() != '(') b.insert(v); // bez „(Undefined)”
         }
         wxArrayString out;
         for (const auto& v : b) out.Add(from_u8(v));
@@ -1073,6 +1073,7 @@ private:
             bcol->Add(label(m_body, spaced(_L("Brand - type your own or pick from the list"), 2), 9, kMuted), 0, wxTOP, FromDIP(16));
             m_brand_ctrl = new wxComboBox(m_body, wxID_ANY, m_brand, wxDefaultPosition, FromDIP(wxSize(-1, 34)), known_brands(), wxCB_DROPDOWN | wxCB_SORT);
             m_brand_ctrl->SetHint(_L("Your own brand"));
+            m_brand_ctrl->ChangeValue(m_brand); // nie podstawiaj pierwszej marki z listy
             bcol->Add(m_brand_ctrl, 0, wxEXPAND | wxTOP, FromDIP(6));
             bc->Add(bcol, 1, wxRIGHT, FromDIP(16));
             auto* ccol = new wxBoxSizer(wxVERTICAL);
