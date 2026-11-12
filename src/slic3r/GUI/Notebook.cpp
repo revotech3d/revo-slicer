@@ -251,6 +251,8 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     m_buttons_sizer->Insert(n, new wxSizerItem(btn));
     if (text.empty() && bmp_name.find("home") != std::string::npos)
         btn->Hide(); // [r]evo: Home pod logo
+    if (bmp_name == "tab_auxiliary_active")
+        btn->Hide(); // [r]evo: zakładka Project (opis projektu do publikacji w MakerWorld) nie jest używana
     m_buttons_sizer->SetCols(m_buttons_sizer->GetCols() + 1);
     m_sizer->Layout();
     return true;
