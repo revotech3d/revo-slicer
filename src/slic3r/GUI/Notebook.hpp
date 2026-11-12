@@ -60,6 +60,7 @@ public:
     wxWindow* GetOverflowButton() const { return m_overflow_button; }
 
 private:
+    wxPanel* m_revo_home = nullptr; // [r]evo: logo = przycisk Home
     wxFlexGridSizer*                m_buttons_sizer;
     wxBoxSizer*                     m_sizer;
     // BBS: use Button

@@ -6,6 +6,9 @@
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/Label.hpp"
+#include <wx/stattext.h>
+#include <initializer_list>
 
 //BBS set font size
 
@@ -55,11 +58,18 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
     // [r]evo: logo [r]evo na początku górnego paska (krój z revo3d.pl)
     if (side_tools != NULL) {
         // [r]evo: duże logo; kliknięcie = ekran startowy (Home), osobny przycisk domku jest ukryty
-        auto* logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("revo_topbar_logo", this, 30));
-        logo->SetBackgroundColour(GetBackgroundColour());
-        logo->SetCursor(wxCursor(wxCURSOR_HAND));
-        logo->SetToolTip(_L("Home"));
-        logo->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) {
+        // Logo jako przycisk: tło jak zakładka (granat gdy aktywny ekran startowy, podświetlenie pod kursorem) + podpis HOME
+        m_revo_home = new wxPanel(this, wxID_ANY);
+        m_revo_home->SetBackgroundColour(GetBackgroundColour());
+        auto* logo = new wxStaticBitmap(m_revo_home, wxID_ANY, create_scaled_bitmap("revo_topbar_logo", this, 30));
+        auto* cap  = new wxStaticText(m_revo_home, wxID_ANY, ::Label::Spaced(_L("Home")));
+        cap->SetForegroundColour(wxColour(154, 164, 178));
+        cap->SetFont(::Label::Body_10);
+        auto* hs = new wxBoxSizer(wxHORIZONTAL);
+        hs->Add(logo, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
+        hs->Add(cap, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
+        m_revo_home->SetSizer(hs);
+        auto go_home = [this](wxMouseEvent&) {
             for (size_t i = 0; i < m_pageButtons.size(); ++i)
                 if (m_pageLabels[i].empty()) {
                     wxCommandEvent evt(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED);
@@ -67,8 +77,20 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
                     wxPostEvent(this->GetParent(), evt);
                     break;
                 }
-        });
-        m_sizer->Add(logo, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(16));
+        };
+        auto hover = [this](bool in) {
+            const bool home = m_selection >= 0 && m_selection < int(m_pageLabels.size()) && m_pageLabels[m_selection].empty();
+            m_revo_home->SetBackgroundColour(home ? wxColour(16, 33, 58) : in ? wxColour(22, 30, 42) : GetBackgroundColour());
+            m_revo_home->Refresh();
+        };
+        for (wxWindow* w : std::initializer_list<wxWindow*>{m_revo_home, logo, cap}) {
+            w->SetCursor(wxCursor(wxCURSOR_HAND));
+            w->SetToolTip(_L("Home"));
+            w->Bind(wxEVT_LEFT_UP, go_home);
+            w->Bind(wxEVT_ENTER_WINDOW, [hover](wxMouseEvent&) { hover(true); });
+            w->Bind(wxEVT_LEAVE_WINDOW, [hover](wxMouseEvent&) { hover(false); });
+        }
+        m_sizer->Add(m_revo_home, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(10));
     }
     m_buttons_sizer = new wxFlexGridSizer(1, m_btn_margin, m_btn_margin);
     if (side_tools != NULL)
@@ -186,6 +208,10 @@ void ButtonsListCtrl::SetSelection(int sel)
     }
 
     m_selection = sel;
+    if (m_revo_home) { // [r]evo: logo podświetlone, gdy aktywny jest ekran startowy
+        m_revo_home->SetBackgroundColour(m_pageLabels[sel].empty() ? wxColour(16, 33, 58) : GetBackgroundColour());
+        m_revo_home->Refresh();
+    }
 
     // [r]evo: wybrana zakładka – granatowe tło zamiast pełnego koloru akcentu
     StateColor bg_color = StateColor(
