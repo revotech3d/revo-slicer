@@ -2704,7 +2704,7 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(42, 47, 54), StateColor::Disabled),
                                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)));
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(26)));
-    m_slice_btn->SetMinSize(wxSize(-1, FromDIP(52)));
+    m_slice_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(52))); // stała min. szerokość – oba przyciski dzielą wiersz po połowie
 
     m_slice_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_slice_option_btn->SetCornerRadius(0);
@@ -2715,7 +2715,7 @@ void MainFrame::update_side_button_style()
     m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
     m_print_btn->SetCornerRadius(0);
     m_print_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(26)));
-    m_print_btn->SetMinSize(wxSize(-1, FromDIP(52)));
+    m_print_btn->SetMinSize(wxSize(FromDIP(60), FromDIP(52)));
 
     m_print_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_print_option_btn->SetCornerRadius(0);
