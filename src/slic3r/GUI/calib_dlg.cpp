@@ -90,6 +90,16 @@ void add_revo_header(wxWindow* dlg, wxBoxSizer* v_sizer, const wxString& kicker,
         dc.DrawText(::Label::Spaced(title), pad, pad + panel->FromDIP(16));
         const int box_y = pad + panel->FromDIP(52);
         const wxRect box(pad, box_y, sz.x - 2 * pad, sz.y - box_y - pad);
+        // [r]evo: night sky with a blue horizon glow and a thin arc, like the launch screens
+        dc.GradientFillConcentric(box, wxColour(26, 43, 66), *wxBLACK, wxPoint(box.width / 2, box.height + box.height / 3));
+        {
+            const int r = box.width;
+            dc.SetPen(wxPen(wxColour(90, 160, 255, 160), 1));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.SetClippingRegion(box);
+            dc.DrawCircle(box.x + box.width / 2, box.GetBottom() + r - box.height / 5, r);
+            dc.DestroyClippingRegion();
+        }
         dc.SetPen(wxPen(line, 1));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRectangle(box);
