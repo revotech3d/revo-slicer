@@ -93,6 +93,14 @@
 			<div>My printers</div>
 			<div class="NavArrow icon16"></div>
 		</div>
+		<div menu="calib" class="BtnItem" onClick="GotoMenu('calib')">
+			<div>Calibration</div>
+			<div class="NavArrow icon16"></div>
+		</div>
+		<div menu="guides" class="BtnItem" onClick="GotoMenu('guides')">
+			<div>Guides</div>
+			<div class="NavArrow icon16"></div>
+		</div>
 		<div menu="recent" class="BtnItem" onClick="GotoMenu('recent')">
 			<div data-i18n="recent">Recent</div>
 			<div class="NavArrow icon16"></div>
@@ -105,7 +113,7 @@
 </div>
 
 <div id="RightBoard">
-<div id="PrintersBoard" class="thin-scroll" board="printers">
+<div id="PrintersBoard" class="thin-scroll PbBoard" board="printers">
 	<div class="PbCap">[R]EVO SLICER · FLEET</div>
 	<div class="PbHead">
 		<div class="PbTitle">MY PRINTERS</div>
@@ -116,6 +124,38 @@
 	<div id="PbEmpty">
 		<div class="PbSub">NO PRINTERS DOCKED YET</div>
 		<div class="PbBtn" onClick="OnClickFindPrinters()">FIND PRINTERS</div>
+	</div>
+</div>
+<div id="CalibBoard" class="thin-scroll PbBoard" board="calib" style="display:none">
+	<div class="PbCap">[R]EVO SLICER · PRE-FLIGHT</div>
+	<div class="PbTitle">CALIBRATION</div>
+	<div class="PbSub" id="CalibOn">NEW FILAMENT? START WITH THE GUIDED WIZARD</div>
+	<div class="PbGrid">
+		<div class="PbTile PbWide" onClick="RevoCalib('wizard')"><i>RECOMMENDED</i><b>NEW FILAMENT WIZARD</b><span>Temperature → flow → pressure advance → retraction, step by step, saved as a profile</span></div>
+		<div class="PbTile" onClick="RevoCalib('temperature')"><i>1</i><b>TEMPERATURE</b><span>Temperature tower</span></div>
+		<div class="PbTile" onClick="RevoCalib('flow')"><i>2</i><b>FLOW RATIO</b><span>Flow test plates</span></div>
+		<div class="PbTile" onClick="RevoCalib('pa')"><i>3</i><b>PRESSURE ADVANCE</b><span>PA lines / tower</span></div>
+		<div class="PbTile" onClick="RevoCalib('retraction')"><i>4</i><b>RETRACTION</b><span>Retraction tower</span></div>
+		<div class="PbTile" onClick="RevoCalib('maxflow')"><i>5</i><b>MAX FLOW</b><span>Max volumetric speed</span></div>
+		<div class="PbTile" onClick="RevoCalib('cornering')"><i>6</i><b>CORNERING</b><span>Corner speed and jerk</span></div>
+	</div>
+	<div class="PbCap" style="margin-top:26px">GUIDES · REVO WIKI</div>
+	<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/revo-slicer/')"><div><div class="PbN2">CALIBRATION STEP BY STEP</div></div><span>›</span></div>
+	<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/filamenty/')"><div><div class="PbN2">FILAMENTS AND SETTINGS</div></div><span>›</span></div>
+</div>
+<div id="GuidesBoard" class="thin-scroll PbBoard" board="guides" style="display:none">
+	<div class="PbCap">[R]EVO SLICER · MISSION MANUAL</div>
+	<div class="PbTitle">GUIDES</div>
+	<div class="PbSub">REVO WIKI · OPENS IN YOUR BROWSER</div>
+	<div style="border-top:1px solid #fff">
+		<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/pierwsze-kroki/')"><div><div class="PbN2">FIRST STEPS</div><div class="PbCapS">Unboxing, first start, first print</div></div><span>›</span></div>
+		<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/codzienna-praca/')"><div><div class="PbN2">EVERYDAY WORK</div><div class="PbCapS">Loading filament, starting and watching prints</div></div><span>›</span></div>
+		<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/revo-slicer/')"><div><div class="PbN2">[R]EVO SLICER</div><div class="PbCapS">Profiles, sending prints, calibration</div></div><span>›</span></div>
+		<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/filamenty/')"><div><div class="PbN2">FILAMENTS</div><div class="PbCapS">Materials and recommended settings</div></div><span>›</span></div>
+		<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/konserwacja/')"><div><div class="PbN2">MAINTENANCE</div><div class="PbCapS">Nozzle change (7 mm wrench), cleaning, lubrication</div></div><span>›</span></div>
+		<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/rozwiazywanie-problemow/')"><div><div class="PbN2">TROUBLESHOOTING</div><div class="PbCapS">Error codes and common print problems</div></div><span>›</span></div>
+		<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/revo-os/')"><div><div class="PbN2">REVO OS</div><div class="PbCapS">Touch screen, updates, users</div></div><span>›</span></div>
+		<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/serwis/')"><div><div class="PbN2">SERVICE</div><div class="PbCapS">Contact and warranty</div></div><span>›</span></div>
 	</div>
 </div>
 <div id="ContentBoard" class="thin-scroll" board="recent" style="display:none">

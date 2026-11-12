@@ -711,6 +711,8 @@ function ShowMyPrinters(list)
 			'</div>';
 	}
 	$("#PbList").html(html);
+	let act=list.filter(function(p){return p.active;})[0];
+	$("#CalibOn").text("NEW FILAMENT? START WITH THE GUIDED WIZARD"+(act?" · ON: "+act.title+" · "+act.nozzle:""));
 	$("#PbEmpty").toggle(list.length==0);
 	$("#PbList .PbDel").click(function(e){
 		e.stopPropagation();
@@ -722,6 +724,11 @@ function ShowMyPrinters(list)
 		if($(this).hasClass("PbActive")) return;
 		SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_selectprinter",data:{name:n}}));
 	});
+}
+
+function RevoCalib(kind)
+{
+	SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_calib",data:{kind:kind}}));
 }
 
 window.postMessage = HandleStudio;

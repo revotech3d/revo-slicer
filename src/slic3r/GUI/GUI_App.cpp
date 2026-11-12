@@ -5651,6 +5651,22 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 const std::string name = root.get<std::string>("data.name", "");
                 CallAfter([name] { Revo::select_my_printer(name); });
             }
+            else if (command_str.compare("homepage_calib") == 0) {  // [r]evo: skróty kalibracji z ekranu startowego
+                const std::string kind = root.get<std::string>("data.kind", "");
+                CallAfter([this, kind] {
+                    if (!mainframe)
+                        return;
+                    if (kind == "wizard")
+                        return Revo::show_monek_wizard(mainframe);
+                    static const std::map<std::string, CalibKind> kinds = {{"temperature", CalibKind::Temperature},
+                        {"flow", CalibKind::FlowRatio}, {"pa", CalibKind::PressureAdvance}, {"retraction", CalibKind::Retraction},
+                        {"maxflow", CalibKind::MaxVolumetric}, {"cornering", CalibKind::Cornering}};
+                    if (auto it = kinds.find(kind); it != kinds.end()) {
+                        mainframe->select_tab(wxString(TAB_ID_PREPARE)); // test trafia na płytę w Prepare
+                        mainframe->run_calibration(it->second);
+                    }
+                });
+            }
             else if (command_str.compare("homepage_removeprinter") == 0) {  // [r]evo: usunięcie drukarki z listy
                 const std::string name = root.get<std::string>("data.name", "");
                 CallAfter([name] { Revo::remove_my_printer(name); });
