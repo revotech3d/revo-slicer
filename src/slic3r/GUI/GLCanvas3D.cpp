@@ -8938,8 +8938,9 @@ void GLCanvas3D::_render_background()
         shader->start_using();
         // [r]evo: ciemny motyw – czerń u góry, granatowa poświata horyzontu u dołu (styl ekranów startowych)
         const bool      revo_sky  = m_is_dark && !use_error_color;
-        const ColorRGBA sky_top   = revo_sky ? ColorRGBA{0.0f, 0.0f, 0.0f, 1.0f} : bottom_color;
-        const ColorRGBA sky_floor = revo_sky ? ColorRGBA{0.012f, 0.016f, 0.024f, 1.0f} : bottom_color;
+        // [r]evo: ciemny grafit z lekkim granatem – jaśniejszy niż czerń, model i stół dobrze widoczne
+        const ColorRGBA sky_top   = revo_sky ? ColorRGBA{0.075f, 0.086f, 0.106f, 1.0f} : bottom_color;
+        const ColorRGBA sky_floor = revo_sky ? ColorRGBA{0.106f, 0.133f, 0.176f, 1.0f} : bottom_color;
         shader->set_uniform("top_color", sky_top);
         shader->set_uniform("bottom_color", sky_floor);
         m_background.render();
