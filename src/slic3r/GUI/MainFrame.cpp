@@ -2921,7 +2921,7 @@ wxMenu* MainFrame::generate_help_menu()
         [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(ShortcutContext::Global); });
     // Show Beginner's Tutorial
     // [r]evo Slicer: nasz kreator zamiast kreatora konfiguracji Orki
-    append_menu_item(helpMenu, wxID_ANY, _L("[r]evo quick print setup (Newbie)"), _L("Quick print setup"),
+    append_menu_item(helpMenu, wxID_ANY, _L("Quick print setup"), _L("Quick print setup"),
         [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_newbie_wizard(this); });
     append_menu_item(helpMenu, wxID_ANY, _L("Revo guides"), _L("Guides for Revon printers and [r]evo Slicer"),
         [](wxCommandEvent&) { wxLaunchDefaultBrowser("https://revo3d.pl/category/revo-os/"); });
@@ -3692,10 +3692,10 @@ void MainFrame::init_menubar_as_editor()
     // SoftFever calibrations
 
     // [r]evo Slicer: kreatory Newbie i Monek na górze menu kalibracji
-    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("[r]evo quick print setup (Newbie)"), _L("Quick print setup"),
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Quick print setup"), _L("Quick print setup"),
         [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_newbie_wizard(this); }, "", nullptr,
         [this]() { return m_plater->is_view3D_shown(); }, this);
-    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("[r]evo profile wizard (Monek)"), _L("Calibrate and create a filament profile"),
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Filament profile wizard"), _L("Calibrate and create a filament profile"),
         [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_monek_wizard(this); }, "", nullptr,
         [this]() { return m_plater->is_view3D_shown(); }, this);
     m_topbar->GetCalibMenu()->AppendSeparator();
@@ -3808,10 +3808,10 @@ void MainFrame::init_menubar_as_editor()
     auto calib_menu = new wxMenu();
 
     // [r]evo Slicer: kreatory i połączenie z drukarką (menu macOS)
-    append_menu_item(calib_menu, wxID_ANY, _L("[r]evo quick print setup (Newbie)"), _L("Quick print setup"),
+    append_menu_item(calib_menu, wxID_ANY, _L("Quick print setup"), _L("Quick print setup"),
         [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_newbie_wizard(this); }, "", nullptr,
         [this]() { return m_plater->is_view3D_shown(); }, this);
-    append_menu_item(calib_menu, wxID_ANY, _L("[r]evo profile wizard (Monek)"), _L("Calibrate and create a filament profile"),
+    append_menu_item(calib_menu, wxID_ANY, _L("Filament profile wizard"), _L("Calibrate and create a filament profile"),
         [this](wxCommandEvent&) { Slic3r::GUI::Revo::show_monek_wizard(this); }, "", nullptr,
         [this]() { return m_plater->is_view3D_shown(); }, this);
     calib_menu->AppendSeparator();
