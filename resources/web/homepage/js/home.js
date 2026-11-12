@@ -465,6 +465,15 @@ function OnClickNewProject()
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
+function OnClickFindPrinters()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_findprinters";
+
+	SendWXMessage( JSON.stringify(tSend) );
+}
+
 function OnClickOpenProject()
 {
 	var tSend={};
