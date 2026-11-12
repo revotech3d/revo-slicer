@@ -128,6 +128,16 @@ void ButtonsListCtrl::Rescale()
     m_sizer->Layout();
 }
 
+// [r]evo: napis zakładki rozstrzelonymi wielkimi literami (cienka spacja między znakami)
+static wxString revo_tab_label(const wxString& text)
+{
+    wxString       sp;
+    const wxString up = text.Upper();
+    for (size_t i = 0; i < up.length(); ++i)
+        sp += (i ? wxString(wxUniChar(0x2009)) : wxString()) + up[i];
+    return sp;
+}
+
 void ButtonsListCtrl::SetSelection(int sel)
 {
     if (m_selection == sel && sel >= 0 && sel < static_cast<int>(m_pageButtons.size()))
@@ -136,11 +146,12 @@ void ButtonsListCtrl::SetSelection(int sel)
     wxColour selected_btn_bg("#3D8BEA");    // Gradient #3D8BEA
     if (m_selection >= 0 && m_selection < static_cast<int>(m_pageButtons.size())) {
         StateColor bg_color = StateColor(
-        std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
+        std::pair{wxColour(22, 30, 42), (int) StateColor::Hovered},     // [r]evo: ciemny granat przy najechaniu
         std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
         m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
         StateColor text_color = StateColor(
-        std::pair{wxColour(254,254, 254), (int) StateColor::Normal}
+        std::pair{wxColour(254,254, 254), (int) StateColor::Hovered},
+        std::pair{wxColour(154, 164, 178), (int) StateColor::Normal}    // [r]evo: niewybrana zakładka przygaszona
         );
         m_pageButtons[m_selection]->SetTextColor(text_color);
     }
@@ -153,9 +164,10 @@ void ButtonsListCtrl::SetSelection(int sel)
 
     m_selection = sel;
 
+    // [r]evo: wybrana zakładka – granatowe tło zamiast pełnego koloru akcentu
     StateColor bg_color = StateColor(
-        std::pair{wxColour(61, 139, 234), (int) StateColor::Hovered},
-        std::pair{wxColour(61, 139, 234), (int) StateColor::Normal});
+        std::pair{wxColour(22, 40, 68), (int) StateColor::Hovered},
+        std::pair{wxColour(16, 33, 58), (int) StateColor::Normal});
     m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
 
     StateColor text_color = StateColor(
@@ -186,16 +198,19 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
 
     int em = em_unit(this);
     //BBS set size for button
-    btn->SetMinSize({(text.empty() ? 40 : 136) * em / 10, 36 * em / 10});
+    btn->SetMinSize({(text.empty() ? 40 : 150) * em / 10, 36 * em / 10});
 
     StateColor bg_color = StateColor(
-        std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
+        std::pair{wxColour(22, 30, 42), (int) StateColor::Hovered},     // [r]evo: ciemny granat przy najechaniu
         std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
 
     btn->SetBackgroundColor(bg_color);
     StateColor text_color = StateColor(
-        std::pair{wxColour(254,254, 254), (int) StateColor::Normal});
+        std::pair{wxColour(254,254, 254), (int) StateColor::Hovered},
+        std::pair{wxColour(154, 164, 178), (int) StateColor::Normal});
     btn->SetTextColor(text_color);
+    // [r]evo: napis zakładki rozstrzelonymi wielkimi literami (styl ekranu startowego); m_pageLabels zostaje bez zmian
+    btn->SetLabel(revo_tab_label(text));
     btn->Bind(wxEVT_BUTTON, [this, btn](wxCommandEvent& event) {
         if (auto it = std::find(m_pageButtons.begin(), m_pageButtons.end(), btn); it != m_pageButtons.end()) {
             auto sel = it - m_pageButtons.begin();
@@ -256,7 +271,7 @@ bool ButtonsListCtrl::SetPageImage(size_t n, const std::string& bmp_name) const
 void ButtonsListCtrl::SetPageText(size_t n, const wxString& strText)
 {
     Button* btn = m_pageButtons[n];
-    btn->SetLabel(strText);
+    btn->SetLabel(revo_tab_label(strText));
     if(!strText.empty())  // ORCA
         m_pageLabels[n] = strText;
 }
@@ -266,8 +281,8 @@ void ButtonsListCtrl::SetCompact(size_t n, bool compact)
 {
     int em = em_unit(this);
     Button* btn = m_pageButtons[n];
-    btn->SetMinSize({(compact ? 40 : 136) * em / 10, 36 * em / 10});
-    btn->SetLabel(compact ? "" : m_pageLabels[n]);
+    btn->SetMinSize({(compact ? 40 : 150) * em / 10, 36 * em / 10});
+    btn->SetLabel(compact ? wxString() : revo_tab_label(m_pageLabels[n]));
 }
 
 wxString ButtonsListCtrl::GetPageText(size_t n) const
