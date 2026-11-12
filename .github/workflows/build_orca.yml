@@ -244,6 +244,10 @@ jobs:
         run: |
           mkdir -p revo_pkg
           ditto build/${{ inputs.arch }}/OrcaSlicer/OrcaSlicer.app "revo_pkg/[r]evo Slicer.app"
+          # Bez certyfikatu Apple: podpis ad-hoc całej paczki po wszystkich zmianach w bundlu (python, narzędzia, Info.plist).
+          # Bez tego macOS 15+ zgłasza „aplikacja jest uszkodzona” po pobraniu z internetu.
+          codesign --force --deep --sign - "revo_pkg/[r]evo Slicer.app"
+          codesign --verify --deep --strict --verbose=2 "revo_pkg/[r]evo Slicer.app"
           OUT=RevoSlicer_Mac_${{ inputs.arch }}_${{ env.ver }}.dmg
           tiffutil -cathidpicheck scripts/revo_dmg/dmg_background.png "scripts/revo_dmg/dmg_background@2x.png" -out revo_bg.tiff
           brew install create-dmg >/dev/null 2>&1 || true
