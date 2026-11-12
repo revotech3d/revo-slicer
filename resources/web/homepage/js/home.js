@@ -14,6 +14,8 @@ function OnInit()
 	SendMsg_GetLoginInfo();
 	SendMsg_GetBambuLoginInfo();
 	SendMsg_GetRecentFile();
+	SendSimpleCommand("homepage_myprinters");
+	setInterval(function(){ if($("#PrintersBoard").is(":visible")) SendSimpleCommand("homepage_myprinters"); }, 5000);
 	SendMsg_GetStaffPick();
 
 	Set_AccountMenu_Event();
@@ -158,6 +160,8 @@ function HandleStudio( pVal )
 
     m_HotModelList = pVal["hits"];
     ShowStaffPick(m_HotModelList);
+  } else if (strCmd == "revo_printers") {
+    ShowMyPrinters(pVal["printers"]);
   } else if (strCmd == "SetLoginPanelVisibility") {
     SetLoginPanelVisibility(pVal["data"]["visible"]);
   }
@@ -685,5 +689,34 @@ function OpenOneStaffPickModel( ModelID )
 
 
 //---------------Global-----------------
+/*---- [r]evo: My printers (start page) ----*/
+function PbEsc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];}); }
+
+function ShowMyPrinters(list)
+{
+	let html="";
+	for(let i=0;i<list.length;i++)
+	{
+		let p=list[i];
+		let cls="PbRow"+(p.active?" PbActive":"")+(p.online?"":" PbOffline");
+		let col=!p.online?"":(p.kind=="gotowa"?"PbOk":(p.kind=="blad"?"PbErr":"PbBusy"));
+		html+='<div class="'+cls+'" data-name="'+PbEsc(p.name)+'">'+
+			'<img class="PbImg" src="../../profiles/Revotech/'+encodeURIComponent(p.cover)+'" onerror="this.style.visibility=\'hidden\'">'+
+			'<div class="PbName"><div class="PbN">'+PbEsc(p.title)+'</div><div class="PbCapS">'+PbEsc(p.id||p.host)+'</div></div>'+
+			'<div class="PbF PbW1"><div class="PbCapS">STATUS</div><div class="PbV '+col+'">'+(p.online?"● ":"○ ")+PbEsc(p.state)+'</div></div>'+
+			'<div class="PbF PbW2"><div class="PbCapS">NOZZLE</div><div class="PbV">'+PbEsc(p.nozzle)+'</div></div>'+
+			'<div class="PbF PbW3"><div class="PbCapS">BUILD</div><div class="PbV">'+PbEsc(p.dims)+'</div></div>'+
+			'<div class="PbAct">'+(p.active?'<div class="PbOn">▶ ACTIVE</div>':'<div class="PbBtn">SELECT</div>')+'</div>'+
+			'</div>';
+	}
+	$("#PbList").html(html);
+	$("#PbEmpty").toggle(list.length==0);
+	$("#PbList .PbRow").click(function(){
+		let n=$(this).attr("data-name");
+		if($(this).hasClass("PbActive")) return;
+		SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_selectprinter",data:{name:n}}));
+	});
+}
+
 window.postMessage = HandleStudio;
 

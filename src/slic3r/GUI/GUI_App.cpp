@@ -5644,6 +5644,13 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_findprinters") == 0) {   // [r]evo: radar – drukarki Revon w sieci lokalnej
                 CallAfter([this] { Revo::show_connect_wizard(mainframe); });
             }
+            else if (command_str.compare("homepage_myprinters") == 0) {   // [r]evo: lista dodanych drukarek
+                CallAfter([] { Revo::send_my_printers(); });
+            }
+            else if (command_str.compare("homepage_selectprinter") == 0) {  // [r]evo: wybór aktywnej drukarki
+                const std::string name = root.get<std::string>("data.name", "");
+                CallAfter([name] { Revo::select_my_printer(name); });
+            }
             else if (command_str.compare("homepage_openproject") == 0) {
                 this->request_open_project({});
             }

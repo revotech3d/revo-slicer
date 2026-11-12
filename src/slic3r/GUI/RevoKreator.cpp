@@ -4,6 +4,8 @@
 #include "RevoKreator.hpp"
 
 #include <algorithm>
+#include <map>
+#include <utility>
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -47,6 +49,7 @@
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/Tab.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/Utils/Http.hpp"
@@ -1157,8 +1160,146 @@ void show_monek_wizard(wxWindow* parent)
 
 void show_connect_wizard(wxWindow* parent)
 {
-    ConnectWizard dlg(parent);
-    dlg.ShowModal();
+    {
+        ConnectWizard dlg(parent);
+        dlg.ShowModal();
+    }
+    send_my_printers(); // lista „My printers” na ekranie startowym od razu z nowymi/usuniętymi maszynami
+}
+
+// ---------------------------------------------------------------- „My printers” na ekranie startowym
+namespace {
+struct LiveState
+{
+    FoundPrinter f;
+    bool         online = false;
+};
+std::map<std::string, LiveState> g_live;      // stan maszyn wg adresu (tylko wątek GUI)
+std::atomic<bool>                g_refreshing{false};
+
+// model maszyny z nazwy profilu („Revon Belt 350x350x300 0.4 nozzle @ 192.168.0.38” → „belt”)
+std::string model_from_preset(const std::string& n)
+{
+    if (n.find("Belt") != std::string::npos) return "belt";
+    if (n.find("1200x600x500") != std::string::npos) return "1200x600x500";
+    if (n.find("600x600x400") != std::string::npos) return "600x600x400";
+    return "600x600x600";
+}
+
+std::string cover_file(const std::string& m)
+{
+    return m == "belt" ? "Revon Belt 350x350x300" : "Revon " + m;
+}
+
+struct Docked { std::string name, host; };
+
+std::vector<Docked> docked_printers()
+{
+    std::vector<Docked> out;
+    for (const Preset& p : wxGetApp().preset_bundle->printers)
+        if (!p.is_system && !p.is_default && p.is_visible)
+            if (const auto* h = p.config.option<ConfigOptionString>("print_host"); h && !h->value.empty())
+                out.push_back({p.name, h->value});
+    return out;
+}
+
+// Stan maszyn w tle (agent Revo, bez logowania); po odświeżeniu lista na ekranie startowym jest wysyłana ponownie
+void refresh_live()
+{
+    if (g_refreshing.exchange(true))
+        return;
+    std::vector<std::string> hosts;
+    for (const auto& d : docked_printers())
+        hosts.push_back(d.host);
+    std::thread([hosts] {
+        std::vector<std::pair<std::string, LiveState>> res;
+        std::mutex                                     mtx;
+        std::vector<std::thread>                       pool;
+        for (const auto& h : hosts)
+            pool.emplace_back([h, &res, &mtx] {
+                LiveState ls;
+                Http::get("http://" + h + "/revo/sesja/odkryj")
+                    .timeout_connect(2)
+                    .timeout_max(4)
+                    .on_complete([&ls, &h](std::string b, unsigned st) {
+                        try {
+                            const auto j = nlohmann::json::parse(b);
+                            if (st != 200 || j.value("revo", 0) != 1)
+                                return;
+                            ls.online     = true;
+                            ls.f.ip       = h;
+                            ls.f.id       = j.value("machine_id", "");
+                            ls.f.model    = j.value("model", "");
+                            ls.f.state    = j.value("state", "");
+                            ls.f.nozzle   = j.contains("dysza") && j["dysza"].is_number() ? j["dysza"].get<double>() : 0;
+                            ls.f.progress = j.contains("postep") && j["postep"].is_number() ? j["postep"].get<int>() : 0;
+                        } catch (...) {}
+                    })
+                    .perform_sync();
+                std::lock_guard<std::mutex> l(mtx);
+                res.emplace_back(h, ls);
+            });
+        for (auto& t : pool)
+            t.join();
+        wxTheApp->CallAfter([res] {
+            for (const auto& [h, ls] : res)
+                g_live[h] = ls;
+            g_refreshing = false;
+            send_my_printers(false);
+        });
+    }).detach();
+}
+} // namespace
+
+void send_my_printers(bool refresh)
+{
+    WebViewPanel* home = WebViewPanel::if_built();
+    if (!home || !wxGetApp().preset_bundle)
+        return;
+    const std::string active = wxGetApp().preset_bundle->printers.get_selected_preset_name();
+    nlohmann::json    list   = nlohmann::json::array();
+    for (const auto& d : docked_printers()) {
+        const Preset* p     = wxGetApp().preset_bundle->printers.find_preset(d.name, false);
+        std::string   model = model_from_preset(d.name);
+        double        noz   = 0;
+        if (p)
+            if (const auto* n = p->config.option<ConfigOptionFloats>("nozzle_diameter"); n && !n->values.empty())
+                noz = n->values.front();
+        nlohmann::json e = {{"name", d.name}, {"host", d.host}, {"active", d.name == active}, {"online", false}, {"state", ""}, {"id", ""}};
+        if (auto it = g_live.find(d.host); it != g_live.end() && it->second.online) {
+            const auto& f = it->second.f;
+            if (!f.model.empty())
+                model = f.model;
+            if (f.nozzle > 0)
+                noz = f.nozzle;
+            wxString st = state_name(f.state);
+            if (f.state == "drukowanie" && f.progress > 0)
+                st += wxString::Format(" %d%%", f.progress);
+            e["online"] = true;
+            e["state"]  = into_u8(st.Upper());
+            e["kind"]   = f.state;
+            e["id"]     = f.id;
+        } else
+            e["state"] = into_u8(_L("Offline").Upper());
+        e["title"]  = into_u8(model_name(model).Upper());
+        e["dims"]   = into_u8(model_dims(model));
+        e["nozzle"] = noz > 0 ? wxString::Format("%.1f", noz).ToStdString() : "?";
+        e["cover"]  = cover_file(model) + "_cover.png";
+        list.push_back(e);
+    }
+    nlohmann::json msg = {{"command", "revo_printers"}, {"printers", list}};
+    home->RunScript(wxString::Format("window.postMessage(%s)", from_u8(msg.dump())));
+    if (refresh)
+        refresh_live();
+}
+
+void select_my_printer(const std::string& name)
+{
+    auto& pr = wxGetApp().preset_bundle->printers;
+    if (const Preset* p = pr.find_preset(name, false); p && name != pr.get_selected_preset_name())
+        if (Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER))
+            tab->select_preset(name);
+    send_my_printers(false);
 }
 
 void maybe_first_run_wizard(wxWindow* parent)

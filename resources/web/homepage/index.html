@@ -7,6 +7,7 @@
 <title>homepage</title>
 <link rel="stylesheet" type="text/css" href="../include/global.css" />	<!-- ORCA One for all-->
 <link rel="stylesheet" type="text/css" href="./css/home.css" />
+<link rel="stylesheet" type="text/css" href="./css/printers.css" />
 <!-- <link rel="stylesheet" type="text/css" href="./css/dark.css" />	 -->
 
 <script type="text/javascript" src="../include/jquery-3.6.0.min.js"></script>
@@ -88,12 +89,12 @@
 	</div>
 
 	<div id="BtnArea">
-		<div menu="recent" class="BtnItem BtnItemSelected" onClick="GotoMenu('recent')">
-			<div data-i18n="recent">Recent</div>
+		<div menu="printers" class="BtnItem BtnItemSelected" onClick="GotoMenu('printers')">
+			<div>My printers</div>
 			<div class="NavArrow icon16"></div>
 		</div>
-		<div class="BtnItem" onClick="OnClickFindPrinters()">
-			<div>My printers</div>
+		<div menu="recent" class="BtnItem" onClick="GotoMenu('recent')">
+			<div data-i18n="recent">Recent</div>
 			<div class="NavArrow icon16"></div>
 		</div>
 		<div class="BtnItem" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/category/revo-os/')">
@@ -104,7 +105,20 @@
 </div>
 
 <div id="RightBoard">
-<div id="ContentBoard" class="thin-scroll" board="recent">
+<div id="PrintersBoard" class="thin-scroll" board="printers">
+	<div class="PbCap">[R]EVO SLICER · FLEET</div>
+	<div class="PbHead">
+		<div class="PbTitle">MY PRINTERS</div>
+		<div class="PbBtn PbBtnDim" onClick="OnClickFindPrinters()">+ FIND PRINTERS</div>
+	</div>
+	<div class="PbSub">CLICK A PRINTER TO PRINT ON IT · PROFILE AND NOZZLE SWITCH AUTOMATICALLY</div>
+	<div id="PbList"></div>
+	<div id="PbEmpty">
+		<div class="PbSub">NO PRINTERS DOCKED YET</div>
+		<div class="PbBtn" onClick="OnClickFindPrinters()">FIND PRINTERS</div>
+	</div>
+</div>
+<div id="ContentBoard" class="thin-scroll" board="recent" style="display:none">
     <div style="height: 14px;"></div>	
 	<div id="MenuArea">
 <!--		<div class="MenuItem" onClick="OnClickModelDepot()">
