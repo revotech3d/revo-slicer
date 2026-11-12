@@ -3833,7 +3833,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()) - FromDIP(2)); // ElementSpacing - 2 (from combo box))
     combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, 30 * wxGetApp().em_unit() / 10}); // ORCA ensure height matches with PlaterPresetComboBox
     {   // [r]evo: nozzle temperature of this filament, telemetry style
-        auto temp = new wxPanel(p->m_panel_filament_content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(46), -1));
+        auto temp = new wxPanel(p->m_panel_filament_content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(84), -1));
+        temp->SetToolTip(_L("Nozzle / bed temperature"));
         temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         auto read = [filament_idx]() -> wxString {
             auto* bundle = wxGetApp().preset_bundle;
@@ -3841,7 +3842,12 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
             const Preset* pr = bundle->filaments.find_preset(bundle->filament_presets[filament_idx]);
             if (!pr) return wxEmptyString;
             auto* t = pr->config.option<ConfigOptionInts>("nozzle_temperature");
-            return t && !t->values.empty() ? wxString::Format("%d", t->values.front()) + wxString::FromUTF8("\xC2\xB0") : wxString();
+            wxString out = t && !t->values.empty() ? wxString::Format("%d", t->values.front()) + wxString::FromUTF8("\xC2\xB0") : wxString();
+            // temperatura stołu dla aktualnie wybranej płyty
+            const BedType bed = bundle->project_config.opt_enum<BedType>("curr_bed_type");
+            if (auto* b = pr->config.option<ConfigOptionInts>(get_bed_temp_key(bed)); b && !b->values.empty())
+                out += wxString::Format(" / %d", b->values.front()) + wxString::FromUTF8("\xC2\xB0");
+            return out;
         };
         temp->Bind(wxEVT_PAINT, [temp, read](wxPaintEvent&) {
             wxAutoBufferedPaintDC dc(temp);
