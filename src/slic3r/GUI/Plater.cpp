@@ -3613,7 +3613,7 @@ Sidebar::Sidebar(Plater *parent)
         {   // [r]evo: flight plan summary – the key process values in telemetry rows
             auto plan = new wxPanel(p->scrolled, wxID_ANY);
             plan->SetBackgroundStyle(wxBG_STYLE_PAINT);
-            plan->SetMinSize(wxSize(-1, FromDIP(5 * 26 + 12)));
+            plan->SetMinSize(wxSize(-1, FromDIP(4 * 26 + 12)));
             auto rows = []() {
                 std::vector<std::pair<wxString, wxString>> r;
                 auto* bundle = wxGetApp().preset_bundle;
@@ -3631,13 +3631,6 @@ Sidebar::Sidebar(Plater *parent)
                 r.push_back({_L("Infill"), d ? wxString::Format("%d%%", int(std::lround(d->value))) : wxString("-")});
                 r.push_back({_L("Walls"), wxString::Format("%d", int(num("wall_loops")))});
                 r.push_back({_L("Support"), sp && sp->value ? _L("On") : _L("Off")});
-                // max przepływ bierzemy z filamentu (to on go ogranicza)
-                double mvs = 0;
-                if (!bundle->filament_presets.empty())
-                    if (const Preset* fp = bundle->filaments.find_preset(bundle->filament_presets.front()))
-                        if (auto* f = fp->config.option<ConfigOptionFloats>("filament_max_volumetric_speed"); f && !f->values.empty())
-                            mvs = f->values.front();
-                r.push_back({_L("Max flow"), wxString::Format("%g mm", mvs) + wxString::FromUTF8("\xC2\xB3/s")});
                 return r;
             };
             plan->Bind(wxEVT_PAINT, [plan, rows](wxPaintEvent&) {
@@ -3833,8 +3826,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()) - FromDIP(2)); // ElementSpacing - 2 (from combo box))
     combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, 30 * wxGetApp().em_unit() / 10}); // ORCA ensure height matches with PlaterPresetComboBox
     {   // [r]evo: nozzle temperature of this filament, telemetry style
-        auto temp = new wxPanel(p->m_panel_filament_content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(84), -1));
-        temp->SetToolTip(_L("Nozzle / bed temperature"));
+        auto temp = new wxPanel(p->m_panel_filament_content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(150), -1));
+        temp->SetToolTip(_L("Nozzle / bed temperature, max flow"));
         temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
         auto read = [filament_idx]() -> wxString {
             auto* bundle = wxGetApp().preset_bundle;
@@ -3847,6 +3840,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
             const BedType bed = bundle->project_config.opt_enum<BedType>("curr_bed_type");
             if (auto* b = pr->config.option<ConfigOptionInts>(get_bed_temp_key(bed)); b && !b->values.empty())
                 out += wxString::Format(" / %d", b->values.front()) + wxString::FromUTF8("\xC2\xB0");
+            if (auto* f = pr->config.option<ConfigOptionFloats>("filament_max_volumetric_speed"); f && !f->values.empty())
+                out += wxString::Format("  %g mm", f->values.front()) + wxString::FromUTF8("\xC2\xB3/s");
             return out;
         };
         temp->Bind(wxEVT_PAINT, [temp, read](wxPaintEvent&) {
