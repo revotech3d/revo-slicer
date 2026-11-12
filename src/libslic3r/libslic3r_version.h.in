@@ -2,6 +2,8 @@
 #define __SLIC3R_VERSION_H
 
 #define SLIC3R_APP_NAME "@SLIC3R_APP_NAME@"
+// [r]evo: nazwa pokazywana w interfejsie (SLIC3R_APP_NAME zostaje – od niej zależą katalogi danych)
+#define SLIC3R_APP_DISPLAY "[r]evo Slicer"
 #define SLIC3R_APP_KEY "@SLIC3R_APP_KEY@"
 #define SLIC3R_VERSION "@SLIC3R_VERSION@"
 #define SoftFever_VERSION "@SoftFever_VERSION@"

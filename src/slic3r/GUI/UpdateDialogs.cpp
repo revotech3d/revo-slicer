@@ -341,7 +341,7 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, w
 	//content_sizer->AddSpacer(2*VERT_SPACING);
 
 	//add_button(wxID_REPLACE, true, _L("Re-configure"));
-	//add_button(wxID_EXIT, false, wxString::Format(_L("Exit %s"), SLIC3R_APP_NAME));
+	//add_button(wxID_EXIT, false, wxString::Format(_L("Exit %s"), SLIC3R_APP_DISPLAY));
 
 	//for (auto ID : {wxID_EXIT, wxID_REPLACE})
 	//	get_button(ID)->Bind(wxEVT_BUTTON, [this](const wxCommandEvent& evt) { this->EndModal(evt.GetId()); });
@@ -369,7 +369,7 @@ MsgDataIncompatible::~MsgDataIncompatible() {}
 //			"Please proceed with the %s that follows to set up the new presets "
 //			"and to choose whether to enable automatic preset updates."
 //        )))
-//        % SLIC3R_APP_NAME
+//        % SLIC3R_APP_DISPLAY
 //        % _utf8(ConfigWizard::name())).str()
 //	));
 //	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());

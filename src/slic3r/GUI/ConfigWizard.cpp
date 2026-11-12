@@ -534,10 +534,10 @@ PageWelcome::PageWelcome(ConfigWizard *parent)
 #else
             _utf8(L("Welcome to the %s Configuration Wizard"))
 #endif
-            ) % SLIC3R_APP_NAME).str()), _L("Welcome"))
+            ) % SLIC3R_APP_DISPLAY).str()), _L("Welcome"))
     , welcome_text(append_text(from_u8((boost::format(
         _utf8(L("Hello, welcome to %s! This %s helps you with the initial configuration; just a few settings and you will be ready to print.")))
-        % SLIC3R_APP_NAME
+        % SLIC3R_APP_DISPLAY
         % _utf8(ConfigWizard::name())).str())
     ))
     , cbox_reset(append(
@@ -2664,7 +2664,7 @@ bool ConfigWizard::priv::check_sla_selected()
 // Public
 
 ConfigWizard::ConfigWizard(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _(name()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE /*| wxRESIZE_BORDER*/)
+    : DPIDialog(parent, wxID_ANY, wxString(SLIC3R_APP_DISPLAY) + " - " + _(name()), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE /*| wxRESIZE_BORDER*/)
     , p(new priv(this))
 {
     this->SetFont(wxGetApp().normal_font());

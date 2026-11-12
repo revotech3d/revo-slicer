@@ -2205,9 +2205,10 @@ void PreferencesDialog::create_items()
     //////////////////////////
     //// ONLINE TAB
     /////////////////////////////////////
-    m_tab_index[PreferencesTab::Online] = m_pref_tabs->AppendItem(_L("Online"));
-    f_sizers.push_back(new wxFlexGridSizer(1, 1, v_gap, 0));
-    g_sizer = f_sizers.back();
+    // [r]evo: zakładka Online (konta Bambu/Orca Cloud, regiony, wtyczka sieciowa) nas nie dotyczy –
+    // kontrolki powstają (inne miejsca z nich korzystają), ale strona jest ukryta i nie ma jej w zakładkach
+    wxFlexGridSizer* revo_hidden_online = new wxFlexGridSizer(1, 1, v_gap, 0);
+    g_sizer = revo_hidden_online;
     g_sizer->AddGrowableCol(0, 1);
 
     //// ONLINE > Connection
@@ -2276,6 +2277,7 @@ void PreferencesDialog::create_items()
 
     g_sizer->AddSpacer(FromDIP(10));
     sizer_page->Add(g_sizer, 0, wxEXPAND);
+    revo_hidden_online->Show(false);
 
     //////////////////////////
     //// ASSOCIATE TAB 

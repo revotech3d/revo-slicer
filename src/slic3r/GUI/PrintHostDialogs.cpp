@@ -568,7 +568,7 @@ void PrintHostSendDialog::init()
     // .gcode suffix control
     auto validate_path = [this](const wxString &path) -> bool {
         if (! path.Lower().EndsWith(m_valid_suffix.Lower())) {
-            MessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), m_valid_suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
+            MessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), m_valid_suffix), wxString(SLIC3R_APP_DISPLAY), wxYES | wxNO);
             if (msg_wingow.ShowModal() == wxID_NO)
                 return false;
         }
@@ -842,7 +842,7 @@ void FlashforgePrintHostSendDialog::init()
     auto validate_path = [this](const wxString& filename) -> bool {
         if (!filename.Lower().EndsWith(m_valid_suffix.Lower())) {
             MessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), m_valid_suffix),
-                                     wxString(SLIC3R_APP_NAME), wxYES | wxNO);
+                                     wxString(SLIC3R_APP_DISPLAY), wxYES | wxNO);
             if (msg_wingow.ShowModal() == wxID_NO)
                 return false;
         }
@@ -1836,7 +1836,7 @@ void ElegooPrintHostSendDialog::init() {
             MessageDialog msg_wingow(this,
                                      wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"),
                                                       m_valid_suffix),
-                                     wxString(SLIC3R_APP_NAME), wxYES | wxNO);
+                                     wxString(SLIC3R_APP_DISPLAY), wxYES | wxNO);
             if (msg_wingow.ShowModal() == wxID_NO)
                 return false;
         }

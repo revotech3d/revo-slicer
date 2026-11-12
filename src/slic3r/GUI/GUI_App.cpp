@@ -9517,7 +9517,7 @@ bool GUI_App::check_print_host_queue()
     //wxMessageDialog dialog(mainframe,
     MessageDialog dialog(mainframe,
         message,
-        wxString(SLIC3R_APP_NAME) + " - " + _(L("Ongoing uploads")),
+        wxString(SLIC3R_APP_DISPLAY) + " - " + _(L("Ongoing uploads")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     if (dialog.ShowModal() == wxID_YES)
         return true;
