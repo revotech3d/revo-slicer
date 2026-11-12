@@ -265,21 +265,12 @@ AboutDialog::AboutDialog()
         // _build_string_font.SetStyle(wxFONTSTYLE_ITALIC);
 
         vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
-        auto          version_string = std::string(REVO_SLICER_VERSION); // [r]evo Slicer: wersja dla klienta
-        wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
-        // TRN %s is the commit the application was built from
-        wxStaticText* credits_string = new wxStaticText(this, wxID_ANY, wxString::Format(_L("Build %s"), build_commit_label), wxDefaultPosition, wxDefaultSize);
+        // [r]evo: wersja i build w jednej linii na dole – szeroki napis [r]evo SLICER zajmuje środek logo
+        // TRN %1% is the version number, %2% the commit the application was built from
+        wxStaticText* credits_string = new wxStaticText(this, wxID_ANY, format_wxstr(_L("Version %1%  ·  Build %2%"), REVO_SLICER_VERSION, build_commit_label));
         credits_string->SetFont(_build_string_font);
-        wxFont version_font = GetFont();
-        version_font = version_font.Scaled(1.4f); // [r]evo: mniejsza, by zmieścić się pod logo // SetPointSize(20) not works on macOS because it uses a 72 PPI reference
-        version->SetFont(version_font);
-        version->SetForegroundColour(wxColour("#949494"));
         credits_string->SetForegroundColour(wxColour("#949494"));
-        version->SetBackgroundColour(wxColour("#FFFFFF"));
         credits_string->SetBackgroundColour(wxColour("#FFFFFF"));
-
-        vesizer->Add(version, 0, wxRIGHT | wxALIGN_RIGHT, FromDIP(20));
-        vesizer->AddSpacer(FromDIP(5));
         vesizer->Add(credits_string, 0, wxRIGHT | wxALIGN_RIGHT, FromDIP(20));
         vesizer->AddSpacer(FromDIP(12)); // [r]evo: wersja pod logo (szeroki napis [r]evo SLICER zajmuje środek)
     }
