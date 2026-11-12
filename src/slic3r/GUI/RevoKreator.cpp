@@ -962,11 +962,15 @@ private:
         if (m_page == 0) {
             s->Add(label(m_body, spaced(_L("Material"), 2), 9, kMuted));
             auto* row = new wxBoxSizer(wxHORIZONTAL);
-            for (const char* m : {"PLA", "PETG", "ABS", "ASA", "TPU", "PA-CF", "PET-CF"}) {
+            for (const char* m : {"PLA", "PETG", "ABS", "ASA", "TPU", "PA-CF", "PET-CF", "PA-GF"}) {
                 const std::string mat = m;
                 row->Add(new PickTile(m_body, mat, m_type == mat, 90, [this, mat] { m_type = mat; show(0); }), 1, wxRIGHT, FromDIP(8));
             }
             s->Add(row, 0, wxEXPAND | wxTOP, FromDIP(6));
+            // CF/GF ścierają mosiądz – wymagamy dyszy stalowej (hartowanej)
+            if (m_type.find("CF") != std::string::npos || m_type.find("GF") != std::string::npos)
+                s->Add(label(m_body, wxString::FromUTF8("\xE2\x9A\xA0 ") + _L("Carbon or glass fibre filament: a hardened steel nozzle is required. Brass wears out within hours."),
+                             12, wxColour(255, 196, 92)), 0, wxTOP, FromDIP(10));
             m_brand_ctrl = field(m_body, s, _L("Brand"), m_brand);
             m_name_ctrl  = field(m_body, s, _L("Name on your list"), m_name);
             // Suszenie obowiązkowe – nowy nie znaczy suchy
@@ -1002,7 +1006,8 @@ private:
             s->Add(dry, 0, wxEXPAND | wxTOP, FromDIP(18));
             auto* chk = label(m_body, wxString::FromUTF8("\xE2\x98\x90 ") + _L("Filament dried - required, also for a brand new spool") + "\n" +
                                           wxString::FromUTF8("\xE2\x98\x90 ") + _L("Spool loaded in Revo OS: Filament, Load") + "\n" +
-                                          wxString::FromUTF8("\xE2\x98\x90 ") + _L("Plate clean, no fingerprints"), 12, wxColour(207, 214, 223));
+                                          wxString::FromUTF8("\xE2\x98\x90 ") + _L("Plate clean, no fingerprints") + "\n" +
+                                          wxString::FromUTF8("\xE2\x98\x90 ") + _L("Right nozzle fitted: hardened steel for CF / GF filaments"), 12, wxColour(207, 214, 223));
             s->Add(label(m_body, spaced(_L("Before you start"), 2), 9, kMuted), 0, wxTOP, FromDIP(16));
             s->Add(chk, 0, wxTOP, FromDIP(6));
             m_help->SetLabel(_L("We fill good starting values for you."));
