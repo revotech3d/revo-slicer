@@ -4,12 +4,19 @@
 #include "RevoKreator.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <mutex>
+#include <thread>
 #include <cmath>
 #include <cstdio>
 #include <string>
 #include <vector>
 
+#include <wx/bitmap.h>
 #include <wx/button.h>
+#include <wx/image.h>
+#include <wx/scrolwin.h>
+#include <wx/statbmp.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/msgdlg.h>
@@ -28,9 +35,15 @@
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/Tab.hpp"
+#include "slic3r/GUI/format.hpp"
 #include "slic3r/Utils/Http.hpp"
 
 #include <nlohmann/json.hpp>
+#include <boost/asio/ip/udp.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include "libslic3r/Utils.hpp"
 
 namespace Slic3r::GUI::Revo {
 
@@ -341,6 +354,149 @@ private:
 };
 
 
+// ---------------------------------------------------------------- Wyszukiwanie drukarek w sieci
+struct FoundPrinter
+{
+    std::string ip, id, model, state;
+    double      nozzle = 0;
+};
+
+// Adres IPv4 tego komputera w sieci lokalnej (gniazdo UDP bez wysyłania pakietów), pusty gdy brak.
+std::string local_ipv4()
+{
+    try {
+        boost::asio::io_context      io;
+        boost::asio::ip::udp::socket so(io);
+        so.connect(boost::asio::ip::udp::endpoint(boost::asio::ip::make_address("192.168.255.255"), 9));
+        return so.local_endpoint().address().to_string();
+    } catch (...) {
+        return {};
+    }
+}
+
+// Pyta /revo/sesja/odkryj (agent Revo, bez logowania) pod revon.local i pod każdym adresem sieci /24 tego komputera.
+std::vector<FoundPrinter> discover_printers()
+{
+    std::vector<std::string> hosts{"revon.local"};
+    const std::string        me = local_ipv4();
+    const auto               dot = me.rfind('.');
+    if (dot != std::string::npos && me.rfind("127.", 0) != 0)
+        for (int i = 1; i < 255; ++i)
+            if (me.substr(dot + 1) != std::to_string(i))
+                hosts.push_back(me.substr(0, dot + 1) + std::to_string(i));
+
+    std::vector<FoundPrinter> out;
+    std::mutex                mtx;
+    std::atomic<size_t>       next{0};
+    auto                      worker = [&] {
+        for (size_t i; (i = next++) < hosts.size();) {
+            const std::string h = hosts[i];
+            Http::get("http://" + h + "/revo/sesja/odkryj")
+                .timeout_connect(1)
+                .timeout_max(3)
+                .on_complete([&](std::string b, unsigned st) {
+                    try {
+                        const auto j = nlohmann::json::parse(b);
+                        if (st != 200 || j.value("revo", 0) != 1)
+                            return;
+                        FoundPrinter f;
+                        f.ip     = h;
+                        f.id     = j.value("machine_id", "");
+                        f.model  = j.value("model", "");
+                        f.state  = j.value("state", "");
+                        f.nozzle = j.contains("dysza") && j["dysza"].is_number() ? j["dysza"].get<double>() : 0;
+                        std::lock_guard<std::mutex> l(mtx);
+                        // revon.local i jego IP to ta sama maszyna – zostaje jeden wpis (z IP)
+                        auto it = std::find_if(out.begin(), out.end(), [&](const FoundPrinter& o) { return o.id == f.id; });
+                        if (it == out.end())
+                            out.push_back(f);
+                        else if (it->ip == "revon.local")
+                            it->ip = f.ip;
+                    } catch (...) {}
+                })
+                .perform_sync();
+        }
+    };
+    std::vector<std::thread> pool;
+    for (int t = 0; t < 48; ++t)
+        pool.emplace_back(worker);
+    for (auto& t : pool)
+        t.join();
+    std::sort(out.begin(), out.end(), [](const FoundPrinter& a, const FoundPrinter& b) { return a.id < b.id; });
+    return out;
+}
+
+wxString model_name(const std::string& m)
+{
+    if (m == "belt") return "Revon Belt 350";
+    if (m == "600x600x400") return "Revon 600 Z400";
+    if (m == "600x600x600") return "Revon 600";
+    if (m == "1200x600x500") return "Revon 1200";
+    return "Revon";
+}
+
+wxString state_name(const std::string& s)
+{
+    if (s == "gotowa") return _L("Ready");
+    if (s == "drukowanie") return _L("Printing");
+    if (s == "nagrzewanie") return _L("Heating");
+    if (s == "pauza") return _L("Paused");
+    if (s == "blad") return _L("Error");
+    return _L("Starting");
+}
+
+wxBitmap model_thumb(wxWindow* w, const std::string& m)
+{
+    const std::string f = m == "belt" ? "Revon Belt 350x350x300" : "Revon " + (m.empty() ? std::string("600x600x600") : m);
+    wxImage img;
+    const auto path = boost::filesystem::path(resources_dir()) / "profiles" / "Revotech" / (f + "_cover.png");
+    if (!img.LoadFile(from_u8(path.string()), wxBITMAP_TYPE_PNG))
+        return wxBitmap();
+    const int px = w->FromDIP(84);
+    return wxBitmap(img.Rescale(px, px * img.GetHeight() / std::max(1, img.GetWidth()), wxIMAGE_QUALITY_HIGH));
+}
+
+wxString card_text(const FoundPrinter& f)
+{
+    // TRN %1% model, %2% serial number, %3% state, %4% IP address, %5% nozzle diameter
+    return format_wxstr(_L("%1%\nSerial number: %2%\nState: %3%\nIP: %4%   Nozzle: %5% mm"), model_name(f.model), f.id, state_name(f.state), f.ip,
+                        f.nozzle > 0 ? wxString::Format("%.1f", f.nozzle) : wxString("?"));
+}
+
+// Lista znalezionych maszyn: miniatura, numer, stan, IP – klik „Select” wybiera.
+class PickPrinterDialog : public wxDialog
+{
+public:
+    PickPrinterDialog(wxWindow* parent, const std::vector<FoundPrinter>& list)
+        : wxDialog(parent, wxID_ANY, _L("[r]evo – printers in your network"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    {
+        auto* s = new wxBoxSizer(wxVERTICAL);
+        s->Add(heading(this, _L("Choose your printer")), 0, wxALL, FromDIP(16));
+        auto* sw = new wxScrolledWindow(this, wxID_ANY);
+        auto* ls = new wxBoxSizer(wxVERTICAL);
+        for (size_t i = 0; i < list.size(); ++i) {
+            auto* row = new wxBoxSizer(wxHORIZONTAL);
+            row->Add(new wxStaticBitmap(sw, wxID_ANY, model_thumb(this, list[i].model)), 0, wxRIGHT, FromDIP(12));
+            row->Add(new wxStaticText(sw, wxID_ANY, card_text(list[i])), 1, wxALIGN_CENTER_VERTICAL);
+            auto* b = new wxButton(sw, wxID_ANY, _L("Select"));
+            b->Bind(wxEVT_BUTTON, [this, i](wxCommandEvent&) { m_sel = int(i); EndModal(wxID_OK); });
+            row->Add(b, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+            ls->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(12));
+        }
+        sw->SetSizer(ls);
+        sw->SetScrollRate(0, FromDIP(10));
+        sw->SetMinSize(wxSize(FromDIP(460), std::min<int>(FromDIP(110) * int(list.size()), FromDIP(440))));
+        s->Add(sw, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(16));
+        s->Add(new wxButton(this, wxID_CANCEL, _L("Cancel")), 0, wxALIGN_RIGHT | wxALL, FromDIP(16));
+        SetSizerAndFit(s);
+        CentreOnParent();
+    }
+    int selection() const { return m_sel; }
+
+private:
+    int m_sel = -1;
+};
+
 // ---------------------------------------------------------------- Połączenie z drukarką
 class ConnectWizard : public wxDialog
 {
@@ -355,6 +511,16 @@ public:
                "and the login and PIN of the machine manager. The slicer gets the access key from the printer by itself."));
         info->Wrap(FromDIP(440));
         s->Add(info, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
+        // [r]evo: drukarka znaleziona w sieci (miniatura, numer, stan, IP) i ponowne szukanie
+        auto* card = new wxBoxSizer(wxHORIZONTAL);
+        m_thumb    = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
+        m_found    = new wxStaticText(this, wxID_ANY, _L("Searching for printers in your network…"));
+        auto* again = new wxButton(this, wxID_ANY, _L("Search again"));
+        again->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { search(); });
+        card->Add(m_thumb, 0, wxRIGHT, FromDIP(12));
+        card->Add(m_found, 1, wxALIGN_CENTER_VERTICAL);
+        card->Add(again, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+        s->Add(card, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
         m_host  = new wxTextCtrl(this, wxID_ANY, "revon.local");
         m_login = new wxTextCtrl(this, wxID_ANY);
         m_pin   = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
@@ -371,9 +537,42 @@ public:
         m_host->SetMinSize(wxSize(FromDIP(440), -1));
         SetSizerAndFit(s);
         CentreOnParent();
+        CallAfter([this] { search(); });
     }
 
 private:
+    void search()
+    {
+        m_found->SetLabel(_L("Searching for printers in your network…"));
+        m_thumb->SetBitmap(wxNullBitmap);
+        Layout();
+        Update();
+        std::vector<FoundPrinter> list;
+        {
+            wxBusyCursor busy;
+            list = discover_printers();
+        }
+        int sel = list.size() == 1 ? 0 : -1;
+        if (list.size() > 1) {
+            PickPrinterDialog dlg(this, list);
+            if (dlg.ShowModal() == wxID_OK)
+                sel = dlg.selection();
+        }
+        if (list.empty())
+            m_found->SetLabel(_L("No printer found. Check that the printer is on and in the same network, or enter its address."));
+        else if (sel < 0)
+            m_found->SetLabel(format_wxstr(_L_PLURAL("Found %1% printer – click Search again to choose.", "Found %1% printers – click Search again to choose.", list.size()), list.size()));
+        else {
+            m_host->SetValue(from_u8(list[sel].ip));
+            m_thumb->SetBitmap(model_thumb(this, list[sel].model));
+            m_found->SetLabel(card_text(list[sel]));
+            m_login->SetFocus();
+        }
+        m_found->Wrap(FromDIP(330));
+        Layout();
+        Fit();
+    }
+
     void fail(const wxString& msg)
     {
         m_err->SetLabel(msg);
@@ -488,8 +687,10 @@ private:
         MessageDialog(GetParent(), _L("Connected. Send prints to the printer with the Print button."), "[r]evo Slicer", wxOK | wxICON_INFORMATION).ShowModal();
     }
 
-    wxTextCtrl *  m_host, *m_login, *m_pin;
-    wxStaticText* m_err;
+    wxTextCtrl *    m_host, *m_login, *m_pin;
+    wxStaticText*   m_err;
+    wxStaticText*   m_found;
+    wxStaticBitmap* m_thumb;
 };
 
 } // namespace
