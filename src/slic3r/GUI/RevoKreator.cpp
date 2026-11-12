@@ -629,7 +629,7 @@ private:
         // błysk w miejscu wykrycia
         const double fd = m_t - m_flash_t;
         if (m_flash_t >= 0 && fd < 0.8) {
-            const double k = 1 - fd / 0.8, r = FromDIP(20 + 40 * (1 - k));
+            const double k = 1 - fd / 0.8, r = FromDIP(20) + FromDIP(40) * (1 - k);
             const auto   f = arc(m_flash_u);
             gc->SetPen(*wxTRANSPARENT_PEN);
             gc->SetBrush(gc->CreateRadialGradientBrush(f.m_x, f.m_y, f.m_x, f.m_y, r, wxColour(255, 255, 255, int(255 * k)), wxColour(90, 160, 255, 0)));
@@ -649,7 +649,7 @@ private:
                 const double ph = std::fmod(m_t * 1.5 - i * 0.33 + 3, 1.0), a = 0.2 + 0.8 * std::max(0.0, 1 - std::abs(ph - 0.2) * 3);
                 gc->SetPen(*wxTRANSPARENT_PEN);
                 gc->SetBrush(wxBrush(wxColour(255, 255, 255, int(255 * a))));
-                const double cx = x0 + w + FromDIP(12) + i * FromDIP(12), r = FromDIP(2.5);
+                const double cx = x0 + w + FromDIP(12) + i * FromDIP(12), r = FromDIP(5) / 2.0;
                 gc->DrawEllipse(cx - r, y + h / 2 - r, 2 * r, 2 * r);
             }
         const wxString ml = spaced(_L("Manual address")) + wxString::FromUTF8(" ›");
