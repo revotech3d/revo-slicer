@@ -3643,13 +3643,7 @@ void MainFrame::init_menubar_as_editor()
         "", nullptr, []() { return true; }, this);
 
     auto top_menu = m_topbar->GetTopMenu();
-    top_menu->AppendSeparator();
-
-    append_shortcut_item(
-        top_menu, Shortcut::SpeedDial, false, _L("Open Speed Dial"), "",
-        [](wxCommandEvent &) { wxGetApp().open_speed_dial(); },
-        "", nullptr, []() { return true; }, this);
-    top_menu->AppendSeparator();
+    top_menu->AppendSeparator(); // [r]evo: Speed Dial nie w menu
 
 #if 0 // [r]evo: Preset Bundle, Sync Presets (OrcaCloud) i Plugins nie są używane
     append_menu_item(
@@ -3762,11 +3756,7 @@ void MainFrame::init_menubar_as_editor()
 
 #else
     // On Mac, the Apple menu ignores non-standard custom items, so add Preset Bundle to the File menu
-    fileMenu->AppendSeparator();
-    append_shortcut_item(
-        fileMenu, Shortcut::SpeedDial, false, _L("Open Speed Dial"), "",
-        [](wxCommandEvent&) { wxGetApp().open_speed_dial(); },
-        "", nullptr, []() { return true; }, this);
+    // [r]evo: Speed Dial nie w menu
 #if 0 // [r]evo: Preset Bundle, Sync Presets (OrcaCloud) i Plugins nie są używane
     append_menu_item(
         fileMenu, wxID_ANY, _L("Preset Bundle"), "",
