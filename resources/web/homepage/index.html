@@ -89,9 +89,9 @@
 	</div>
 
 	<div id="BtnArea">
-		<div class="RevoLogo">[R]EVO</div>
+		<div class="RevoLogo"><img src="img/revo_logo.svg" alt="[r]evo"></div>
 		<div menu="printers" class="BtnItem BtnItemSelected" onClick="GotoMenu('printers')">
-			<div>My printers</div>
+			<div>Main Launch Control</div>
 			<div class="NavArrow icon16"></div>
 		</div>
 		<div menu="calib" class="BtnItem" onClick="GotoMenu('calib')">
@@ -102,26 +102,27 @@
 			<div>Guides</div>
 			<div class="NavArrow icon16"></div>
 		</div>
-		<div menu="recent" class="BtnItem" onClick="GotoMenu('recent')">
-			<div data-i18n="recent">Recent</div>
-			<div class="NavArrow icon16"></div>
-		</div>
 	</div>
 </div>
 
 <div id="RightBoard">
 <div id="PrintersBoard" class="thin-scroll PbBoard" board="printers">
-	<div class="PbCap">[R]EVO SLICER · FLEET</div>
+	<div class="PbCap">[R]EVO SLICER · MISSION CONTROL</div>
 	<div class="PbHead">
-		<div class="PbTitle">MY PRINTERS</div>
-		<div class="PbBtn PbBtnDim" onClick="OnClickFindPrinters()">+ FIND PRINTERS</div>
+		<div class="PbTitle">MAIN LAUNCH CONTROL</div>
+		<div class="PbActs">
+			<div class="PbBtn PbBtnMain" onClick="OnClickNewProject()">+ NEW MISSION</div>
+			<div class="PbBtn" onClick="OnClickOpenProject()">OPEN PROJECT</div>
+		</div>
 	</div>
-	<div class="PbSub">CLICK A PRINTER TO PRINT ON IT · PROFILE AND NOZZLE SWITCH AUTOMATICALLY</div>
+	<div class="PbSec"><span>MY PRINTERS</span><a onClick="OnClickFindPrinters()">+ FIND PRINTERS</a></div>
 	<div id="PbList"></div>
 	<div id="PbEmpty">
 		<div class="PbSub">NO PRINTERS DOCKED YET</div>
 		<div class="PbBtn" onClick="OnClickFindPrinters()">FIND PRINTERS</div>
-	</div>
+	</div>	<div class="PbSec" style="margin-top:28px"><span>RECENT MISSIONS</span><a onClick="OnDeleteAllRecentFiles()">CLEAR ALL</a></div>
+	<div id="FileList" class="PbFiles"></div>
+
 </div>
 <div id="CalibBoard" class="thin-scroll PbBoard" board="calib" style="display:none">
 	<div class="PbCap">[R]EVO SLICER · PRE-FLIGHT</div>
@@ -195,7 +196,7 @@
 		    <div id="RecentTitle" class="Content-Title TextS1" data-i18n="recently_opened">Recently opened</div>
 			<div id="RecentClearAllBtn" class="ButtonStyleRegular ButtonTypeWindow" onClick="OnDeleteAllRecentFiles()" data-i18n="clear_all">Clear all</div>
 		</div>
-		<div id="FileList" class="thin-scroll">
+		<div id="FileListOld" class="thin-scroll" style="display:none">
 			<!-- EXAMPLE GENERATED BLOCK
 			<div class="FileItem" fpath="sPath">
 				<a class="FileTip" title="sPath"></a>

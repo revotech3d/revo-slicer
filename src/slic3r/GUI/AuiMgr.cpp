@@ -69,7 +69,7 @@ wxAuiPaneInfo AuiMgr::sidebar_pane_info()
 {
     return wxAuiPaneInfo()
         .Name("sidebar")
-        .Left()
+        .Right() // [r]evo: panel ustawień po prawej (jak w szkicu głównego ekranu)
         .CloseButton(false)
         .TopDockable(false)
         .BottomDockable(false)

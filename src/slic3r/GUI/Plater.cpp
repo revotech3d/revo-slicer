@@ -8024,6 +8024,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         // Load previous window layout
         const auto cfg    = wxGetApp().app_config;
         wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
+        // [r]evo: jednorazowo pomijamy zapisany układ, żeby panel trafił na nowe domyślne miejsce (prawa strona)
+        if (cfg->get("revo_sidebar_right") != "1") {
+            layout.clear();
+            cfg->set("revo_sidebar_right", "1");
+        }
         if (!layout.empty()) {
             bool removed_floating_state = false;
 #ifdef __WXGTK__
