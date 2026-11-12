@@ -456,7 +456,7 @@ public:
         // is shown. The previous 1500 ms auto-timeout closed the splash long
         // before init finished, leaving the user staring at a frozen blank
         // screen during the slow load_presets / new MainFrame phases.
-        : wxSplashScreen(wxBitmap(FromDIP(wxSize(480,480),nullptr)), wxSPLASH_CENTRE_ON_SCREEN, 0, nullptr, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        : wxSplashScreen(wxBitmap(FromDIP(wxSize(960,480),nullptr)), wxSPLASH_CENTRE_ON_SCREEN, 0, nullptr, wxID_ANY, wxDefaultPosition, wxDefaultSize,
 #ifdef __APPLE__
             wxBORDER_NONE | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP
 #else
@@ -481,57 +481,70 @@ public:
         this->SetPosition(pos);
         this->CenterOnScreen();
 
-        scale_font(m_font_version, 1.65f); // only scale this one since it hasnt a preloaded font like Label::Body_24;
 
-        m_bg_color = StateColor::darkModeColorFor(wxColour("#FFFFFF"));
-        m_fg_color = StateColor::darkModeColorFor(wxColour("#6B6A6A"));
-        m_progress_bg_color = StateColor::darkModeColorFor(wxColour("#DFDFDF"));
-        m_progress_fg_color = StateColor::darkModeColorFor(wxColour("#3D8BEA"));
-        m_progress_h = FromDIP(6);
-        bool dark_mode = m_fg_color != wxColour("#6B6A6A");
+        // [r]evo: ekran ładowania zawsze w stylu startu rakiety (czarne niebo, horyzont, logo [r]evo slicer)
+        m_bg_color          = wxColour(0, 0, 0);
+        m_fg_color          = wxColour(154, 164, 178);
+        m_progress_bg_color = wxColour(28, 35, 48);
+        m_progress_fg_color = wxColour(90, 160, 255);
+        m_progress_h        = std::max(2, FromDIP(2));
         wxSize sz  = m_window->GetClientSize();
         BitmapCache bmp_cache;
-        m_logo_bmp = *bmp_cache.load_svg(dark_mode ? "splash_logo_dark" : "splash_logo", sz.GetWidth(), sz.GetHeight());
+        m_logo_bmp = *bmp_cache.load_svg("splash_logo_dark", sz.GetWidth(), sz.GetHeight());
 
         m_window->Bind(wxEVT_PAINT, &SplashScreen::OnPaint, this);
         m_window->Refresh();
         m_window->Update();
     }
 
+    // rozstrzelone wielkie litery jak na ekranie startowym
+    static wxString spaced(const wxString& t)
+    {
+        wxString out;
+        const wxString up = t.Upper();
+        for (size_t i = 0; i < up.length(); ++i)
+            out += (i ? wxString(wxUniChar(0x2009)) : wxString()) + up[i];
+        return out;
+    }
+
     void OnPaint(wxPaintEvent& evt)
     {
         wxPaintDC dc(m_window);
         wxSize c_sz = m_window->GetClientSize();
+        const int W = c_sz.GetWidth(), H = c_sz.GetHeight(), m = W / 40;
 
         dc.SetBackground(wxBrush(m_bg_color));
         dc.Clear();
         if (m_logo_bmp.IsOk())
             dc.DrawBitmap(m_logo_bmp, 0, 0, true);
 
-        wxRect rc = wxRect(0, 0, c_sz.GetWidth(), 0);
-        dc.SetTextForeground(m_fg_color);
-
-        dc.SetFont(m_font_version);
-        rc.y      = c_sz.GetHeight() * 0.72;
-        rc.height = dc.GetTextExtent(m_text_version).GetHeight();
-        dc.DrawLabel(m_text_version, rc, wxALIGN_CENTER);
-
         dc.SetFont(m_font_action);
-        rc.y      = c_sz.GetHeight() * 0.85;
-        rc.height = dc.GetTextExtent(m_text_action).GetHeight();
-        dc.DrawLabel(m_text_action, rc, wxALIGN_CENTER);
+        dc.SetTextForeground(m_fg_color);
+        dc.DrawText(spaced(_L("Launch sequence")), m, m);
+        dc.SetTextForeground(*wxWHITE);
+        const wxString ver = spaced(m_text_version);
+        dc.DrawText(ver, W - m - dc.GetTextExtent(ver).GetWidth(), m);
 
-        const wxRect progress_rc(0, c_sz.GetHeight() - m_progress_h, c_sz.GetWidth(), m_progress_h);
-                
+        // status ładowania nad horyzontem
+        dc.SetTextForeground(m_fg_color);
+        const wxString act = spaced(m_text_action);
+        const wxSize   asz = dc.GetTextExtent(act);
+        dc.DrawText(act, (W - asz.GetWidth()) / 2, int(H * 0.835));
+
+        // cienka linia postępu z poświatą
+        const int y = int(H * 0.89);
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(m_progress_bg_color));
-        dc.DrawRectangle(progress_rc);
-
-        const int fill_width = progress_rc.GetWidth() * m_progress * 0.01;
-        if (fill_width > 0) {
+        dc.DrawRectangle(m, y, W - 2 * m, m_progress_h);
+        const int fill = (W - 2 * m) * m_progress / 100;
+        if (fill > 0) {
+            dc.SetBrush(wxBrush(wxColour(90, 160, 255, 60)));
+            dc.DrawRectangle(m, y - m_progress_h, fill, m_progress_h * 3);
             dc.SetBrush(wxBrush(m_progress_fg_color));
-            dc.DrawRectangle(0, progress_rc.GetTop(), fill_width, m_progress_h);
+            dc.DrawRectangle(m, y, fill, m_progress_h);
         }
+        const wxString pct = wxString::Format("%d%%", m_progress);
+        dc.DrawText(pct, W - m - dc.GetTextExtent(pct).GetWidth(), y + m_progress_h * 3);
     }
 
     void SetText(const wxString& text, int progress)
@@ -539,9 +552,15 @@ public:
         int calc_progress = std::max(m_progress, std::clamp(progress, 0, 100));
         if (m_text_action != text || m_progress != calc_progress){
             m_text_action = text;
-            m_progress = calc_progress;
-            m_window->Refresh();
-            m_window->Update();
+            // [r]evo: pasek płynnie dojeżdża do nowej wartości (kilka klatek, ~100 ms)
+            const int from = m_progress;
+            for (int k = 1; k <= 6; ++k) {
+                m_progress = from + (calc_progress - from) * k / 6;
+                m_window->Refresh();
+                m_window->Update();
+                if (k < 6 && calc_progress != from)
+                    wxMilliSleep(16);
+            }
 #ifdef __WXOSX__
         // without this code splash screen wouldn't be updated under OSX
         wxYield();
@@ -589,8 +608,7 @@ private:
     int      m_progress     = 0;
     int      m_progress_h   = 6;
 
-    wxFont m_font_version = Label::Body_16;
-    wxFont m_font_action  = Label::Body_16;
+    wxFont m_font_action  = Label::Body_12;
 };
 
 #ifdef __linux__
