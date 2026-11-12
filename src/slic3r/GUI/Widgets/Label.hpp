@@ -25,6 +25,9 @@ public:
 
 	void Wrap(int width);
 
+    // [r]evo: rozstrzelone wielkie litery (nagłówki w stylu ekranu startowego)
+    static wxString Spaced(const wxString& text);
+
 private:
 	void OnSize(wxSizeEvent & evt);
 

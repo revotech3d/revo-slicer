@@ -917,8 +917,8 @@ Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::
 
     StateColor btn_bg_green(
         std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(42, 109, 196), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(90, 160, 255), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(61, 139, 234), StateColor::Normal)
     );
 

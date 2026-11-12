@@ -281,7 +281,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
         m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "process");
 
-        m_title_label = new Label(m_top_panel, _L("Process"));
+        m_title_label = new Label(m_top_panel, ::Label::Spaced(_L("Process")));
 
         //int width, height;
         // BBS: new layout

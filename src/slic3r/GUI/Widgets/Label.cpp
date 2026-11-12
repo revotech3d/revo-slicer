@@ -298,6 +298,15 @@ wxSize Label::split_lines(wxDC &dc, int width, const wxString &text, wxString &m
     return dc.GetMultiLineTextExtent(multiline_text);
 }
 
+wxString Label::Spaced(const wxString& text)
+{
+    wxString       out;
+    const wxString up = text.Upper();
+    for (size_t i = 0; i < up.length(); ++i)
+        out += (i ? wxString(wxUniChar(0x2009)) : wxString()) + up[i];
+    return out;
+}
+
 Label::Label(wxWindow *parent, wxString const &text, long style, wxSize size) : Label(parent, Body_14, text, style, size) {}
 
 Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long style, wxSize size)

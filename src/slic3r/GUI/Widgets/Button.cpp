@@ -44,7 +44,7 @@ Button::Button() : paddingSize(10, 8)
 {
     background_color = StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled),
                                   std::make_pair(0x52c7b8, (int) StateColor::Hovered | StateColor::Checked),
-                                  std::make_pair(0x1FA34A, (int) StateColor::Checked),
+                                  std::make_pair(0x3D8BEA, (int) StateColor::Checked),
                                   std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
                                   std::make_pair(*wxWHITE, (int) StateColor::Normal));
     text_color = StateColor(std::make_pair(*wxLIGHT_GREY, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal));

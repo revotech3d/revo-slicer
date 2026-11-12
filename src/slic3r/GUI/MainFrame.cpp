@@ -2673,8 +2673,8 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetBottomColour(wxColour(0x3B4446));*/
     StateColor m_btn_bg_enable = StateColor(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(42, 109, 196), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(90, 160, 255), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(61, 139, 234), StateColor::Normal)
     );
 
@@ -2686,23 +2686,30 @@ void MainFrame::update_side_button_style()
     // m_publish_btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
 
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
-    m_slice_btn->SetCornerRadius(FromDIP(12));
+    m_slice_btn->SetCornerRadius(0);
+    // [r]evo: SLICE w białej ramce na tle paska, PRINT pełny niebieski (jak na ekranie startowym)
+    m_slice_btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(0x6B6B6B), StateColor::Disabled),
+                                               std::pair<wxColour, int>(wxColour(16, 33, 58), StateColor::Pressed),
+                                               std::pair<wxColour, int>(wxColour(22, 40, 68), StateColor::Hovered),
+                                               std::pair<wxColour, int>(wxColour(7, 9, 11), StateColor::Normal)));
+    m_slice_btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(0x6B6B6B), StateColor::Disabled),
+                                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)));
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
 
     m_slice_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
-    m_slice_option_btn->SetCornerRadius(FromDIP(12));
+    m_slice_option_btn->SetCornerRadius(0);
     m_slice_option_btn->SetExtraSize(wxSize(FromDIP(10), FromDIP(10)));
     m_slice_option_btn->SetIconOffset(FromDIP(2));
     m_slice_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
 
     m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
-    m_print_btn->SetCornerRadius(FromDIP(12));
+    m_print_btn->SetCornerRadius(0);
     m_print_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_print_btn->SetMinSize(wxSize(-1, FromDIP(24)));
 
     m_print_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
-    m_print_option_btn->SetCornerRadius(FromDIP(12));
+    m_print_option_btn->SetCornerRadius(0);
     m_print_option_btn->SetExtraSize(wxSize(FromDIP(10), FromDIP(10)));
     m_print_option_btn->SetIconOffset(FromDIP(2));
     m_print_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));

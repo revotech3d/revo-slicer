@@ -9,6 +9,7 @@
 //BBS set font size
 
 #include <wx/bookctrl.h>
+#include <wx/statbmp.h>
 #include <cmath>
 #include <cstddef>
 #include <utility>
@@ -49,6 +50,12 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
     m_sizer = new wxBoxSizer(wxHORIZONTAL);
     this->SetSizer(m_sizer);
 
+    // [r]evo: logo [r]evo na początku górnego paska (krój z revo3d.pl)
+    if (side_tools != NULL) {
+        auto* logo = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("revo_topbar_logo", this, 16));
+        logo->SetBackgroundColour(GetBackgroundColour());
+        m_sizer->Add(logo, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(14));
+    }
     m_buttons_sizer = new wxFlexGridSizer(1, m_btn_margin, m_btn_margin);
     m_sizer->Add(m_buttons_sizer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxBOTTOM, m_btn_margin);
 

@@ -1147,7 +1147,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     if (m_panel_printer_content){
         bool isShown = m_panel_printer_content->IsShown();
         if(!isShown && m_text_printer_settings){
-            m_text_printer_settings->SetLabel(_L("Printer")); // ensure title returns to default state
+            m_text_printer_settings->SetLabel(::Label::Spaced(_L("Printer"))); // ensure title returns to default state
             m_panel_printer_content->Show();
         }
     }
@@ -2829,7 +2829,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
 
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
-        p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"), LB_PROPAGATE_MOUSE_EVENT | wxST_ELLIPSIZE_END);
+        p->m_text_printer_settings = new Label(p->m_panel_printer_title, ::Label::Spaced(_L("Printer")), LB_PROPAGATE_MOUSE_EVENT | wxST_ELLIPSIZE_END);
 
         p->m_printer_icon->Bind(wxEVT_BUTTON, [](wxCommandEvent& e) {
             //auto wizard_t = new ConfigWizard(wxGetApp().mainframe);
@@ -2883,7 +2883,7 @@ Sidebar::Sidebar(Plater *parent)
                 return;
             // ORCA Show printer name on title when its folded to inform user without expanding it again
             bool     isShown = p->m_panel_printer_content->IsShown();
-            wxString title   = _L("Printer") + wxString(!isShown ? "" : ("  |  " + p->combo_printer->GetValue()));
+            wxString title   = ::Label::Spaced(_L("Printer")) + wxString(!isShown ? "" : ("  |  " + p->combo_printer->GetValue()));
             p->m_text_printer_settings->SetLabel(title);
             p->m_panel_printer_content->Show(!isShown);
             p->m_panel_printer_separator->Show(isShown);
@@ -3289,7 +3289,7 @@ Sidebar::Sidebar(Plater *parent)
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
     p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "filament");
-    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, _L("Project Filaments"), LB_PROPAGATE_MOUSE_EVENT);
+    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, ::Label::Spaced(_L("Project Filaments")), LB_PROPAGATE_MOUSE_EVENT);
     bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::TitlebarMargin()));
     bSizer39->Add(p->m_staticText_filament_settings, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()));
     bSizer39->SetMinSize(-1, FromDIP(30));
@@ -3870,10 +3870,10 @@ void Sidebar::update_all_preset_comboboxes()
     }
 
     if (cfg.opt_bool("pellet_modded_printer")) {
-		p->m_staticText_filament_settings->SetLabel(_L("Pellets"));
+		p->m_staticText_filament_settings->SetLabel(::Label::Spaced(_L("Pellets")));
         p->m_filament_icon->SetBitmap_("pellets");
     } else {
-		p->m_staticText_filament_settings->SetLabel(_L("Filament"));
+		p->m_staticText_filament_settings->SetLabel(::Label::Spaced(_L("Filament")));
         p->m_filament_icon->SetBitmap_("filament");
     }
 
