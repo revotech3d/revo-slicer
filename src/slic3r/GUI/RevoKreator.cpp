@@ -657,6 +657,59 @@ private:
     std::function<void()> m_click;
 };
 
+// Duży przycisk „wydrukuj test”: niebieski, pulsuje dopóki nie zostanie kliknięty – trudno go przegapić.
+class PulseButton : public wxPanel
+{
+public:
+    PulseButton(wxWindow* parent, const wxString& text, bool pulse, std::function<void()> click)
+        : wxPanel(parent, wxID_ANY), m_text(text), m_pulse(pulse), m_click(std::move(click)), m_timer(this)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        wxFont f = GetFont();
+        f.SetPointSize(16);
+        f.SetWeight(wxFONTWEIGHT_BOLD);
+        SetFont(f);
+        wxClientDC dc(this);
+        dc.SetFont(f);
+        const wxSize t = dc.GetTextExtent(m_text);
+        SetMinSize(wxSize(t.x + FromDIP(70), t.y + FromDIP(30)));
+        SetCursor(wxCursor(wxCURSOR_HAND));
+        Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
+            wxAutoBufferedPaintDC dc(this);
+            const wxSize s = GetClientSize();
+            // jasność pulsu 0..1
+            const double k = m_pulse ? 0.5 + 0.5 * std::sin(m_phase) : 1.0;
+            const wxColour fill(int(30 + (90 - 30) * k), int(60 + (160 - 60) * k), int(110 + (255 - 110) * k));
+            dc.SetBackground(wxBrush(m_hover ? kBlue : fill));
+            dc.Clear();
+            dc.SetPen(wxPen(kBlue, 2));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRectangle(0, 0, s.x, s.y);
+            dc.SetFont(GetFont());
+            dc.SetTextForeground(k > 0.6 || m_hover ? kBg : kText);
+            const wxSize t = dc.GetTextExtent(m_text);
+            dc.DrawText(m_text, (s.x - t.x) / 2, (s.y - t.y) / 2);
+        });
+        Bind(wxEVT_TIMER, [this](wxTimerEvent&) { m_phase += 0.35; Refresh(); });
+        if (m_pulse) m_timer.Start(60);
+        Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent&) { m_hover = true; Refresh(); });
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) { m_hover = false; Refresh(); });
+        Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) {
+            m_timer.Stop();
+            m_pulse = false;
+            if (auto f = m_click) wxTheApp->CallAfter([f] { f(); });
+        });
+    }
+    ~PulseButton() override { m_timer.Stop(); }
+
+private:
+    wxString              m_text;
+    bool                  m_pulse, m_hover = false;
+    double                m_phase = 0;
+    std::function<void()> m_click;
+    wxTimer               m_timer;
+};
+
 class NewFilamentWizard : public wxDialog
 {
 public:
@@ -705,6 +758,7 @@ public:
              CalibKind::Retraction, int(CalibMode::Calib_Retraction_tower), "mm", 1},
         };
         m_sel.assign(m_steps.size(), -1);
+        m_printed.assign(m_steps.size(), false);
 
         auto* root = new wxBoxSizer(wxVERTICAL);
         m_head = new wxPanel(this);
@@ -789,7 +843,7 @@ private:
         const WizStep& st = m_steps[s];
         if (s == 1) return wxString::Format("%+d %%", int(std::lround(v)));
         wxString t = wxString::FromDouble(v, st.digits);
-        return st.unit.empty() ? t : t + " " + st.unit;
+        return st.unit.empty() || s == 0 ? (s == 0 ? t + wxString::FromUTF8("\xC2\xB0") : t) : t + " " + st.unit;
     }
 
     double value(int s) const
@@ -1078,9 +1132,9 @@ private:
             const int si = m_page - 1;
             const WizStep& st = m_steps[si];
             auto* top = new wxBoxSizer(wxHORIZONTAL);
-            top->Add(label(m_body, _L("1. Print the test, then look at the result:"), 13, kText), 1, wxALIGN_CENTER_VERTICAL);
-            top->Add(new FlatButton(m_body, spaced(_L("Print this test")), false,
-                                    [kind = st.kind] { wxGetApp().mainframe->run_calibration(kind); }), 0, wxALIGN_CENTER_VERTICAL);
+            top->Add(label(m_body, m_printed[si] ? _L("1. Test sent - look at the printed result:") : _L("1. First print the test:"), 15, kText), 1, wxALIGN_CENTER_VERTICAL);
+            top->Add(new PulseButton(m_body, spaced(_L("Print this test")), !m_printed[si],
+                                     [this, si, kind = st.kind] { m_printed[si] = true; wxGetApp().mainframe->run_calibration(kind); }), 0, wxALIGN_CENTER_VERTICAL);
             s->Add(top, 0, wxEXPAND | wxBOTTOM, FromDIP(14));
             auto* ex = new wxBoxSizer(wxHORIZONTAL);
             ex->Add(example(m_body, "revo_wz_" + st.art + "_bad", false, st.bad), 1, wxRIGHT, FromDIP(16));
@@ -1090,11 +1144,11 @@ private:
             const auto opts = options(si);
             if (m_sel[si] >= int(opts.size())) m_sel[si] = -1;
             const bool towers = si == 0 || si == 2 || si == 4;
-            auto* grid = new wxGridSizer(std::max(1, std::min(10, int(opts.size()))), FromDIP(8), FromDIP(8));
+            auto* grid = new wxGridSizer(std::max(1, std::min(8, int(opts.size()))), FromDIP(8), FromDIP(8));
             for (size_t i = 0; i < opts.size(); ++i) {
                 wxString t = fmt_val(si, opts[i]);
-                if (towers && opts.size() > 1 && i == 0) t = spaced(_L("Top")) + " · " + t;
-                if (towers && opts.size() > 1 && i + 1 == opts.size()) t = spaced(_L("Bottom")) + " · " + t;
+                if (towers && opts.size() > 1 && i == 0) t = _L("Top") + " " + t;
+                if (towers && opts.size() > 1 && i + 1 == opts.size()) t = _L("Bottom") + " " + t;
                 grid->Add(new PickTile(m_body, t, m_sel[si] == int(i), 70, [this, si, i] { m_sel[si] = int(i); show(m_page); }), 0, wxEXPAND);
             }
             s->Add(grid, 0, wxEXPAND);
@@ -1192,6 +1246,7 @@ private:
 
     std::vector<WizStep> m_steps;
     std::vector<int>     m_sel;
+    std::vector<bool>    m_printed;
     std::vector<double>  m_cur;
     std::string          m_type;
     wxString             m_brand, m_name;
