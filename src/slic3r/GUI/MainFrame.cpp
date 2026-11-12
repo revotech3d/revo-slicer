@@ -2688,11 +2688,11 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
     m_slice_btn->SetCornerRadius(0);
     // [r]evo: SLICE w białej ramce na tle paska, PRINT pełny niebieski (jak na ekranie startowym)
-    m_slice_btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(0x6B6B6B), StateColor::Disabled),
+    m_slice_btn->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(20, 24, 29), StateColor::Disabled),
                                                std::pair<wxColour, int>(wxColour(16, 33, 58), StateColor::Pressed),
                                                std::pair<wxColour, int>(wxColour(22, 40, 68), StateColor::Hovered),
                                                std::pair<wxColour, int>(wxColour(7, 9, 11), StateColor::Normal)));
-    m_slice_btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(0x6B6B6B), StateColor::Disabled),
+    m_slice_btn->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(42, 47, 54), StateColor::Disabled),
                                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)));
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
