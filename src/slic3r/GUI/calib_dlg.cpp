@@ -484,6 +484,15 @@ void PA_Calibration_Dlg::on_show(wxShowEvent& event) {
         m_rbMethod->SetRadioTooltip(2, wxEmptyString);
     }
     PA_Calibration_Dlg::reset_params();
+    // [r]evo: opened from the filament wizard - PA range for the material (flexible filaments need much more)
+    if (event.IsShown() && !g_revo_wizard_material.empty()) {
+        const std::string m = g_revo_wizard_material;
+        g_revo_wizard_material.clear();
+        const bool flex = m == "TPU";
+        m_tiStartPA->GetTextCtrl()->SetValue("0");
+        m_tiEndPA->GetTextCtrl()->SetValue(flex ? "0.3" : m == "PETG" ? "0.1" : "0.08");
+        m_tiPAStep->GetTextCtrl()->SetValue(flex ? "0.01" : "0.005");
+    }
 }
 
 // Temp calib dlg
@@ -687,9 +696,14 @@ void Temp_Calibration_Dlg::on_show(wxShowEvent& event) {
         else if (m == "PA-CF" || m == "PA-GF") idx = 5;
         else if (m == "PET-CF") idx = 6;
         m_rbFilamentType->SetSelection(idx);
-        wxCommandEvent sel(wxEVT_COMMAND_RADIOBOX_SELECTED);
-        sel.SetInt(idx);
-        on_filament_type_changed(sel);
+        int hi = 230, lo = 190;
+        if (m == "ABS" || m == "ASA") { hi = 270; lo = 230; }
+        else if (m == "PETG") { hi = 250; lo = 230; }
+        else if (m == "PCTG") { hi = 280; lo = 240; }
+        else if (m == "TPU") { hi = 240; lo = 210; }
+        else if (m == "PA-CF" || m == "PA-GF" || m == "PET-CF") { hi = 320; lo = 280; }
+        m_tiStart->GetTextCtrl()->SetValue(std::to_string(hi));
+        m_tiEnd->GetTextCtrl()->SetValue(std::to_string(lo));
     }
     const bool belt = is_belt_printer_selected();
     if (m_model_box->AreAnyItemsShown() != belt) {
