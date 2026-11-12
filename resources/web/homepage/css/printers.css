@@ -44,3 +44,5 @@
 .PbBoard .PbGuide:hover svg { stroke: #fff; }
 .PbBoard .PbGuide b { display: block; font-weight: 400; font-size: 19px; letter-spacing: 3px; padding-right: 40px; }
 .PbBoard .PbGuide span { display: block; font-size: 12px; color: #9aa4b2; letter-spacing: 1px; margin-top: 2px; padding-right: 40px; }
+.PbBoard .PbTile.PbGuide .PbRec { position: absolute; right: 64px; top: 18px; }
+.PbBoard .PbTile.PbWide { border-color: #5aa0ff; }

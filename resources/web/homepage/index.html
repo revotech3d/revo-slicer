@@ -131,13 +131,13 @@
 	<div class="PbTitle">CALIBRATION</div>
 	<div class="PbSub" id="CalibOn">NEW FILAMENT? START WITH THE GUIDED WIZARD</div>
 	<div class="PbGrid">
-		<div class="PbTile PbWide" onClick="RevoCalib('wizard')"><i>RECOMMENDED</i><b>NEW FILAMENT WIZARD</b><span>Temperature → flow → pressure advance → retraction, step by step, saved as a profile</span></div>
-		<div class="PbTile" onClick="RevoCalib('temperature')"><i>1</i><b>TEMPERATURE</b><span>Temperature tower</span></div>
-		<div class="PbTile" onClick="RevoCalib('flow')"><i>2</i><b>FLOW RATIO</b><span>Flow test plates</span></div>
-		<div class="PbTile" onClick="RevoCalib('pa')"><i>3</i><b>PRESSURE ADVANCE</b><span>PA lines / tower</span></div>
-		<div class="PbTile" onClick="RevoCalib('retraction')"><i>4</i><b>RETRACTION</b><span>Retraction tower</span></div>
-		<div class="PbTile" onClick="RevoCalib('maxflow')"><i>5</i><b>MAX FLOW</b><span>Max volumetric speed</span></div>
-		<div class="PbTile" onClick="RevoCalib('cornering')"><i>6</i><b>CORNERING</b><span>Corner speed and jerk</span></div>
+		<div class="PbTile PbGuide PbWide" onClick="RevoCalib('wizard')"><svg viewBox="0 0 48 48"><path d="M10 38L32 16M28 12l2-5 2 5 5 2-5 2-2 5-2-5-5-2zM38 26l1-3 1 3 3 1-3 1-1 3-1-3-3-1z"/></svg><i class="PbRec">RECOMMENDED</i><b>NEW FILAMENT WIZARD</b><span>Temperature → flow → pressure advance → retraction, step by step, saved as a profile</span></div>
+		<div class="PbTile PbGuide" onClick="RevoCalib('temperature')"><svg viewBox="0 0 48 48"><path d="M20 30V10a4 4 0 0 1 8 0v20a8 8 0 1 1-8 0z"/><path d="M24 16v18M31 12h5M31 18h5M31 24h5"/></svg><b>TEMPERATURE</b><span>Temperature tower</span></div>
+		<div class="PbTile PbGuide" onClick="RevoCalib('flow')"><svg viewBox="0 0 48 48"><path d="M24 6s11 13 11 21a11 11 0 0 1-22 0C13 19 24 6 24 6z"/><path d="M19 29a5 5 0 0 0 5 5"/></svg><b>FLOW RATIO</b><span>Flow test plates</span></div>
+		<div class="PbTile PbGuide" onClick="RevoCalib('pa')"><svg viewBox="0 0 48 48"><path d="M6 34c6 0 8-20 14-20s8 20 14 20 6-8 8-8"/><path d="M6 40h36"/></svg><b>PRESSURE ADVANCE</b><span>PA lines / tower</span></div>
+		<div class="PbTile PbGuide" onClick="RevoCalib('retraction')"><svg viewBox="0 0 48 48"><path d="M24 40V12M16 20l8-8 8 8"/><path d="M14 40h20"/></svg><b>RETRACTION</b><span>Retraction tower</span></div>
+		<div class="PbTile PbGuide" onClick="RevoCalib('maxflow')"><svg viewBox="0 0 48 48"><path d="M10 34a14 14 0 1 1 28 0"/><path d="M24 34l8-10"/><circle cx="24" cy="34" r="2"/></svg><b>MAX FLOW</b><span>Max volumetric speed</span></div>
+		<div class="PbTile PbGuide" onClick="RevoCalib('cornering')"><svg viewBox="0 0 48 48"><path d="M10 38V12h28"/><path d="M16 32V18h16" stroke-dasharray="2 4"/></svg><b>CORNERING</b><span>Corner speed and jerk</span></div>
 	</div>
 	<div class="PbCap" style="margin-top:26px">GUIDES · REVO WIKI</div>
 	<div class="PbLink" onClick="OpenUrlInLocalBrowser('https://revo3d.pl/en/wiki/revo-slicer/')"><div><div class="PbN2">CALIBRATION STEP BY STEP</div></div><span>›</span></div>
