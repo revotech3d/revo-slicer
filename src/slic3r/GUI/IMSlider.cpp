@@ -59,15 +59,15 @@ static const float  LEFT_MARGIN       = 13.0f + 100.0f;  // avoid thumbnail tool
 static const float  HORIZONTAL_SLIDER_WINDOW_HEIGHT  = 64.0f;
 // ORCA: widen slider window to account for one-layer label box left shift.
 static const float  VERTICAL_SLIDER_WINDOW_WIDTH     = 164.0f;
-static const float  GROOVE_WIDTH      = 12.0f;
+static const float  GROOVE_WIDTH      = 4.0f;   // [r]evo: cienka linia
 static const ImVec2 ONE_LAYER_MARGIN  = ImVec2(20.0f, 20.0f);
 static const ImVec2 ONE_LAYER_BUTTON_SIZE  = ImVec2(56.0f, 56.0f);
 
-static const ImU32 BACKGROUND_COLOR_DARK  = IM_COL32(65, 65, 71, 255);
+static const ImU32 BACKGROUND_COLOR_DARK  = IM_COL32(4, 6, 9, 255);       // [r]evo: czerń
 static const ImU32 BACKGROUND_COLOR_LIGHT = IM_COL32(255, 255, 255, 255);
-static const ImU32 GROOVE_COLOR_DARK      = IM_COL32(45, 45, 49, 255);
+static const ImU32 GROOVE_COLOR_DARK      = IM_COL32(28, 35, 48, 255);
 static const ImU32 GROOVE_COLOR_LIGHT     = IM_COL32(206, 206, 206, 255);
-static const ImU32 BRAND_COLOR            = IM_COL32(0, 150, 136, 255);
+static const ImU32 BRAND_COLOR            = IM_COL32(90, 160, 255, 255);  // [r]evo: akcent niebieski
 
 static int m_tick_value = -1;
 static ImVec4 m_tick_rect;
@@ -1287,8 +1287,9 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         }
         imgui.end();
     } else {
-        ImVec2 size = ImVec2(VERTICAL_SLIDER_WINDOW_WIDTH * m_scale, 0.8f * canvas_height);
-        imgui.set_next_window_pos(canvas_width, 0.5f * static_cast<float>(canvas_height), ImGuiCond_Always, 1.0f, 0.5f);
+        // [r]evo: suwak warstw po lewej stronie widoku (panel ustawień jest po prawej), niżej – pod legendą
+        ImVec2 size = ImVec2(VERTICAL_SLIDER_WINDOW_WIDTH * m_scale, 0.62f * canvas_height);
+        imgui.set_next_window_pos(0.0f, 0.6f * static_cast<float>(canvas_height), ImGuiCond_Always, 0.0f, 0.5f);
         imgui.begin(std::string("laysers_slider"), windows_flag);
 
         int higher_value = GetHigherValue();

@@ -981,6 +981,10 @@ struct Sidebar::priv
     ScalableButton* m_printer_setting = nullptr;
     wxStaticText *  m_text_printer_settings = nullptr;
     wxPanel* m_panel_printer_content = nullptr;
+    wxPanel*        m_revo_hero_panel   = nullptr; // [r]evo: sylwetka drukarki na całą szerokość
+    wxStaticBitmap* m_revo_hero         = nullptr;
+    std::string     m_revo_hero_model;
+    wxPanel*        m_revo_actions      = nullptr; // [r]evo: SLICE / PRINT w karcie drukarki
     // Filament Track Switch status overlay: an icon floated over the left/single extruder AMS area,
     // shown only when the switch is installed (green when ready, red when not calibrated).
     wxStaticBitmap* extruder_separator_icon = nullptr;
@@ -2898,6 +2902,17 @@ Sidebar::Sidebar(Plater *parent)
 
         /*************************** 2. add printer content ************************/
 
+        // [r]evo: duża sylwetka aktywnej drukarki (grafiki Revon), nad parametrami drukarki
+        p->m_revo_hero_panel = new wxPanel(p->scrolled, wxID_ANY);
+        p->m_revo_hero_panel->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
+        p->m_revo_hero = new wxStaticBitmap(p->m_revo_hero_panel, wxID_ANY, wxNullBitmap);
+        {
+            auto* hs = new wxBoxSizer(wxVERTICAL);
+            hs->Add(p->m_revo_hero, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(6));
+            p->m_revo_hero_panel->SetSizer(hs);
+        }
+        scrolled_sizer->Add(p->m_revo_hero_panel, 0, wxEXPAND, 0);
+
         p->m_panel_printer_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
         p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
 
@@ -3254,6 +3269,12 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_content->SetSizer(p->vsizer_printer);
         p->m_panel_printer_content->Layout();
         scrolled_sizer->Add(p->m_panel_printer_content, 0, wxEXPAND, 0);
+
+        // [r]evo: miejsce na SLICE / PRINT (przenoszone z górnego paska przez dock_print_actions)
+        p->m_revo_actions = new wxPanel(p->scrolled, wxID_ANY);
+        p->m_revo_actions->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
+        p->m_revo_actions->SetSizer(new wxBoxSizer(wxHORIZONTAL));
+        scrolled_sizer->Add(p->m_revo_actions, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(SidebarProps::ContentMargin()));
     }
 
     {
@@ -3936,6 +3957,65 @@ void Sidebar::update_all_preset_comboboxes()
     p_mainframe->m_tabpanel->SetSelection(p_mainframe->m_tabpanel->GetSelection());
 }
 
+void Sidebar::dock_print_actions(wxWindow* slice_panel, wxWindow* print_panel)
+{
+    if (!p->m_revo_actions || !slice_panel || !print_panel)
+        return;
+    auto* sz = p->m_revo_actions->GetSizer();
+    for (wxWindow* w : {slice_panel, print_panel}) {
+        if (wxSizer* old = w->GetContainingSizer())
+            old->Detach(w);
+        w->Reparent(p->m_revo_actions);
+        w->SetBackgroundColour(p->m_revo_actions->GetBackgroundColour());
+    }
+    sz->Add(slice_panel, 1, wxEXPAND | wxRIGHT, FromDIP(8));
+    sz->Add(print_panel, 1, wxEXPAND);
+    p->m_revo_actions->Layout();
+    Layout();
+}
+
+void Sidebar::update_revo_printer_card()
+{
+    if (!p->m_revo_hero)
+        return;
+    const auto&       pr   = wxGetApp().preset_bundle->printers;
+    const std::string name = pr.get_selected_preset_name();
+    std::string       file;
+    if (name.find("Belt") != std::string::npos)
+        file = "Revon Belt 350x350x300";
+    else if (name.find("1200x600x500") != std::string::npos)
+        file = "Revon 1200x600x500";
+    else if (name.find("600x600x400") != std::string::npos)
+        file = "Revon 600x600x400";
+    else if (name.find("600x600x600") != std::string::npos)
+        file = "Revon 600x600x600";
+    if (file == p->m_revo_hero_model)
+        return;
+    p->m_revo_hero_model = file;
+    wxImage img;
+    const auto path = boost::filesystem::path(resources_dir()) / "profiles" / "Revotech" / (file + "_cover.png");
+    if (file.empty() || !img.LoadFile(from_u8(path.string()), wxBITMAP_TYPE_PNG)) {
+        p->m_revo_hero_panel->Hide();
+        Layout();
+        return;
+    }
+    // jasna sylwetka na ciemnym tle (odwrócenie odcieni szarości), bez podpisu z dołu grafiki
+    img = img.ConvertToGreyscale();
+    img = img.GetSubImage(wxRect(0, 0, img.GetWidth(), int(img.GetHeight() * 0.78)));
+    unsigned char* d = img.GetData();
+    for (int i = 0, n = img.GetWidth() * img.GetHeight() * 3; i < n; ++i)
+        d[i] = (unsigned char) (12 + (255 - d[i]) * 0.62);
+    if (img.HasAlpha())
+        for (int i = 0, n = img.GetWidth() * img.GetHeight(); i < n; ++i)
+            img.GetAlpha()[i] = (unsigned char) (img.GetAlpha()[i] * 0.9);
+    const int w = std::max(FromDIP(200), p->scrolled->GetClientSize().x - FromDIP(40));
+    img.Rescale(w, w * img.GetHeight() / std::max(1, img.GetWidth()), wxIMAGE_QUALITY_HIGH);
+    p->m_revo_hero->SetBitmap(wxBitmap(img));
+    p->m_revo_hero_panel->Show();
+    p->m_revo_hero_panel->Layout();
+    Layout();
+}
+
 void Sidebar::update_presets(Preset::Type preset_type)
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
@@ -4178,6 +4258,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
     default: break;
     }
+    if (preset_type == Preset::TYPE_PRINTER)
+        update_revo_printer_card(); // [r]evo
 
     // Synchronize config.ini with the current selections.
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);

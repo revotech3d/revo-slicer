@@ -1588,6 +1588,9 @@ void MainFrame::init_tabpanel() {
     m_plater->Hide();
 
     wxGetApp().plater_ = m_plater;
+    // [r]evo: SLICE / PRINT w karcie drukarki (panel boczny), nie w górnym pasku
+    if (m_slice_btn && m_print_btn)
+        m_plater->sidebar().dock_print_actions(m_slice_btn->GetParent(), m_print_btn->GetParent());
 
 #ifdef SLIC3R_CAD
     // The experimental feature is off by default, and when it is off the page is never

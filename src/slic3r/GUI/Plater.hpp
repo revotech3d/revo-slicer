@@ -196,6 +196,10 @@ public:
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
     void update_presets(Slic3r::Preset::Type preset_type);
+    // [r]evo: SLICE / PRINT (panele z górnego paska) przeniesione do karty drukarki w panelu bocznym
+    void dock_print_actions(wxWindow* slice_panel, wxWindow* print_panel);
+    // [r]evo: sylwetka aktywnej drukarki w karcie PRINTER
+    void update_revo_printer_card();
     //BBS
     const std::vector<BedType>& get_cur_combox_bed_types() { return m_cur_combox_bed_types; }
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
