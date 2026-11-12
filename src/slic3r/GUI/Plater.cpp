@@ -3606,7 +3606,12 @@ Sidebar::Sidebar(Plater *parent)
                 auto* bundle = wxGetApp().preset_bundle;
                 if (!bundle) return r;
                 const DynamicPrintConfig& c = bundle->prints.get_edited_preset().config;
-                auto num = [&c](const char* k) { const ConfigOption* o = c.option(k); return o ? o->getFloat() : 0.0; };
+                auto num = [&c](const char* k) {
+                    const ConfigOption* o = c.option(k);
+                    if (auto* f = dynamic_cast<const ConfigOptionFloat*>(o)) return f->value;
+                    if (auto* i = dynamic_cast<const ConfigOptionInt*>(o)) return double(i->value);
+                    return 0.0;
+                };
                 const ConfigOptionPercent* d = c.option<ConfigOptionPercent>("sparse_infill_density");
                 const ConfigOptionBool*    sp = c.option<ConfigOptionBool>("enable_support");
                 r.push_back({_L("Layer height"), wxString::Format("%.2f mm", num("layer_height"))});
