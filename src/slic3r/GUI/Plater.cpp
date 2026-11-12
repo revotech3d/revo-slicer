@@ -3597,6 +3597,54 @@ Sidebar::Sidebar(Plater *parent)
         spliter_1->SetLineColour("#A6A9AA");
         scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
         scrolled_sizer->Add(params_panel->get_top_panel(), 0, wxEXPAND);
+        {   // [r]evo: flight plan summary – the key process values in telemetry rows
+            auto plan = new wxPanel(p->scrolled, wxID_ANY);
+            plan->SetBackgroundStyle(wxBG_STYLE_PAINT);
+            plan->SetMinSize(wxSize(-1, FromDIP(4 * 26 + 12)));
+            auto rows = []() {
+                std::vector<std::pair<wxString, wxString>> r;
+                auto* bundle = wxGetApp().preset_bundle;
+                if (!bundle) return r;
+                const DynamicPrintConfig& c = bundle->prints.get_edited_preset().config;
+                auto num = [&c](const char* k) { const ConfigOption* o = c.option(k); return o ? o->getFloat() : 0.0; };
+                const ConfigOptionPercent* d = c.option<ConfigOptionPercent>("sparse_infill_density");
+                const ConfigOptionBool*    sp = c.option<ConfigOptionBool>("enable_support");
+                r.push_back({_L("Layer height"), wxString::Format("%.2f mm", num("layer_height"))});
+                r.push_back({_L("Infill"), d ? wxString::Format("%d%%", int(std::lround(d->value))) : wxString("-")});
+                r.push_back({_L("Walls"), wxString::Format("%d", int(num("wall_loops")))});
+                r.push_back({_L("Support"), sp && sp->value ? _L("On") : _L("Off")});
+                return r;
+            };
+            plan->Bind(wxEVT_PAINT, [plan, rows](wxPaintEvent&) {
+                wxAutoBufferedPaintDC dc(plan);
+                const wxSize sz = plan->GetClientSize();
+                dc.SetBackground(wxBrush(wxColour(5, 8, 12)));
+                dc.Clear();
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.SetBrush(wxBrush(wxColour(90, 160, 255)));
+                dc.DrawRectangle(0, 0, plan->FromDIP(3), sz.y);
+                dc.SetFont(Label::Body_13);
+                const int pad = plan->FromDIP(14);
+                int y = plan->FromDIP(6);
+                for (const auto& [k, v] : rows()) {
+                    dc.SetTextForeground(wxColour(207, 214, 223));
+                    dc.DrawText(::Label::Spaced(k), pad, y + plan->FromDIP(5));
+                    dc.SetTextForeground(wxColour(90, 160, 255));
+                    const wxSize ts = dc.GetTextExtent(v);
+                    dc.DrawText(v, sz.x - pad - ts.x, y + plan->FromDIP(5));
+                    y += plan->FromDIP(26);
+                    dc.SetPen(wxPen(wxColour(26, 31, 38), 1));
+                    dc.DrawLine(pad, y, sz.x - pad, y);
+                    dc.SetPen(*wxTRANSPARENT_PEN);
+                }
+            });
+            plan->Bind(wxEVT_IDLE, [plan, rows, last = wxString()](wxIdleEvent&) mutable {
+                wxString sig;
+                for (const auto& r : rows()) sig += r.second + "|";
+                if (sig != last) { last = sig; plan->Refresh(); }
+            });
+            scrolled_sizer->Add(plan, 0, wxEXPAND);
+        }
         auto spliter_2 = new ::StaticLine(p->scrolled);
         spliter_2->SetLineColour("#CECECE");
         scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
@@ -3759,6 +3807,33 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()) - FromDIP(2)); // ElementSpacing - 2 (from combo box))
     combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, 30 * wxGetApp().em_unit() / 10}); // ORCA ensure height matches with PlaterPresetComboBox
+    {   // [r]evo: nozzle temperature of this filament, telemetry style
+        auto temp = new wxPanel(p->m_panel_filament_content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(46), -1));
+        temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        auto read = [filament_idx]() -> wxString {
+            auto* bundle = wxGetApp().preset_bundle;
+            if (!bundle || filament_idx >= int(bundle->filament_presets.size())) return wxEmptyString;
+            const Preset* pr = bundle->filaments.find_preset(bundle->filament_presets[filament_idx]);
+            if (!pr) return wxEmptyString;
+            auto* t = pr->config.option<ConfigOptionInts>("nozzle_temperature");
+            return t && !t->values.empty() ? wxString::Format("%d", t->values.front()) + wxString::FromUTF8("\xC2\xB0") : wxString();
+        };
+        temp->Bind(wxEVT_PAINT, [temp, read](wxPaintEvent&) {
+            wxAutoBufferedPaintDC dc(temp);
+            dc.SetBackground(wxBrush(temp->GetParent()->GetBackgroundColour()));
+            dc.Clear();
+            dc.SetFont(Label::Body_13);
+            dc.SetTextForeground(wxColour(90, 160, 255));
+            const wxString v  = read();
+            const wxSize   sz = temp->GetClientSize(), ts = dc.GetTextExtent(v);
+            dc.DrawText(v, sz.x - ts.x, (sz.y - ts.y) / 2);
+        });
+        temp->Bind(wxEVT_IDLE, [temp, read, last = wxString()](wxIdleEvent&) mutable {
+            const wxString v = read();
+            if (v != last) { last = v; temp->Refresh(); }
+        });
+        combo_and_btn_sizer->Add(temp, 0, wxEXPAND | wxLEFT, FromDIP(4));
+    }
 
     /* BBS hide del_btn
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_content, wxID_ANY, "delete_filament");
