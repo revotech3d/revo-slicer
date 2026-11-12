@@ -701,12 +701,13 @@ function ShowMyPrinters(list)
 		let cls="PbRow"+(p.active?" PbActive":"")+(p.online?"":" PbOffline");
 		let col=!p.online?"":(p.kind=="gotowa"?"PbOk":(p.kind=="blad"?"PbErr":"PbBusy"));
 		html+='<div class="'+cls+'" data-name="'+PbEsc(p.name)+'">'+
-			'<img class="PbImg" src="../../profiles/Revotech/'+encodeURIComponent(p.cover)+'" onerror="this.style.display=\'none\'">'+
+			'<img class="PbImg" src="../../profiles/Revotech/'+encodeURIComponent(p.cover)+'" onerror="this.style.visibility=\'hidden\'">'+
+			'<div class="PbName"><div class="PbN">'+PbEsc(p.title)+'</div><div class="PbCapS">'+PbEsc(p.id||p.host)+'</div></div>'+
+			'<div class="PbF PbW1"><div class="PbCapS">STATUS</div><div class="PbV '+col+'">'+(p.online?"● ":"○ ")+PbEsc(p.state)+'</div></div>'+
+			'<div class="PbF PbW2"><div class="PbCapS">NOZZLE</div><div class="PbV">'+PbEsc(p.nozzle)+'</div></div>'+
+			'<div class="PbF PbW3"><div class="PbCapS">BUILD</div><div class="PbV">'+PbEsc(p.dims)+'</div></div>'+
+			'<div class="PbAct">'+(p.active?'<div class="PbOn">▶ ACTIVE</div>':'<div class="PbBtn">SELECT</div>')+'</div>'+
 			'<div class="PbDel" title="Remove from My printers">✕</div>'+
-			'<div class="PbN">'+PbEsc(p.title)+'</div><div class="PbCapS">'+PbEsc(p.id||p.host)+'</div>'+
-			'<div class="PbV '+col+'">'+(p.online?"● ":"○ ")+PbEsc(p.state)+'</div>'+
-			'<div class="PbSpec">NOZZLE '+PbEsc(p.nozzle)+' · '+PbEsc(p.dims)+' · '+PbEsc(p.host)+'</div>'+
-			'<div class="PbAct">'+(p.active?'<div class="PbOn">▶ ACTIVE · PRINTS GO HERE</div>':'<div class="PbBtn">SELECT</div>')+'</div>'+
 			'</div>';
 	}
 	$("#PbList").html(html);
