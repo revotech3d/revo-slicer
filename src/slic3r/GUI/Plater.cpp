@@ -1545,7 +1545,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     : StaticBox(parent), group_index(index)
 {
     SetFont(Label::Body_10);
-    SetForegroundColour(wxColour("#CECECE"));
+    SetForegroundColour(wxColour("#262E30")); // [r]evo: w ciemnym motywie jasny tekst (#CECECE dawał ciemnoszary)
     SetBorderColor(wxColour("#EEEEEE"));
     SetCornerRadius(FromDIP(PRINTER_PANEL_RADIUS)); // ORCA match radius with other boxes
     ShowBadge(true);
