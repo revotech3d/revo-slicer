@@ -4000,16 +4000,9 @@ void Sidebar::update_revo_printer_card()
         Layout();
         return;
     }
-    // jasna sylwetka na ciemnym tle (odwrócenie odcieni szarości), bez podpisu z dołu grafiki
-    img = img.ConvertToGreyscale();
-    img = img.GetSubImage(wxRect(0, 0, img.GetWidth(), int(img.GetHeight() * 0.78)));
-    unsigned char* d = img.GetData();
-    for (int i = 0, n = img.GetWidth() * img.GetHeight() * 3; i < n; ++i)
-        d[i] = (unsigned char) (12 + (255 - d[i]) * 0.62);
-    if (img.HasAlpha())
-        for (int i = 0, n = img.GetWidth() * img.GetHeight(); i < n; ++i)
-            img.GetAlpha()[i] = (unsigned char) (img.GetAlpha()[i] * 0.9);
-    const int w = std::max(FromDIP(200), p->scrolled->GetClientSize().x - FromDIP(40));
+    // grafika Revon tak jak w materiałach (ciemna maszyna z jasnymi liniami, przezroczyste tło) – bez podpisu z dołu
+    img = img.GetSubImage(wxRect(0, 0, img.GetWidth(), int(img.GetHeight() * 0.83)));
+    const int w = std::min(FromDIP(240), std::max(FromDIP(160), p->scrolled->GetClientSize().x - FromDIP(80)));
     img.Rescale(w, w * img.GetHeight() / std::max(1, img.GetWidth()), wxIMAGE_QUALITY_HIGH);
     p->m_revo_hero->SetBitmap(wxBitmap(img));
     p->m_revo_hero_panel->Show();
