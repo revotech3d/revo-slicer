@@ -1453,7 +1453,7 @@ wxBoxSizer* PreferencesDialog::create_item_link_association( wxString url_prefix
     // TRN %s is a URL scheme, for example "prusaslicer".
     wxString title = wxString::Format(_L("Associate %s://"), url_prefix);
     // TRN The first %s is a URL scheme, for example "prusaslicer"; the second is a website name.
-    wxString tooltip = wxString::Format(_L("Associate %s:// with OrcaSlicer so that Orca can open models from %s"), url_prefix, website_name);
+    wxString tooltip = wxString::Format(_L("Associate %s:// with [r]evo Slicer so that Orca can open models from %s"), url_prefix, website_name);
 
     std::wstring registered_bin; // not used, just here to provide a ref to check fn
     bool reg_to_current_instance = wxGetApp().check_url_association(url_prefix.ToStdWstring(), registered_bin);
@@ -1703,12 +1703,12 @@ void PreferencesDialog::create_items()
     g_sizer->Add(item_darkmode);
 #endif
 
-    auto item_single_instance  = create_item_checkbox(_L("Allow only one OrcaSlicer instance"),
+    auto item_single_instance  = create_item_checkbox(_L("Allow only one [r]evo Slicer instance"),
     #if __APPLE__
             _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
                 "of same app from the command line. In such case this settings will allow only one instance."),
     #else
-            _L("If this is enabled, when starting OrcaSlicer and another instance of the same OrcaSlicer is already running, that instance will be reactivated instead."),
+            _L("If this is enabled, when starting [r]evo Slicer and another instance of the same [r]evo Slicer is already running, that instance will be reactivated instead."),
     #endif
             "single_instance");
     g_sizer->Add(item_single_instance);
@@ -1723,7 +1723,7 @@ void PreferencesDialog::create_items()
     // TRN "GPU" is the graphics card; the option only matters on computers that have two of them.
     auto item_discrete_gpu = create_item_checkbox(_L("Render on the discrete GPU"),
         // TRN DRI_PRIME is an environment variable name and must stay as it is.
-        _L("On a computer with two GPUs, run OrcaSlicer on the discrete GPU instead of the one that drives the display. "
+        _L("On a computer with two GPUs, run [r]evo Slicer on the discrete GPU instead of the one that drives the display. "
            "Some Wayland systems cannot show frames rendered on the other GPU, or fail to open the window at all. "
            "Turn this off if the 3D view stays empty; if OrcaSlicer no longer starts, start it once with DRI_PRIME=0 "
            "in the environment to get back here."),
@@ -1898,14 +1898,14 @@ void PreferencesDialog::create_items()
 
     auto item_auto_reslice = create_item_auto_reslice(
         _L("Auto slice after changes"),
-        _L("If enabled, OrcaSlicer will re-slice automatically whenever slicing-related settings change."),
+        _L("If enabled, [r]evo Slicer will re-slice automatically whenever slicing-related settings change."),
         _L("Delay in seconds before auto slicing starts, allowing multiple edits to be grouped. Use 0 to slice immediately."));
     g_sizer->Add(item_auto_reslice);
 
     auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove mixed temperature restriction"), _L("With this option enabled, you can print materials with a large temperature difference together."), "enable_high_low_temp_mixed_printing");
     g_sizer->Add(item_mix_print_high_low_temperature);
 
-    auto item_remember_print_action = create_item_checkbox(_L("Remember last print action"), _L("If enabled, OrcaSlicer will remember the last selected option in the print button's dropdown (e.g. Print, Export plate sliced file, Export G-code file) and use it as the default on next startup."), "remember_print_action");
+    auto item_remember_print_action = create_item_checkbox(_L("Remember last print action"), _L("If enabled, [r]evo Slicer will remember the last selected option in the print button's dropdown (e.g. Print, Export plate sliced file, Export G-code file) and use it as the default on next startup."), "remember_print_action");
     g_sizer->Add(item_remember_print_action);
 
     //// CONTROL > Camera
@@ -2290,7 +2290,7 @@ void PreferencesDialog::create_items()
         g_sizer = f_sizers.back();
         g_sizer->AddGrowableCol(0, 1);
 
-        g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer")), 1, wxEXPAND);
+        g_sizer->Add(create_item_title(_L("Associate files to [r]evo Slicer")), 1, wxEXPAND);
 
         auto item_open_default_apps = create_item_button(
             _L("File associations for the Microsoft Store version are managed by Windows Settings."),
@@ -2307,22 +2307,22 @@ void PreferencesDialog::create_items()
     g_sizer->AddGrowableCol(0, 1);
 
     //// ASSOCIATE > Extensions
-    g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer")), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Associate files to [r]evo Slicer")), 1, wxEXPAND);
 
-    auto item_associate_3mf    = create_item_checkbox(_L("Associate 3MF files to OrcaSlicer"), _L("If enabled, this sets OrcaSlicer as the default application to open 3MF files.") , "associate_3mf");
+    auto item_associate_3mf    = create_item_checkbox(_L("Associate 3MF files to [r]evo Slicer"), _L("If enabled, this sets [r]evo Slicer as the default application to open 3MF files.") , "associate_3mf");
     g_sizer->Add(item_associate_3mf);
 
-    auto item_associate_drc = create_item_checkbox(_L("Associate DRC files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open DRC files."), "associate_drc");
+    auto item_associate_drc = create_item_checkbox(_L("Associate DRC files to [r]evo Slicer"), _L("If enabled, sets [r]evo Slicer as default application to open DRC files."), "associate_drc");
     g_sizer->Add(item_associate_drc);
 
-    auto item_associate_stl    = create_item_checkbox(_L("Associate STL files to OrcaSlicer"), _L("If enabled, this sets OrcaSlicer as the default application to open STL files.") , "associate_stl");
+    auto item_associate_stl    = create_item_checkbox(_L("Associate STL files to [r]evo Slicer"), _L("If enabled, this sets [r]evo Slicer as the default application to open STL files.") , "associate_stl");
     g_sizer->Add(item_associate_stl);
 
-    auto item_associate_step   = create_item_checkbox(_L("Associate STEP files to OrcaSlicer"), _L("If enabled, this sets OrcaSlicer as the default application to open STEP files."), "associate_step");
+    auto item_associate_step   = create_item_checkbox(_L("Associate STEP files to [r]evo Slicer"), _L("If enabled, this sets [r]evo Slicer as the default application to open STEP files."), "associate_step");
     g_sizer->Add(item_associate_step);
 
     //// ASSOCIATE > WebLinks
-    g_sizer->Add(create_item_title(_L("Associate web links to OrcaSlicer")), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Associate web links to [r]evo Slicer")), 1, wxEXPAND);
 
     auto associate_url_prusa   = create_item_link_association(L"prusaslicer", "Printables.com");
     g_sizer->Add(associate_url_prusa);

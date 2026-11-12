@@ -2956,7 +2956,7 @@ wxMenu* MainFrame::generate_help_menu()
         });
 
     // Report a bug
-    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of OrcaSlicer"),
+    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of [r]evo Slicer"),
     //    [](wxCommandEvent&) {
     //        //TODO
     //    });
