@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -28,6 +29,11 @@
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/dcbuffer.h>
+#include <wx/graphics.h>
+#include <wx/hyperlink.h>
+#include <wx/panel.h>
+#include <wx/timer.h>
 
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Preset.hpp"
@@ -360,8 +366,9 @@ private:
 // ---------------------------------------------------------------- Wyszukiwanie drukarek w sieci
 struct FoundPrinter
 {
-    std::string ip, id, model, state;
-    double      nozzle = 0;
+    std::string ip, id, model, state, os;
+    double      nozzle   = 0;
+    int         progress = 0;
 };
 
 // Adres IPv4 tego komputera w sieci lokalnej (gniazdo UDP bez wysyłania pakietów), pusty gdy brak.
@@ -377,7 +384,6 @@ std::string local_ipv4()
     }
 }
 
-// Pyta /revo/sesja/odkryj (agent Revo, bez logowania) pod revon.local i pod każdym adresem sieci /24 tego komputera.
 // Pyta /revo/sesja/odkryj (agent Revo, bez logowania) pod revon.local i pod każdym adresem sieci /24 tego komputera.
 // Działa w wątkach roboczych: on_found dostaje każdą maszynę od razu (raz na numer seryjny), stop przerywa szukanie.
 void discover_printers(const std::function<void(const FoundPrinter&)>& on_found, const std::shared_ptr<std::atomic<bool>>& stop)
@@ -409,7 +415,9 @@ void discover_printers(const std::function<void(const FoundPrinter&)>& on_found,
                         f.id     = j.value("machine_id", "");
                         f.model  = j.value("model", "");
                         f.state  = j.value("state", "");
-                        f.nozzle = j.contains("dysza") && j["dysza"].is_number() ? j["dysza"].get<double>() : 0;
+                        f.nozzle   = j.contains("dysza") && j["dysza"].is_number() ? j["dysza"].get<double>() : 0;
+                        f.progress = j.contains("postep") && j["postep"].is_number() ? j["postep"].get<int>() : 0;
+                        f.os       = j.value("revo_os", "");
                         {
                             std::lock_guard<std::mutex> l(mtx);
                             if (std::find(seen.begin(), seen.end(), f.id) != seen.end())
@@ -459,183 +467,371 @@ wxBitmap model_thumb(wxWindow* w, const std::string& m)
     return wxBitmap(img.Rescale(px, px * img.GetHeight() / std::max(1, img.GetWidth()), wxIMAGE_QUALITY_HIGH));
 }
 
-wxString card_text(const FoundPrinter& f)
+wxString model_dims(const std::string& m)
 {
-    // TRN %1% model, %2% serial number, %3% state, %4% IP address, %5% nozzle diameter
-    return format_wxstr(_L("%1%\nSerial number: %2%\nState: %3%\nIP: %4%   Nozzle: %5% mm"), model_name(f.model), f.id, state_name(f.state), f.ip,
-                        f.nozzle > 0 ? wxString::Format("%.1f", f.nozzle) : wxString("?"));
+    if (m == "belt") return _L("350 × 350 × 300 mm · belt");
+    if (m == "600x600x400") return "600 × 600 × 400 mm";
+    if (m == "600x600x600") return "600 × 600 × 600 mm";
+    if (m == "1200x600x500") return "1200 × 600 × 500 mm";
+    return "";
 }
 
-// Lista znalezionych maszyn: miniatura, numer, stan, IP – klik „Select” wybiera.
-class PickPrinterDialog : public wxDialog
+wxColour state_colour(const std::string& s)
+{
+    if (s == "gotowa") return wxColour(62, 214, 99);
+    if (s == "drukowanie" || s == "nagrzewanie" || s == "pauza") return wxColour(240, 160, 75);
+    if (s == "blad") return wxColour(255, 77, 82);
+    return wxColour(154, 160, 168);
+}
+
+constexpr double kPi = 3.14159265358979323846;
+
+// Kolory ekranu wyszukiwania (spójne z Revo OS)
+const wxColour kBg(22, 24, 27), kCard(32, 36, 40), kLine(44, 50, 56), kText(232, 234, 237), kMuted(154, 160, 168), kGreen(62, 214, 99);
+
+// ---------------------------------------------------------------- Radar: obracająca się wiązka, znalezione maszyny jako punkty
+class RadarPanel : public wxPanel
 {
 public:
-    PickPrinterDialog(wxWindow* parent, const std::vector<FoundPrinter>& list)
-        : wxDialog(parent, wxID_ANY, _L("[r]evo – printers in your network"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    explicit RadarPanel(wxWindow* parent) : wxPanel(parent, wxID_ANY), m_timer(this)
     {
-        auto* s = new wxBoxSizer(wxVERTICAL);
-        s->Add(heading(this, _L("Choose your printer")), 0, wxALL, FromDIP(16));
-        auto* sw = new wxScrolledWindow(this, wxID_ANY);
-        auto* ls = new wxBoxSizer(wxVERTICAL);
-        for (size_t i = 0; i < list.size(); ++i) {
-            auto* row = new wxBoxSizer(wxHORIZONTAL);
-            row->Add(new wxStaticBitmap(sw, wxID_ANY, model_thumb(this, list[i].model)), 0, wxRIGHT, FromDIP(12));
-            row->Add(new wxStaticText(sw, wxID_ANY, card_text(list[i])), 1, wxALIGN_CENTER_VERTICAL);
-            auto* b = new wxButton(sw, wxID_ANY, _L("Select"));
-            b->Bind(wxEVT_BUTTON, [this, i](wxCommandEvent&) { m_sel = int(i); EndModal(wxID_OK); });
-            row->Add(b, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
-            ls->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(12));
-        }
-        sw->SetSizer(ls);
-        sw->SetScrollRate(0, FromDIP(10));
-        sw->SetMinSize(wxSize(FromDIP(460), std::min<int>(FromDIP(110) * int(list.size()), FromDIP(440))));
-        s->Add(sw, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(16));
-        s->Add(new wxButton(this, wxID_CANCEL, _L("Cancel")), 0, wxALIGN_RIGHT | wxALL, FromDIP(16));
-        SetSizerAndFit(s);
-        CentreOnParent();
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetMinSize(FromDIP(wxSize(230, 230)));
+        Bind(wxEVT_PAINT, &RadarPanel::on_paint, this);
+        Bind(wxEVT_TIMER, [this](wxTimerEvent&) { m_angle = std::fmod(m_angle + 3.0, 360.0); Refresh(false); });
+        m_timer.Start(33);
     }
-    int selection() const { return m_sel; }
+    ~RadarPanel() override { m_timer.Stop(); }
+
+    // Punkt dla maszyny: kąt i odległość wyliczone z numeru seryjnego (zawsze w tym samym miejscu radaru)
+    void add_blip(const std::string& id)
+    {
+        const size_t h = std::hash<std::string>{}(id);
+        m_blips.push_back({double(h % 360), 0.35 + 0.5 * double((h / 360) % 100) / 100.0});
+    }
+    void clear_blips() { m_blips.clear(); }
 
 private:
-    int m_sel = -1;
+    void on_paint(wxPaintEvent&)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
+        dc.Clear();
+        std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+        if (!gc)
+            return;
+        const wxSize sz = GetClientSize();
+        const double r  = std::min(sz.x, sz.y) / 2.0 - FromDIP(4);
+        const double cx = sz.x / 2.0, cy = sz.y / 2.0;
+        gc->SetPen(wxPen(wxColour(42, 58, 47), 1));
+        gc->SetBrush(wxBrush(wxColour(14, 16, 18)));
+        gc->DrawEllipse(cx - r, cy - r, 2 * r, 2 * r);
+        gc->SetBrush(*wxTRANSPARENT_BRUSH);
+        for (double k : {0.68, 0.36})
+            gc->DrawEllipse(cx - r * k, cy - r * k, 2 * r * k, 2 * r * k);
+        gc->StrokeLine(cx - r, cy, cx + r, cy);
+        gc->StrokeLine(cx, cy - r, cx, cy + r);
+        // wiązka: wycinek 60° zanikający za linią
+        const double a = m_angle * kPi / 180.0;
+        for (int i = 0; i < 30; ++i) {
+            const double a0 = a - (i + 1) * (kPi / 90.0), a1 = a - i * (kPi / 90.0);
+            wxGraphicsPath p = gc->CreatePath();
+            p.MoveToPoint(cx, cy);
+            p.AddArc(cx, cy, r, a0, a1, true);
+            p.CloseSubpath();
+            gc->SetPen(*wxTRANSPARENT_PEN);
+            gc->SetBrush(wxBrush(wxColour(62, 214, 99, int(110 * (1.0 - i / 30.0)))));
+            gc->FillPath(p);
+        }
+        gc->SetPen(wxPen(kGreen, 2));
+        gc->StrokeLine(cx, cy, cx + r * std::cos(a), cy + r * std::sin(a));
+        // punkty maszyn: jaśniejsze tuż po przejściu wiązki
+        for (const auto& b : m_blips) {
+            const double ba   = b.angle * kPi / 180.0;
+            double       diff = std::fmod(m_angle - b.angle + 720.0, 360.0);
+            const int    alpha = int(255 - std::min(diff, 300.0) * 0.5);
+            const double bx = cx + r * b.dist * std::cos(ba), by = cy + r * b.dist * std::sin(ba), d = FromDIP(6);
+            gc->SetPen(*wxTRANSPARENT_PEN);
+            gc->SetBrush(wxBrush(wxColour(62, 214, 99, std::max(alpha, 110))));
+            gc->DrawEllipse(bx - d, by - d, 2 * d, 2 * d);
+        }
+        gc->SetBrush(wxBrush(kGreen));
+        gc->DrawEllipse(cx - FromDIP(4), cy - FromDIP(4), FromDIP(8), FromDIP(8));
+    }
+
+    struct Blip { double angle, dist; };
+    wxTimer           m_timer;
+    double            m_angle = 0;
+    std::vector<Blip> m_blips;
 };
 
-// ---------------------------------------------------------------- Połączenie z drukarką
+// ---------------------------------------------------------------- Karta znalezionej maszyny
+class PrinterCard : public wxPanel
+{
+public:
+    PrinterCard(wxWindow* parent, const FoundPrinter& f, std::function<void(PrinterCard*)> on_click)
+        : wxPanel(parent, wxID_ANY), m_on_click(std::move(on_click))
+    {
+        SetBackgroundColour(kCard);
+        auto* row = new wxBoxSizer(wxHORIZONTAL);
+        m_thumb   = new wxStaticBitmap(this, wxID_ANY, model_thumb(this, f.model));
+        row->Add(m_thumb, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+        auto* col = new wxBoxSizer(wxVERTICAL);
+        auto* top = new wxBoxSizer(wxHORIZONTAL);
+        m_name    = new wxStaticText(this, wxID_ANY, model_name(f.model));
+        m_name->SetFont(m_name->GetFont().Bold().Larger());
+        m_name->SetForegroundColour(kText);
+        m_state = new wxStaticText(this, wxID_ANY, "");
+        top->Add(m_name, 0, wxALIGN_CENTER_VERTICAL);
+        top->Add(m_state, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
+        col->Add(top, 0, wxBOTTOM, FromDIP(2));
+        m_dims = new wxStaticText(this, wxID_ANY, model_dims(f.model));
+        m_id   = new wxStaticText(this, wxID_ANY, "");
+        m_net  = new wxStaticText(this, wxID_ANY, "");
+        for (auto* t : {m_dims, m_id})
+            t->SetForegroundColour(kText);
+        m_net->SetForegroundColour(kMuted);
+        for (auto* t : {m_dims, m_id, m_net})
+            col->Add(t, 0, wxBOTTOM, FromDIP(1));
+        row->Add(col, 1, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM | wxRIGHT, FromDIP(10));
+        SetSizer(row);
+        update(f);
+        for (wxWindow* w : std::initializer_list<wxWindow*>{this, m_thumb, m_name, m_state, m_dims, m_id, m_net})
+            w->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) { m_on_click(this); });
+        Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
+            wxPaintDC dc(this);
+            const wxSize s = GetClientSize();
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.SetPen(wxPen(m_selected ? kGreen : kLine, m_selected ? FromDIP(2) : 1));
+            dc.DrawRoundedRectangle(0, 0, s.x, s.y, FromDIP(8));
+        });
+    }
+
+    void update(const FoundPrinter& f)
+    {
+        m_f = f;
+        wxString st = state_name(f.state);
+        if (f.state == "drukowanie" && f.progress > 0)
+            st += wxString::Format(" %d%%", f.progress);
+        m_state->SetLabel(wxString::FromUTF8("● ") + st + (m_added ? "   " + _L("✓ Added") : wxString()));
+        m_state->SetForegroundColour(state_colour(f.state));
+        // TRN %1% serial number, %2% nozzle diameter in mm
+        m_id->SetLabel(format_wxstr(_L("S/N %1% · Nozzle %2% mm"), f.id, f.nozzle > 0 ? wxString::Format("%.1f", f.nozzle) : wxString("?")));
+        m_net->SetLabel(from_u8(f.ip) + (f.os.empty() ? wxString() : " · Revo OS " + from_u8(f.os)));
+        Layout();
+    }
+    void set_selected(bool s) { m_selected = s; Refresh(); }
+    void set_added(bool a) { m_added = a; update(m_f); }
+    bool added() const { return m_added; }
+    const FoundPrinter& printer() const { return m_f; }
+
+private:
+    std::function<void(PrinterCard*)> m_on_click;
+    FoundPrinter                      m_f;
+    wxStaticBitmap*                   m_thumb;
+    wxStaticText *                    m_name, *m_state, *m_dims, *m_id, *m_net;
+    bool                              m_selected = false, m_added = false;
+};
+
+// ---------------------------------------------------------------- Ekran „Find your Revon printer”
+// Radar + karty maszyn znalezionych w sieci lokalnej (szukanie trwa, dopóki okno jest otwarte). Klik karty = wybór,
+// „Add …” dodaje maszynę jako obsługiwaną (profil maszyny i dyszy, wysyłanie wydruków). Adres można też wpisać ręcznie.
 class ConnectWizard : public wxDialog
 {
 public:
     explicit ConnectWizard(wxWindow* parent)
-        : wxDialog(parent, wxID_ANY, _L("[r]evo – connect to your Revon printer"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+        : wxDialog(parent, wxID_ANY, _L("[r]evo – find your Revon printer"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     {
+        SetBackgroundColour(kBg);
         auto* s = new wxBoxSizer(wxVERTICAL);
-        s->Add(heading(this, _L("Connect to your Revon printer")), 0, wxALL, FromDIP(16));
-        auto* info = new wxStaticText(this, wxID_ANY,
-            _L("Enter the printer address (revon.local or the IP shown on the printer screen in System) "
-               "and click Connect. The login and PIN of the machine manager are needed only if the printer requires them."));
-        info->Wrap(FromDIP(440));
-        s->Add(info, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
-        // [r]evo: drukarka znaleziona w sieci (miniatura, numer, stan, IP) i ponowne szukanie
-        auto* card = new wxBoxSizer(wxHORIZONTAL);
-        m_thumb    = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
-        m_found    = new wxStaticText(this, wxID_ANY, _L("Searching for printers in your network…"));
-        m_choose = new wxButton(this, wxID_ANY, _L("Choose printer"));
-        m_choose->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { choose(); });
-        m_choose->Hide();
-        m_again = new wxButton(this, wxID_ANY, _L("Search again"));
-        m_again->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { search(); });
-        card->Add(m_thumb, 0, wxRIGHT, FromDIP(12));
-        card->Add(m_found, 1, wxALIGN_CENTER_VERTICAL);
-        card->Add(m_choose, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
-        card->Add(m_again, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
-        s->Add(card, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
-        m_host  = new wxTextCtrl(this, wxID_ANY, "revon.local");
-        m_host->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { m_host_typed = !m_setting_host; e.Skip(); });
-        m_login = new wxTextCtrl(this, wxID_ANY);
-        m_pin   = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
-        m_login->SetHint(_L("Manager login (optional)"));
-        m_pin->SetHint(_L("PIN (optional)"));
+        auto* h = heading(this, _L("Find your Revon printer"));
+        h->SetForegroundColour(kText);
+        s->Add(h, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+        m_sub = new wxStaticText(this, wxID_ANY, _L("Searching the local network… Printers appear as soon as they answer."));
+        m_sub->SetForegroundColour(kMuted);
+        s->Add(m_sub, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20) / 4);
+        s->AddSpacer(FromDIP(14));
+
+        auto* mid = new wxBoxSizer(wxHORIZONTAL);
+        m_radar   = new RadarPanel(this);
+        mid->Add(m_radar, 0, wxLEFT | wxRIGHT, FromDIP(20));
+        m_list = new wxScrolledWindow(this, wxID_ANY);
+        m_list->SetBackgroundColour(kBg);
+        m_list->SetScrollRate(0, FromDIP(10));
+        m_list->SetMinSize(FromDIP(wxSize(440, 250)));
+        m_list_sizer = new wxBoxSizer(wxVERTICAL);
+        m_list->SetSizer(m_list_sizer);
+        mid->Add(m_list, 1, wxEXPAND | wxRIGHT, FromDIP(20));
+        s->Add(mid, 1, wxEXPAND);
+
+        // ręczny adres (sieć, w której wyszukiwanie nie działa) i logowanie kierownika, gdy maszyna go wymaga
+        auto* manual = new wxHyperlinkCtrl(this, wxID_ANY, _L("Not on the list? Enter the address manually"), "");
+        manual->SetNormalColour(kMuted);
+        manual->SetVisitedColour(kMuted);
+        manual->Bind(wxEVT_HYPERLINK, [this](wxHyperlinkEvent&) { show_manual(!m_manual->IsShown()); });
+        s->Add(manual, 0, wxLEFT | wxTOP, FromDIP(20));
+        m_manual = new wxPanel(this);
+        auto* ms = new wxBoxSizer(wxVERTICAL);
+        m_host   = new wxTextCtrl(m_manual, wxID_ANY, "");
+        m_login  = new wxTextCtrl(m_manual, wxID_ANY);
+        m_pin    = new wxTextCtrl(m_manual, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
+        m_host->SetHint(_L("Printer address, e.g. revon.local or 192.168.0.38"));
+        m_login->SetHint(_L("Manager login (only if the printer requires it)"));
+        m_pin->SetHint(_L("PIN (only if the printer requires it)"));
+        m_host->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { if (!m_host->IsEmpty()) select(nullptr); update_add(); e.Skip(); });
         for (auto* c : {m_host, m_login, m_pin})
-            s->Add(c, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
-        m_err = new wxStaticText(this, wxID_ANY, "");
-        m_err->SetForegroundColour(wxColour(255, 77, 82));
-        s->Add(m_err, 0, wxLEFT | wxRIGHT, FromDIP(16));
-        auto* ok = new wxButton(this, wxID_OK, _L("Connect"));
-        s->Add(ok, 0, wxALIGN_RIGHT | wxALL, FromDIP(16));
-        ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { connect(); });
-        m_host->SetMinSize(wxSize(FromDIP(440), -1));
+            ms->Add(c, 0, wxEXPAND | wxTOP, FromDIP(6));
+        m_manual->SetSizer(ms);
+        m_manual->Hide();
+        s->Add(m_manual, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+
+        m_msg = new wxStaticText(this, wxID_ANY, "");
+        s->Add(m_msg, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+        auto* btns = new wxBoxSizer(wxHORIZONTAL);
+        auto* again = new wxButton(this, wxID_ANY, _L("Search again"));
+        again->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { restart(); });
+        auto* close = new wxButton(this, wxID_CANCEL, _L("Close"));
+        m_add = new wxButton(this, wxID_ANY, _L("Add printer"));
+        m_add->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { add(); });
+        m_add->Disable();
+        btns->Add(again, 0, wxRIGHT, FromDIP(8));
+        btns->AddStretchSpacer();
+        btns->Add(close, 0, wxRIGHT, FromDIP(8));
+        btns->Add(m_add, 0);
+        s->Add(btns, 0, wxEXPAND | wxALL, FromDIP(20));
         SetSizerAndFit(s);
         CentreOnParent();
-        CallAfter([this] { search(); });
+        CallAfter([this] { restart(); });
     }
 
-public:
     ~ConnectWizard() override { *m_stop = true; } // wątek szukania kończy się sam, wyniki do zamkniętego okna nie trafią
 
 private:
-    // Szukanie w tle: okno działa, znalezione drukarki pojawiają się na bieżąco.
-    void search()
+    // Szukanie w tle, powtarzane co kilka sekund, dopóki okno jest otwarte (karty pojawiają się i odświeżają na bieżąco)
+    void restart()
     {
-        *m_stop = true; // poprzednie szukanie (jeśli trwa) przestaje zgłaszać wyniki
+        *m_stop = true;
         m_stop  = std::make_shared<std::atomic<bool>>(false);
-        m_list.clear();
-        m_chosen = false;
-        m_choose->Hide();
-        m_again->Disable();
-        m_thumb->SetBitmap(wxNullBitmap);
-        show_label(_L("Searching for printers in your network…"));
-        // wyniki wracają do wątku GUI; okno sprawdzamy flagą stop (ustawia ją destruktor, też w wątku GUI)
         ConnectWizard* self = this;
         auto           stop = m_stop;
         std::thread([self, stop] {
-            discover_printers(
-                [self, stop](const FoundPrinter& f) {
+            while (!*stop) {
+                discover_printers([self, stop](const FoundPrinter& f) {
                     wxTheApp->CallAfter([self, stop, f] { if (!*stop) self->on_found(f); });
-                },
-                stop);
-            wxTheApp->CallAfter([self, stop] { if (!*stop) self->on_done(); });
+                }, stop);
+                wxTheApp->CallAfter([self, stop] { if (!*stop) self->on_round_done(); });
+                for (int i = 0; i < 50 && !*stop; ++i)
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
         }).detach();
     }
 
     void on_found(const FoundPrinter& f)
     {
-        m_list.push_back(f);
-        if (m_list.size() == 1)
-            show_printer(0); // pierwsza znaleziona od razu gotowa do połączenia
-        else if (!m_chosen) {
-            m_thumb->SetBitmap(wxNullBitmap);
-            show_label(format_wxstr(_L_PLURAL("Found %1% printer.", "Found %1% printers.", m_list.size()), m_list.size()));
-            m_choose->Show();
-            Layout();
-            Fit();
+        for (auto* c : m_cards)
+            if (c->printer().id == f.id) {
+                c->update(f);
+                return;
+            }
+        m_radar->add_blip(f.id);
+        auto* c = new PrinterCard(m_list, f, [this](PrinterCard* c) { select(c); });
+        c->set_added(already_added(f.ip));
+        m_cards.push_back(c);
+        m_list_sizer->Add(c, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
+        m_list->FitInside();
+        m_list->Layout();
+        if (m_cards.size() == 1 && !c->added())
+            select(c); // pierwsza znaleziona od razu zaznaczona
+        update_sub();
+    }
+
+    void on_round_done()
+    {
+        m_rounds++;
+        update_sub();
+    }
+
+    void update_sub()
+    {
+        if (m_cards.empty())
+            m_sub->SetLabel(m_rounds == 0 ? _L("Searching the local network… Printers appear as soon as they answer.")
+                                          : _L("Still searching… Check that the printer is on and in the same network. "
+                                               "If your computer asks for access to the local network, allow it."));
+        else
+            m_sub->SetLabel(format_wxstr(_L_PLURAL("Found %1% printer. Click it and add it to [r]evo Slicer.",
+                                                   "Found %1% printers. Click one and add it to [r]evo Slicer.", m_cards.size()),
+                                         m_cards.size()));
+        m_sub->Wrap(FromDIP(700));
+        Layout();
+    }
+
+    void select(PrinterCard* c)
+    {
+        m_sel = c;
+        for (auto* x : m_cards)
+            x->set_selected(x == c);
+        if (c && !m_host->IsEmpty()) {
+            m_host->ChangeValue("");
         }
+        update_add();
     }
 
-    void on_done()
+    void update_add()
     {
-        m_again->Enable();
-        if (m_list.empty())
-            show_label(_L("No printer found. Check that the printer is on and in the same network, or enter its address."));
-        else if (m_list.size() > 1 && !m_chosen)
-            choose();
-    }
-
-    void choose()
-    {
-        std::sort(m_list.begin(), m_list.end(), [](const FoundPrinter& a, const FoundPrinter& b) { return a.id < b.id; });
-        PickPrinterDialog dlg(this, m_list);
-        if (dlg.ShowModal() == wxID_OK && dlg.selection() >= 0) {
-            m_chosen = true;
-            show_printer(dlg.selection());
+        if (m_sel) {
+            // TRN %1% printer model name, e.g. "Revon Belt 350"
+            m_add->SetLabel(format_wxstr(_L("Add %1%"), model_name(m_sel->printer().model)));
+            m_add->Enable(true);
+        } else {
+            m_add->SetLabel(_L("Add printer"));
+            m_add->Enable(!m_host->GetValue().Trim().IsEmpty());
         }
+        Layout();
     }
 
-    void show_printer(int i)
+    void show_manual(bool on)
     {
-        const FoundPrinter& f = m_list[i];
-        if (!m_host_typed) { // adresu wpisanego ręcznie nie nadpisujemy
-            m_setting_host = true;
-            m_host->SetValue(from_u8(f.ip));
-            m_setting_host = false;
-        }
-        m_thumb->SetBitmap(model_thumb(this, f.model));
-        m_choose->Show(m_list.size() > 1);
-        show_label(card_text(f));
-    }
-
-    void show_label(const wxString& t)
-    {
-        m_found->SetLabel(t);
-        m_found->Wrap(FromDIP(300));
+        m_manual->Show(on);
         Layout();
         Fit();
     }
 
-    void fail(const wxString& msg)
+    void message(const wxString& t, bool error)
     {
-        m_err->SetLabel(msg);
-        m_err->Wrap(FromDIP(440));
+        m_msg->SetForegroundColour(error ? wxColour(255, 77, 82) : kGreen);
+        m_msg->SetLabel(t);
+        m_msg->Wrap(FromDIP(700));
         Layout();
         Fit();
+    }
+
+    // Czy maszyna o tym adresie jest już dodana (profil drukarki z takim adresem wysyłania)
+    static bool already_added(const std::string& ip)
+    {
+        for (const Preset& p : wxGetApp().preset_bundle->printers)
+            if (!p.is_system && !p.is_default)
+                if (const auto* h = p.config.option<ConfigOptionString>("print_host"); h && h->value == ip)
+                    return true;
+        return false;
+    }
+
+    void add()
+    {
+        const std::string host = m_sel ? m_sel->printer().ip : into_u8(m_host->GetValue().Trim().Trim(false));
+        if (host.empty())
+            return;
+        wxString err;
+        bool     need_login = false;
+        if (!connect(host, into_u8(m_login->GetValue()), into_u8(m_pin->GetValue()), err, need_login)) {
+            if (need_login) {
+                show_manual(true);
+                m_login->SetFocus();
+            }
+            return message(err, true);
+        }
+        if (m_sel)
+            m_sel->set_added(true);
+        message(_L("Printer added. Send prints with the Print button. You can add another printer or close this window."), false);
     }
 
     // Nazwa profilu „Revon … <dysza> nozzle” dla maszyny pod adresem host (Moonraker przez klucz API), pusta gdy się nie da.
@@ -671,17 +867,19 @@ private:
         return out;
     }
 
-    void connect()
+    // Dodaje maszynę jako obsługiwaną: klucz API (bez logowania albo login/PIN kierownika), profil maszyny i dyszy,
+    // adres wysyłania wydruków. false + komunikat w err, gdy się nie da.
+    bool connect(std::string host, const std::string& login, const std::string& pin, wxString& err_out, bool& need_login_out)
     {
-        wxBusyCursor      busy;
-        std::string       host = into_u8(m_host->GetValue().Trim().Trim(false));
+        wxBusyCursor busy;
+        auto fail = [&err_out](const wxString& m) { err_out = m; return false; };
         if (host.rfind("http", 0) != 0)
             host = "http://" + host;
         while (!host.empty() && host.back() == '/')
             host.pop_back();
         std::string cookie, key, err;
         unsigned    st = 0;
-        if (m_login->GetValue().Trim().IsEmpty()) {
+        if (login.empty()) {
             // [r]evo: bez logowania (jak Orca) – drukarka oddaje klucz, chyba że kierownik włączył wymóg logowania
             bool need_login = false;
             Http::get(host + "/revo/sesja/klucz-slicer")
@@ -704,13 +902,13 @@ private:
                 return fail(_L("The printer does not respond. Check the address and that the computer is in the same network.") +
                             (err.empty() ? wxString() : "\n(" + from_u8(err) + ")"));
             if (need_login) {
-                m_login->SetFocus();
+                need_login_out = true;
                 return fail(_L("This printer requires the manager login. Enter the login and PIN."));
             }
             if (key.empty())
                 return fail(from_u8(err.empty() ? _u8L("The printer did not give the access key. Update Revo OS on the printer.") : err));
         } else {
-            nlohmann::json body = {{"login", into_u8(m_login->GetValue())}, {"pin", into_u8(m_pin->GetValue())}};
+            nlohmann::json body = {{"login", login}, {"pin", pin}};
             Http::post(host + "/revo/sesja/operator")
                 .header("Content-Type", "application/json")
                 .timeout_connect(5)
@@ -754,7 +952,7 @@ private:
 
         Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
         if (!tab)
-            return;
+            return false;
         auto& pr = wxGetApp().preset_bundle->printers;
         // [r]evo: profil drukarki dobrany do podłączonej maszyny (rozmiar osi + założona dysza z Revo OS)
         const std::string model = printer_profile(host, key);
@@ -770,18 +968,20 @@ private:
         std::string base = pr.get_edited_preset().is_system ? pr.get_edited_preset().name : pr.get_selected_preset_parent() ? pr.get_selected_preset_parent()->name : pr.get_edited_preset().name;
         tab->load_config(cfg);
         tab->save_preset(base + " @ " + host.substr(host.find("//") + 2));
-        EndModal(wxID_OK);
-        MessageDialog(GetParent(), _L("Connected. Send prints to the printer with the Print button."), "[r]evo Slicer", wxOK | wxICON_INFORMATION).ShowModal();
+        return true;
     }
 
-    wxTextCtrl *    m_host, *m_login, *m_pin;
-    wxStaticText*   m_err;
-    wxStaticText*   m_found;
-    wxStaticBitmap* m_thumb;
-    wxButton *      m_choose, *m_again;
-    std::vector<FoundPrinter>          m_list;
+    RadarPanel*               m_radar;
+    wxScrolledWindow*         m_list;
+    wxBoxSizer*               m_list_sizer;
+    wxStaticText *            m_sub, *m_msg;
+    wxPanel*                  m_manual;
+    wxTextCtrl *              m_host, *m_login, *m_pin;
+    wxButton*                 m_add;
+    std::vector<PrinterCard*> m_cards;
+    PrinterCard*              m_sel    = nullptr;
+    int                       m_rounds = 0;
     std::shared_ptr<std::atomic<bool>> m_stop = std::make_shared<std::atomic<bool>>(false);
-    bool                               m_chosen = false, m_host_typed = false, m_setting_host = false;
 };
 
 } // namespace
