@@ -1302,7 +1302,8 @@ void GLGizmosManager::do_render_overlay(bool draw_icons) const
         top_x = main_toolbar_left + main_toolbar_width * 2 + separator_width;
         top_x = top_x * inv_cnv_w;
     }
-    float top_y = 1.0f;
+    // [r]evo: pasek narzędzi odsunięty od górnej krawędzi widoku (tak samo jak główny pasek)
+    float top_y = 1.0f - 2.0f * 8.0f * wxGetApp().em_unit() / 10.0f * inv_cnv_h;
 
     if (draw_icons)
         render_background(top_x, top_y, top_x + width, top_y - height, border_w, border_h);

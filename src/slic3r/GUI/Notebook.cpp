@@ -57,6 +57,8 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
         m_sizer->Add(logo, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(14));
     }
     m_buttons_sizer = new wxFlexGridSizer(1, m_btn_margin, m_btn_margin);
+    if (side_tools != NULL)
+        m_sizer->AddStretchSpacer(1); // [r]evo: zakładki na środku paska
     m_sizer->Add(m_buttons_sizer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxBOTTOM, m_btn_margin);
 
     if (side_tools != NULL) {

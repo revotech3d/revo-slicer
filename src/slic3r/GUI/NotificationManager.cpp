@@ -195,13 +195,13 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 {
     m_ErrorColor  = ImGuiWrapper::to_ImVec4(decode_color_to_float_array("#E14747")); // ORCA
     m_WarnColor   = ImGuiWrapper::to_ImVec4(decode_color_to_float_array("#F59B16")); // ORCA
-    m_NormalColor = ImVec4(0, 0.588, 0.533, 1);
+    m_NormalColor = ImVec4(90 / 255.f, 160 / 255.f, 1.f, 1); // [r]evo: akcent niebieski
 
 	m_CurrentColor = m_NormalColor;   //Default
 
 	m_WindowBkgColor = ImVec4(1, 1, 1, 1);
     m_TextColor      = ImVec4(.2f, .2f, .2f, 1.0f);
-    m_HyperTextColor = ImVec4(0, 0.588, 0.533, 1);
+    m_HyperTextColor = ImVec4(90 / 255.f, 160 / 255.f, 1.f, 1);
 }
 
 // We cannot call plater()->get_current_canvas3D() from constructor, so we do it here
@@ -267,12 +267,13 @@ void NotificationManager::PopNotification::use_bbl_theme()
  //   OldStyle.Colors[ImGuiCol_WindowBg] = m_WindowBkgColor;
  //   OldStyle.Colors[ImGuiCol_Text]     = m_TextColor;
 
-	m_WindowBkgColor = m_is_dark ? ImVec4(45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f) : ImVec4(1, 1, 1, 1);
+	// [r]evo: telemetria – czarne półprzezroczyste tło, cienka ramka, niebieskie łącza
+	m_WindowBkgColor = m_is_dark ? ImVec4(4 / 255.f, 6 / 255.f, 9 / 255.f, 0.88f) : ImVec4(1, 1, 1, 1);
 	m_TextColor = m_is_dark ? ImVec4(224 / 255.f, 224 / 255.f, 224 / 255.f, 1.f) : ImVec4(.2f, .2f, .2f, 1.0f);
-	m_HyperTextColor = m_is_dark ? ImVec4(0, 0.588, 0.533, 1) : ImVec4(0, 0.588, 0.533, 1);
-	m_HyperTextColorHover = m_is_dark ? ImVec4(38.f / 255.f, 166.f / 255.f, 154.f / 255.f, 1) : ImVec4(0.f, 129.f / 255.f, 114.f / 255.f, 1); //#5AA0FF / #2A6DC4;
+	m_HyperTextColor = ImVec4(90 / 255.f, 160 / 255.f, 1.f, 1);
+	m_HyperTextColorHover = m_is_dark ? ImVec4(125 / 255.f, 181 / 255.f, 1.f, 1) : ImVec4(42 / 255.f, 109 / 255.f, 196 / 255.f, 1); //#5AA0FF / #2A6DC4;
 
-	m_is_dark ? push_style_color(ImGuiCol_Border, {62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f}, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
+	m_is_dark ? push_style_color(ImGuiCol_Border, {42 / 255.f, 47 / 255.f, 54 / 255.f, 1.f}, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
     push_style_color(ImGuiCol_WindowBg, m_WindowBkgColor, true, m_current_fade_opacity);
     push_style_color(ImGuiCol_Text, m_TextColor, true, m_current_fade_opacity);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_WindowRadius / 4);
@@ -996,8 +997,8 @@ void NotificationManager::PopNotification::bbl_render_left_sign(ImGuiWrapper &im
 
 	ImU32 clr = ImGui::GetColorU32(ImVec4(m_CurrentColor.x, m_CurrentColor.y, m_CurrentColor.z, m_current_fade_opacity));
 
-    draw_list->AddRectFilled(round_rect_pos, round_rect_pos + round_rect_size, clr, m_WindowRadius);
-    draw_list->AddRectFilled(rect_pos, rect_pos + rect_size, clr, 0);
+    // [r]evo: cienki pasek koloru komunikatu (jak w telemetrii), bez zaokrągleń
+    draw_list->AddRectFilled(round_rect_pos, round_rect_pos + ImVec2(3.f * wxGetApp().em_unit() / 10.f, round_rect_size.y), clr, 0);
 }
 
 void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)

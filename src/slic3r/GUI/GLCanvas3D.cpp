@@ -8938,8 +8938,8 @@ void GLCanvas3D::_render_background()
         shader->start_using();
         // [r]evo: ciemny motyw – czerń u góry, granatowa poświata horyzontu u dołu (styl ekranów startowych)
         const bool      revo_sky  = m_is_dark && !use_error_color;
-        const ColorRGBA sky_top   = revo_sky ? ColorRGBA{0.012f, 0.016f, 0.024f, 1.0f} : bottom_color;
-        const ColorRGBA sky_floor = revo_sky ? ColorRGBA{0.051f, 0.098f, 0.169f, 1.0f} : bottom_color;
+        const ColorRGBA sky_top   = revo_sky ? ColorRGBA{0.0f, 0.0f, 0.0f, 1.0f} : bottom_color;
+        const ColorRGBA sky_floor = revo_sky ? ColorRGBA{0.012f, 0.016f, 0.024f, 1.0f} : bottom_color;
         shader->set_uniform("top_color", sky_top);
         shader->set_uniform("bottom_color", sky_floor);
         m_background.render();
@@ -8947,6 +8947,16 @@ void GLCanvas3D::_render_background()
     }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
+
+    // [r]evo: cienki łuk horyzontu u dołu widoku (styl ekranów startowych), pod oknami ImGui
+    if (m_is_dark && !use_error_color) {
+        const Size     cnv = get_canvas_size();
+        const float    w = float(cnv.get_width()), h = float(cnv.get_height());
+        ImDrawList*    dl = ImGui::GetBackgroundDrawList();
+        const ImVec2   a(-0.1f * w, h + 0.06f * h), c(0.5f * w, h - 0.22f * h), b(1.1f * w, h + 0.06f * h);
+        dl->AddBezierQuadratic(a, c, b, IM_COL32(90, 160, 255, 60), 6.0f);
+        dl->AddBezierQuadratic(ImVec2(a.x, a.y - 4), ImVec2(c.x, c.y - 4), ImVec2(b.x, b.y - 4), IM_COL32(255, 255, 255, 70), 1.0f);
+    }
 }
 
 void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool show_axes)
@@ -10425,7 +10435,8 @@ void GLCanvas3D::_render_main_toolbar()
         return;
 
     const Size cnv_size = get_canvas_size();
-    const float top = 0.5f * (float)cnv_size.get_height();
+    // [r]evo: odstęp od górnej krawędzi widoku 3D
+    const float top = 0.5f * (float)cnv_size.get_height() - 8.0f * wxGetApp().em_unit() / 10.0f;
 
     const float left = -0.5f * cnv_size.get_width() + get_main_toolbar_offset();
     m_main_toolbar.set_position(top, left);
