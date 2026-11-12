@@ -281,7 +281,7 @@ ModeSwitchButton::ModeSwitchButton(wxWindow* parent, wxWindowID id)
 
     // [r]evo Slicer: poziomy Newbie / Pro / Monek
     // TRN [r]evo Slicer settings level name, keep in English
-    m_tooltips[0] = _L("Newbie – basic settings");
+    m_tooltips[0] = _L("Basic – essential settings");
     // TRN [r]evo Slicer settings level name, keep in English
     m_tooltips[1] = _L("Pro – all settings");
     // TRN [r]evo Slicer: "Monek" is a proper name – the settings level with only the options Revotech recommends changing

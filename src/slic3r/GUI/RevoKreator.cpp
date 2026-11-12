@@ -224,7 +224,7 @@ class MonekWizard : public wxDialog
 {
 public:
     explicit MonekWizard(wxWindow* parent)
-        : wxDialog(parent, wxID_ANY, _L("[r]evo – Monek profile wizard"), wxDefaultPosition, wxDefaultSize,
+        : wxDialog(parent, wxID_ANY, _L("[r]evo – filament profile wizard"), wxDefaultPosition, wxDefaultSize,
                    wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP)
     {
         const auto& cfg  = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
