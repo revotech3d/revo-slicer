@@ -525,8 +525,12 @@ void AppConfig::set_defaults()
         set_bool("show_build_edgets", false);
     }
 
+    if (get("revo_tips_off").empty()) { // [r]evo: porady dnia wyłączone (także u obecnych użytkowników, jednorazowo)
+        set_bool("show_daily_tips", false);
+        set("revo_tips_off", "1");
+    }
     if (get("show_daily_tips").empty()) {
-        set_bool("show_daily_tips", true);
+        set_bool("show_daily_tips", false);
     }
 
     // [r]evo Slicer: bez powiadomień o profilach z sieci (aktualizacje tylko z Revotech)

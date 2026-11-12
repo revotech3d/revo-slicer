@@ -2944,16 +2944,8 @@ wxMenu* MainFrame::generate_help_menu()
         [](wxCommandEvent&) { wxGetApp().troubleshoot(); });
 
 
-    if (wxGetApp().is_editor())
-        append_menu_item(helpMenu, wxID_ANY, _L("Benchmark 3D Scene"), _L("Measure how fast the 3D scene renders in Prepare and Preview"),
-            [](wxCommandEvent&) { run_scene_benchmark(); });
-
+    // [r]evo: bez „Benchmark 3D Scene” i „Show Tip of the Day”
     helpMenu->AppendSeparator();
-
-    append_menu_item(helpMenu, wxID_ANY, _L("Show Tip of the Day"), _L("Show Tip of the Day"), [](wxCommandEvent&) {
-        wxGetApp().plater()->get_dailytips()->open();
-        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-        });
 
     // Report a bug
     //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of [r]evo Slicer"),
