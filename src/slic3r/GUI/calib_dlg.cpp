@@ -118,8 +118,6 @@ void add_revo_header(wxWindow* dlg, wxBoxSizer* v_sizer, const wxString& kicker,
         dc.SetTextForeground(gray);
         dc.DrawText(::Label::Spaced(meta), x, y + panel->FromDIP(4));
     });
-    dlg->SetBackgroundColour(*wxBLACK);
-    dlg->SetForegroundColour(wxColour(207, 214, 223));
     v_sizer->Insert(0, panel, 0, wxEXPAND);
 }
 
