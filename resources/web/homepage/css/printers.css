@@ -23,3 +23,5 @@
 #PrintersBoard .PbOn { font-size: 11px; letter-spacing: 3px; color: #5aa0ff; }
 #PbEmpty { display: none; margin-top: 30px; }
 #PbEmpty .PbBtn { display: inline-block; }
+#PrintersBoard .PbDel { width: 28px; height: 28px; line-height: 28px; text-align: center; color: #5a6472; font-size: 14px; cursor: pointer; border: 1px solid transparent; }
+#PrintersBoard .PbDel:hover { color: #ff4d52; border-color: #ff4d52; }

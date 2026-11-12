@@ -707,10 +707,16 @@ function ShowMyPrinters(list)
 			'<div class="PbF PbW2"><div class="PbCapS">NOZZLE</div><div class="PbV">'+PbEsc(p.nozzle)+'</div></div>'+
 			'<div class="PbF PbW3"><div class="PbCapS">BUILD</div><div class="PbV">'+PbEsc(p.dims)+'</div></div>'+
 			'<div class="PbAct">'+(p.active?'<div class="PbOn">▶ ACTIVE</div>':'<div class="PbBtn">SELECT</div>')+'</div>'+
+			'<div class="PbDel" title="Remove from My printers">✕</div>'+
 			'</div>';
 	}
 	$("#PbList").html(html);
 	$("#PbEmpty").toggle(list.length==0);
+	$("#PbList .PbDel").click(function(e){
+		e.stopPropagation();
+		let n=$(this).closest(".PbRow").attr("data-name");
+		SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_removeprinter",data:{name:n}}));
+	});
 	$("#PbList .PbRow").click(function(){
 		let n=$(this).attr("data-name");
 		if($(this).hasClass("PbActive")) return;

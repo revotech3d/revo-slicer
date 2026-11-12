@@ -5651,6 +5651,10 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 const std::string name = root.get<std::string>("data.name", "");
                 CallAfter([name] { Revo::select_my_printer(name); });
             }
+            else if (command_str.compare("homepage_removeprinter") == 0) {  // [r]evo: usunięcie drukarki z listy
+                const std::string name = root.get<std::string>("data.name", "");
+                CallAfter([name] { Revo::remove_my_printer(name); });
+            }
             else if (command_str.compare("homepage_openproject") == 0) {
                 this->request_open_project({});
             }

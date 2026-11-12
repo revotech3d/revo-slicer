@@ -1293,6 +1293,29 @@ void send_my_printers(bool refresh)
         refresh_live();
 }
 
+void remove_my_printer(const std::string& name)
+{
+    auto&         pr = wxGetApp().preset_bundle->printers;
+    const Preset* p  = pr.find_preset(name, false);
+    if (!p || p->is_system || p->is_default)
+        return;
+    // TRN %1% printer name as saved in [r]evo Slicer
+    MessageDialog dlg(wxGetApp().mainframe, format_wxstr(_L("Remove %1% from My printers? You can add it again with Find printers."), from_u8(name)),
+                      _L("Remove printer"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+    if (dlg.ShowModal() != wxID_YES)
+        return;
+    Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+    if (pr.get_selected_preset_name() == name && tab) {
+        const Preset* parent = pr.get_selected_preset_parent();
+        tab->select_preset(parent ? parent->name : pr.default_preset().name);
+    }
+    pr.delete_preset(name);
+    if (tab)
+        tab->update_tab_ui();
+    wxGetApp().plater()->sidebar().update_presets(Preset::TYPE_PRINTER);
+    send_my_printers(false);
+}
+
 void select_my_printer(const std::string& name)
 {
     auto& pr = wxGetApp().preset_bundle->printers;

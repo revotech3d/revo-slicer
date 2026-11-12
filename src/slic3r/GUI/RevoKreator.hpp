@@ -17,6 +17,7 @@ void show_connect_wizard(wxWindow* parent);
 // „My printers” na ekranie startowym: dodane maszyny (profil z adresem) ze stanem z sieci; klik = aktywna drukarka.
 void send_my_printers(bool refresh = true);
 void select_my_printer(const std::string& name);
+void remove_my_printer(const std::string& name);
 
 // Pierwsze uruchomienie (poziom Newbie): otwiera kreator raz.
 void maybe_first_run_wizard(wxWindow* parent);
