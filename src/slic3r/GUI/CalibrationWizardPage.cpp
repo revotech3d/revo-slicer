@@ -69,15 +69,15 @@ wxString get_calibration_wiki_page(CalibMode cali_mode)
 
     switch (cali_mode) {
     case CalibMode::Calib_PA_Line:
-        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
+        return wxString("https://revo3d.pl/en/wiki/revo-slicer/");
     case CalibMode::Calib_Flow_Rate:
-        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_flow_rate", region);
+        return wxString("https://revo3d.pl/en/wiki/revo-slicer/");
     case CalibMode::Calib_Vol_speed_Tower:
-        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_volumetric", region);
+        return wxString("https://revo3d.pl/en/wiki/revo-slicer/");
     case CalibMode::Calib_Temp_Tower:
-        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_temperature", region);
+        return wxString("https://revo3d.pl/en/wiki/revo-slicer/");
     case CalibMode::Calib_Retraction_tower:
-        return wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_retraction", region);
+        return wxString("https://revo3d.pl/en/wiki/revo-slicer/");
     default:
         return "";
     }

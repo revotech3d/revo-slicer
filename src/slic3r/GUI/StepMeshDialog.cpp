@@ -295,7 +295,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
 
     // ORCA standardized HyperLink
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url =  "https://www.orcaslicer.com/wiki/import_export#step";
+    auto wiki_url =  "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);

@@ -1703,7 +1703,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_step_switch_item()
 {
     wxBoxSizer *step_switch_sizer = new wxBoxSizer(wxVERTICAL);
 
-    // std::string      wiki_url             = "https://wiki.bambulab.com/en/software/bambu-studio/3rd-party-printer-profile";
+    // std::string      wiki_url             = "https://revo3d.pl/en/wiki/revo-slicer/";
     // wxHyperlinkCtrl *m_download_hyperlink = new wxHyperlinkCtrl(this, wxID_ANY, _L("wiki"), wiki_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     // step_switch_sizer->Add(m_download_hyperlink, 0,  wxRIGHT | wxALIGN_RIGHT, FromDIP(5));
 
@@ -5151,7 +5151,7 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     if (preset->inherits() == "" && preset->base_id != "") base_id_error = true;
     if (base_id_error) {
         // ORCA standardized HyperLink
-        HyperLink *m_download_hyperlink = new HyperLink(panel, _L("[Delete Required]"), "https://wiki.bambulab.com/en/software/bambu-studio/custom-filament-issue");
+        HyperLink *m_download_hyperlink = new HyperLink(panel, _L("[Delete Required]"), "https://revo3d.pl/en/wiki/revo-slicer/");
         m_download_hyperlink->SetFont(Label::Body_10);
         sizer->Add(m_download_hyperlink, 0, wxEXPAND | wxALL, 5);
     }

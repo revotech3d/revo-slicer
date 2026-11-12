@@ -155,7 +155,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
 
     main_sizer->Add(top_sizer, 0, wxALL, FromDIP(10));
 
-    auto url = wxString(L"https://www.orcaslicer.com/wiki/"); // Orca: neutral wiki link (vendor URL removed)
+    auto url = wxString(L"https://revo3d.pl/en/wiki/revo-slicer/"); // Orca: neutral wiki link (vendor URL removed)
     auto text = _L("Show \"Live Video\" guide page.");
 
     wxBoxSizer* link_sizer = new wxBoxSizer(wxVERTICAL);
@@ -524,7 +524,7 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
         //hyper link
         auto h_rect = vcamera_guide_link->ClientToScreen(wxPoint(0, 0));
         if (mouse_pos.x > h_rect.x && mouse_pos.y > h_rect.y && mouse_pos.x < (h_rect.x + vcamera_guide_link->GetSize().x) && mouse_pos.y < (h_rect.y + vcamera_guide_link->GetSize().y)) {
-            auto url = wxString(L"https://www.orcaslicer.com/wiki/"); // Orca: neutral wiki link (vendor URL removed)
+            auto url = wxString(L"https://revo3d.pl/en/wiki/revo-slicer/"); // Orca: neutral wiki link (vendor URL removed)
             wxLaunchDefaultBrowser(url);
         }
     }

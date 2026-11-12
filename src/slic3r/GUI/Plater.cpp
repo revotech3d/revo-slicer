@@ -3113,7 +3113,7 @@ Sidebar::Sidebar(Plater *parent)
 
         //ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "help");
         //wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
-        //    wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
+        //    wxLaunchDefaultBrowser("https://revo3d.pl/en/wiki/revo-slicer/");
         //});
 
         ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", PRINTER_THUMBNAIL_SIZE.GetHeight());

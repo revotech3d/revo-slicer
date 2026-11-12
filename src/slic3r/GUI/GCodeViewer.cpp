@@ -4002,7 +4002,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         }
 
         ImGui::Dummy({window_padding, window_padding});
-        GLGizmoUtils::render_wiki_guide_button(*wxGetApp().plater()->get_current_canvas3D(), m_scale,"https://e.bambulab.com/t?c=mOkvsXkJ9pldGYp9");
+        GLGizmoUtils::render_wiki_guide_button(*wxGetApp().plater()->get_current_canvas3D(), m_scale,"https://revo3d.pl/en/wiki/revo-slicer/");
         ImGui::SameLine();
 
         if (!is_optimal_group) {

@@ -71,7 +71,7 @@ static void set_prefered_map_mode(FilamentMapMode mode)
 
 bool play_dual_extruder_slice_video()
 {
-    if (wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=HDB24RlwSmt77YFH")) {
+    if (wxLaunchDefaultBrowser("https://revo3d.pl/en/wiki/revo-slicer/")) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Video is being played using the system's default browser.");
         return true;
     }
@@ -81,7 +81,7 @@ bool play_dual_extruder_slice_video()
 
 bool play_dual_extruder_print_tpu_video()
 {
-    const wxString video_url = "https://e.bambulab.com/t?c=fwWqpBg37Liel92N";
+    const wxString video_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     if (wxLaunchDefaultBrowser(video_url)){
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Print Tpu Video is being played using the system's default browser.");
         return true;
@@ -92,7 +92,7 @@ bool play_dual_extruder_print_tpu_video()
 
 bool open_filament_group_wiki()
 {
-    if (wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=mOkvsXkJ9pldGYp9")) {
+    if (wxLaunchDefaultBrowser("https://revo3d.pl/en/wiki/revo-slicer/")) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Wiki is being displayed using the system's default browser.");
         return true;
     }
@@ -205,7 +205,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         // ORCA Unified hyperlinks
 
         auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-        wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + "https://e.bambulab.com/t?c=mOkvsXkJ9pldGYp9");
+        wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + "https://revo3d.pl/en/wiki/revo-slicer/");
         wiki_btn->SetStyle(ButtonStyle::Confirm, ::ButtonType::Circle);
         wiki_btn->SetCanFocus(false);
         wiki_btn->Bind(wxEVT_LEFT_DOWN, ([](auto& e) {open_filament_group_wiki();}));

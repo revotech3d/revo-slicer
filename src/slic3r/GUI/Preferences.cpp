@@ -314,7 +314,7 @@ wxBoxSizer *PreferencesDialog::create_item_label(wxString label, wxString toolti
 
     wxString url;
     if(!wiki_url.IsEmpty())
-        url = "https://www.orcaslicer.com/wiki/" + wiki_url;
+        url = "https://revo3d.pl/en/wiki/revo-slicer/";
 
     auto label_ctrl = new WikiLabel(m_parent, label, url, wxDefaultPosition, DESIGN_TITLE_SIZE);
 
@@ -1212,7 +1212,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxString too
                             const std::string lang_code = wxGetApp().app_config->get("language");
                             const wxString region = (lang_code.find("zh") != std::string::npos) ? L"zh" : L"en";
                             const wxString wiki_url = wxString::Format(
-                                L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit",
+                                L"https://revo3d.pl/en/wiki/revo-slicer/",
                                 region
                             );
                             wxGetApp().open_browser_with_warning_dialog(wiki_url);

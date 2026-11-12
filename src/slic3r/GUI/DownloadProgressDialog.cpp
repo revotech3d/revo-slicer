@@ -44,8 +44,8 @@ namespace GUI {
 DownloadProgressDialog::DownloadProgressDialog(wxString title)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    wxString download_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
-    wxString install_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
+    wxString download_failed_url = wxT("https://revo3d.pl/en/wiki/revo-slicer/");
+    wxString install_failed_url = wxT("https://revo3d.pl/en/wiki/revo-slicer/");
 
     wxString download_failed_msg = _L("Failed to download the plug-in. Please check your firewall settings and VPN software and retry.");
     wxString install_failed_msg = _L("Failed to install the plug-in. The plug-in file may be in use. Please restart [r]evo Slicer and try again. Also check whether it is blocked or has been deleted by anti-virus software.");

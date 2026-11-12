@@ -136,7 +136,7 @@ PingCodeBindDialog::PingCodeBindDialog(Plater* plater /*= nullptr*/)
     m_status_text->SetForegroundColour(wxColour(38, 46, 48));
 
     // ORCA standardized HyperLink
-    m_link_show_ping_code_wiki = new HyperLink(request_bind_panel, _L("Can't find Pin Code?"), "https://wiki.bambulab.com/en/bambu-studio/manual/pin-code");
+    m_link_show_ping_code_wiki = new HyperLink(request_bind_panel, _L("Can't find Pin Code?"), "https://revo3d.pl/en/wiki/revo-slicer/");
 
     m_text_input_title = new wxStaticText(request_bind_panel, wxID_ANY, _L("Pin Code"));
     m_text_input_title->SetFont(Label::Body_14);

@@ -3601,7 +3601,7 @@ void NotificationManager::bbl_close_gcode_overlap_notification()
 void NotificationManager::bbl_show_bed_filament_incompatible_notification(const std::string& text)
 {
 	auto callback = [](wxEvtHandler*) {
-		const wxString bed_filament_compatibility_wiki = "https://wiki.bambulab.com/en/general/filament-guide-material-table";
+		const wxString bed_filament_compatibility_wiki = "https://revo3d.pl/en/wiki/revo-slicer/";
 		wxGetApp().open_browser_with_warning_dialog(bed_filament_compatibility_wiki);
 		return false;
 	};

@@ -12591,7 +12591,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                         if (language.find("zh") == 0)
                         	region = L"zh";
                         // Although this link looks like it's only for the H2D, its guidance is generic.
-                        wxGetApp().open_browser_with_warning_dialog(wxString::Format(L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-pla-and-petg-mutual-support", region));
+                        wxGetApp().open_browser_with_warning_dialog(wxString("https://revo3d.pl/en/wiki/revo-slicer/"));
                         return false;
                     });
             }

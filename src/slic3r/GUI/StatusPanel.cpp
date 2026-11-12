@@ -4912,7 +4912,7 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
 void StatusPanel::on_ams_guide(wxCommandEvent& event)
 {
     // Orca: neutral wiki link (vendor URLs removed)
-    wxString ams_wiki_url = "https://www.orcaslicer.com/wiki/";
+    wxString ams_wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
 
     wxLaunchDefaultBrowser(ams_wiki_url);
 }

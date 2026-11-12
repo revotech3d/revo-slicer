@@ -1177,7 +1177,7 @@ void GUI_App::post_init()
     if (is_editor() && m_last_config_version && m_last_config_version->valid()
         && *m_last_config_version < Semver(2, 4, 0)) {
         CallAfter([] {
-            const wxString wiki_url = "https://www.orcaslicer.com/wiki/user_profiles/user_profiles.html#profiles-missing-after-updating-from-bambu-cloud";
+            const wxString wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
             MessageDialog dlg(nullptr,
                 _L("Since version 2.4.0, [r]evo Slicer syncs user profiles through Orca Cloud instead of Bambu Cloud.\n\n"
                    "To migrate your existing profiles, log in to Orca Cloud and they will be transferred automatically. "
@@ -4945,13 +4945,13 @@ std::string GUI_App::link_to_lan_only_wiki()
     std::string country_code = app_config->get_country_code();
 
     if (country_code == "US") {
-        url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
+        url = "https://revo3d.pl/en/wiki/revo-slicer/";
     }
     else if (country_code == "CN") {
-        url = "https://wiki.bambulab.com/zh/knowledge-sharing/enable-lan-mode";
+        url = "https://revo3d.pl/en/wiki/revo-slicer/";
     }
     else {
-        url = "https://wiki.bambulab.com/en/knowledge-sharing/enable-lan-mode";
+        url = "https://revo3d.pl/en/wiki/revo-slicer/";
     }
     //wxLaunchDefaultBrowser(url);
     return url; // ORCA

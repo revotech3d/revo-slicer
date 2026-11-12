@@ -1014,7 +1014,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
     if (dependent_presets != nullptr) {
         auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-        auto wiki_url = "https://www.orcaslicer.com/wiki/transfer_discard_changes";
+        auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
         wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
         wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
         wiki_btn->SetCanFocus(false);

@@ -225,7 +225,7 @@ void AMSMaterialsSetting::create()
 
     // Orca: link to the Orca Slicer pressure-advance wiki (region-agnostic).
     m_wiki_ctrl = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/pressure_advance_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     m_wiki_ctrl->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     m_wiki_ctrl->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     m_wiki_ctrl->SetCanFocus(false);

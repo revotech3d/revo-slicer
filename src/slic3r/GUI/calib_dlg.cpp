@@ -254,7 +254,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/pressure_advance_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -516,7 +516,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/temp_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -727,7 +727,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/volumetric_speed_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -858,7 +858,7 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/vfa_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -1104,7 +1104,7 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/retraction_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -1291,7 +1291,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/input_shaping_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -1497,7 +1497,7 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/input_shaping_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -1700,7 +1700,7 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/cornering_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -1846,7 +1846,7 @@ FlowRateCalibrationDialog::FlowRateCalibrationDialog(wxWindow* parent, wxWindowI
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/flow_ratio_calib";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);

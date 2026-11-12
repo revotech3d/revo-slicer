@@ -245,7 +245,7 @@ TroubleshootDialog::TroubleshootDialog()
     });
 
     auto wiki_btn = new Button(this, "", "toolbar_wiki", 0, 15);
-    auto wiki_url = "https://www.orcaslicer.com/wiki/troubleshoot_center";
+    auto wiki_url = "https://revo3d.pl/en/wiki/revo-slicer/";
     wiki_btn->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
     wiki_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
     wiki_btn->SetCanFocus(false);
@@ -318,7 +318,7 @@ TroubleshootDialog::TroubleshootDialog()
             return out;
         };
 
-        wxString url = "https://github.com/OrcaSlicer/OrcaSlicer/issues/new?template=bug_report.yml";
+        wxString url = "https://revo3d.pl/en/contact/";
         wxString os = GetOStype();
         if(!os.IsEmpty())
             url += "&os_type=%22" + os +"%22";
