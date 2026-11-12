@@ -2,6 +2,7 @@
 
 //#ifdef _WIN32
 
+#include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
