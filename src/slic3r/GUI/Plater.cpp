@@ -1048,8 +1048,8 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
 
         //if (isBBL) {
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-            hsizer->Add(image_printer, 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-            hsizer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(2)); // 1 already triggers wxEXPAND
+            image_printer->Hide(); // [r]evo: zamiast małej ikonki – duża sylwetka nad kartą drukarki
+            hsizer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxALL | wxLEFT, FromDIP(6)); // 1 already triggers wxEXPAND
             hsizer->AddSpacer(FromDIP(2));
             hsizer->Add(btn_edit_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
             //hsizer->Add(btn_connect_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
@@ -1065,13 +1065,15 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     }
 
     if (vsizer_printer->GetItemCount() == 0) {
+        // [r]evo: karta drukarki – nazwa drukarki na całą szerokość, pod nią w jednym wierszu dysza i stół
         wxBoxSizer *hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
         hsizer_printer->Add(panel_printer_preset, 1, wxEXPAND, 0);
-        hsizer_printer->Add(panel_nozzle_dia , 0, wxLEFT, FromDIP(4));
-        hsizer_printer->Add(panel_printer_bed, 0, wxLEFT, FromDIP(4));
-        //hsizer_printer->Add(btn_sync_printer , 0, wxLEFT, FromDIP(4));
+        wxBoxSizer *hsizer_nozzle_bed = new wxBoxSizer(wxHORIZONTAL);
+        hsizer_nozzle_bed->Add(panel_nozzle_dia, 1, wxEXPAND, 0);
+        hsizer_nozzle_bed->Add(panel_printer_bed, 1, wxEXPAND | wxLEFT, FromDIP(6));
         vsizer_printer->AddSpacer(FromDIP(SidebarProps::ContentMarginV()));
         vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
+        vsizer_printer->Add(hsizer_nozzle_bed, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(SidebarProps::ContentMargin()) / 2);
 
         // Printer - extruder
 
@@ -2940,8 +2942,7 @@ Sidebar::Sidebar(Plater *parent)
             auto min_width     = label_width + FromDIP(25  + PRINTER_PANEL_SIZE.GetWidth());
             if(((min_width < narrow_width && min_width > current_width) || (current_width < narrow_width && min_width > narrow_width)) && p->image_printer->IsShown())
                 p->image_printer->Hide();
-            else if((current_width > min_width || !(current_width < narrow_width)) && !p->image_printer->IsShown())
-                p->image_printer->Show();
+            // [r]evo: mała ikonka drukarki zawsze ukryta (sylwetka jest nad kartą)
             e.Skip();
         });
 
