@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Elegoo PETG @Revon",
+	"inherits": "Generic PETG @System",
+	"from": "system",
+	"setting_id": "q41Yn5yBujpQCX5R",
+	"filament_id": "OFLcd093",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Elegoo"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"235",
+		"235"
+	],
+	"nozzle_temperature_initial_layer": [
+		"240",
+		"240"
+	],
+	"nozzle_temperature_range_low": [
+		"220",
+		"220"
+	],
+	"nozzle_temperature_range_high": [
+		"250",
+		"250"
+	],
+	"hot_plate_temp": [
+		"80"
+	],
+	"hot_plate_temp_initial_layer": [
+		"85"
+	],
+	"textured_plate_temp": [
+		"80"
+	],
+	"textured_plate_temp_initial_layer": [
+		"85"
+	],
+	"filament_density": [
+		"1.29"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"21",
+		"26"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 220–250 °C, stół 70–90 °C.\nŹródło: Open Filament Database."
+	]
+}

@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Polymaker PLA Pro @Revon",
+	"inherits": "Generic PLA @System",
+	"from": "system",
+	"setting_id": "mwpSVYjiGzUXoI50",
+	"filament_id": "OF5oXk4M",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Polymaker"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"220",
+		"220"
+	],
+	"nozzle_temperature_initial_layer": [
+		"225",
+		"225"
+	],
+	"nozzle_temperature_range_low": [
+		"210",
+		"210"
+	],
+	"nozzle_temperature_range_high": [
+		"230",
+		"230"
+	],
+	"hot_plate_temp": [
+		"45"
+	],
+	"hot_plate_temp_initial_layer": [
+		"50"
+	],
+	"textured_plate_temp": [
+		"45"
+	],
+	"textured_plate_temp_initial_layer": [
+		"50"
+	],
+	"filament_density": [
+		"1.237"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"25",
+		"50"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 210–230 °C, stół 30–60 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0548/7299/7945/files/TDS_Polymaker_PLA_Pro_v6.0_2026-01-26_EN.pdf\nŹródło: Open Filament Database."
+	]
+}

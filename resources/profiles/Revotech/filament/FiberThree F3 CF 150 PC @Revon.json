@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "FiberThree F3 CF 150 PC @Revon",
+	"inherits": "Generic PC @System",
+	"from": "system",
+	"setting_id": "OXFODouZk54VMY1d",
+	"filament_id": "OF8bUM8N",
+	"instantiation": "true",
+	"filament_vendor": [
+		"FiberThree"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"320",
+		"320",
+		"320",
+		"320",
+		"320",
+		"320"
+	],
+	"nozzle_temperature_initial_layer": [
+		"325",
+		"325",
+		"325",
+		"325",
+		"325",
+		"325"
+	],
+	"nozzle_temperature_range_low": [
+		"310",
+		"310",
+		"310",
+		"310",
+		"310",
+		"310"
+	],
+	"nozzle_temperature_range_high": [
+		"330",
+		"330",
+		"330",
+		"330",
+		"330",
+		"330"
+	],
+	"hot_plate_temp": [
+		"110"
+	],
+	"hot_plate_temp_initial_layer": [
+		"115"
+	],
+	"textured_plate_temp": [
+		"110"
+	],
+	"textured_plate_temp_initial_layer": [
+		"115"
+	],
+	"filament_density": [
+		"1.25"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 310–330 °C, stół 100–120 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: http://fiberthree.com/downloads/tdb/filaments/TDS_F3_PC_CF150_English_vers12_2024.pdf\nŹródło: Open Filament Database."
+	]
+}

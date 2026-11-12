@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Siraya Tech Fibreheart ABS-CF Core @Revon",
+	"inherits": "Generic ABS @System",
+	"from": "system",
+	"setting_id": "GhrNtsIR2pXkzKTB",
+	"filament_id": "OFBwiM3a",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Siraya Tech"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"265",
+		"265"
+	],
+	"nozzle_temperature_initial_layer": [
+		"270",
+		"270"
+	],
+	"nozzle_temperature_range_low": [
+		"250",
+		"250"
+	],
+	"nozzle_temperature_range_high": [
+		"280",
+		"280"
+	],
+	"hot_plate_temp": [
+		"105"
+	],
+	"hot_plate_temp_initial_layer": [
+		"110"
+	],
+	"textured_plate_temp": [
+		"105"
+	],
+	"textured_plate_temp_initial_layer": [
+		"110"
+	],
+	"filament_density": [
+		"1.06"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"24",
+		"31"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 250–280 °C, stół 100–110 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: https://siraya.tech/pages/siraya-tech-fibreheart-abs-cf-core-tds\nŹródło: Open Filament Database."
+	]
+}

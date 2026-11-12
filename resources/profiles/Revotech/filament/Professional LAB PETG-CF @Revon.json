@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Professional LAB PETG-CF @Revon",
+	"inherits": "Generic PETG-CF @System",
+	"from": "system",
+	"setting_id": "Y1y6zPKuIO0zfZj8",
+	"filament_id": "OFzupCX2",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Professional LAB"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"255",
+		"255"
+	],
+	"nozzle_temperature_initial_layer": [
+		"260",
+		"260"
+	],
+	"nozzle_temperature_range_low": [
+		"240",
+		"240"
+	],
+	"nozzle_temperature_range_high": [
+		"270",
+		"270"
+	],
+	"hot_plate_temp": [
+		"75"
+	],
+	"hot_plate_temp_initial_layer": [
+		"80"
+	],
+	"textured_plate_temp": [
+		"75"
+	],
+	"textured_plate_temp_initial_layer": [
+		"80"
+	],
+	"filament_density": [
+		"1.25"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"21",
+		"26"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 240–270 °C, stół 60–90 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nŹródło: Open Filament Database."
+	]
+}

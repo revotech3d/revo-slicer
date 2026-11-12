@@ -1,0 +1,87 @@
+{
+	"type": "filament",
+	"name": "Fiberon PETG-rCF08 @Revon",
+	"inherits": "Generic PETG @System",
+	"from": "system",
+	"setting_id": "PIjlfsUJPmr3JRDv",
+	"filament_id": "OFw4WD4T",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Polymaker"
+	],
+	"filament_type": [
+		"PETG-CF"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"255",
+		"255"
+	],
+	"nozzle_temperature_initial_layer": [
+		"260",
+		"260"
+	],
+	"nozzle_temperature_range_low": [
+		"240",
+		"240"
+	],
+	"nozzle_temperature_range_high": [
+		"270",
+		"270"
+	],
+	"hot_plate_temp": [
+		"65"
+	],
+	"hot_plate_temp_initial_layer": [
+		"70"
+	],
+	"textured_plate_temp": [
+		"65"
+	],
+	"textured_plate_temp_initial_layer": [
+		"70"
+	],
+	"fan_max_speed": [
+		"50",
+		"50"
+	],
+	"fan_min_speed": [
+		"0",
+		"0"
+	],
+	"filament_density": [
+		"1.3"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"21",
+		"26"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 240–270 °C, stół 60–70 °C.\nKarta techniczna: https://fiberon.polymaker.com/wp-content/uploads/TDS_FIBERON-PETG-rCF08_V1.0_EN-1.pdf\nŹródło: Open Filament Database."
+	]
+}

@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "Recreus PP GF @Revon",
+	"inherits": "Generic PP-GF @System",
+	"from": "system",
+	"setting_id": "tuUTixQ9I9QPm0Av",
+	"filament_id": "OFpQKy4p",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Recreus"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"225",
+		"225",
+		"225",
+		"225",
+		"225",
+		"225"
+	],
+	"nozzle_temperature_initial_layer": [
+		"230",
+		"230",
+		"230",
+		"230",
+		"230",
+		"230"
+	],
+	"nozzle_temperature_range_low": [
+		"210",
+		"210",
+		"210",
+		"210",
+		"210",
+		"210"
+	],
+	"nozzle_temperature_range_high": [
+		"240",
+		"240",
+		"240",
+		"240",
+		"240",
+		"240"
+	],
+	"hot_plate_temp": [
+		"90"
+	],
+	"hot_plate_temp_initial_layer": [
+		"95"
+	],
+	"textured_plate_temp": [
+		"90"
+	],
+	"textured_plate_temp_initial_layer": [
+		"95"
+	],
+	"filament_density": [
+		"0.9"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 210–240 °C, stół 80–100 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nŹródło: Open Filament Database."
+	]
+}

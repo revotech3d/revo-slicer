@@ -1,0 +1,64 @@
+{
+	"type": "filament",
+	"name": "Nebula PLA Tech 607 @Revon",
+	"inherits": "Generic PLA @System",
+	"from": "system",
+	"setting_id": "qZztUk8FpzYCuGj2",
+	"filament_id": "OFvi5Jd0",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Nebula"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"220",
+		"220"
+	],
+	"nozzle_temperature_initial_layer": [
+		"225",
+		"225"
+	],
+	"nozzle_temperature_range_low": [
+		"210",
+		"210"
+	],
+	"nozzle_temperature_range_high": [
+		"230",
+		"230"
+	],
+	"filament_density": [
+		"1.22"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"25",
+		"50"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 210–230 °C.\nKarta techniczna: https://api.nebulafilaments.com/wp-content/uploads/2025/02/TDS-PLA-607.pdf\nŹródło: Open Filament Database."
+	]
+}

@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "Devil Design PA12 @Revon",
+	"inherits": "Generic PA @System",
+	"from": "system",
+	"setting_id": "MVOzHQ2mdSVs7Pk7",
+	"filament_id": "OFMHYfY2",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Devil Design"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"255",
+		"255",
+		"255",
+		"255",
+		"255",
+		"255"
+	],
+	"nozzle_temperature_initial_layer": [
+		"260",
+		"260",
+		"260",
+		"260",
+		"260",
+		"260"
+	],
+	"nozzle_temperature_range_low": [
+		"240",
+		"240",
+		"240",
+		"240",
+		"240",
+		"240"
+	],
+	"nozzle_temperature_range_high": [
+		"270",
+		"270",
+		"270",
+		"270",
+		"270",
+		"270"
+	],
+	"hot_plate_temp": [
+		"110"
+	],
+	"hot_plate_temp_initial_layer": [
+		"115"
+	],
+	"textured_plate_temp": [
+		"110"
+	],
+	"textured_plate_temp_initial_layer": [
+		"115"
+	],
+	"filament_density": [
+		"1.01"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 240–270 °C, stół 95–120 °C.\nKarta techniczna: https://devildesign.com/download/PA12_-_product_card.pdf\nŹródło: Open Filament Database."
+	]
+}

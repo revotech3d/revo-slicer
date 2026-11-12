@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Spectrum PLA Premium @Revon",
+	"inherits": "Generic PLA @System",
+	"from": "system",
+	"setting_id": "NfyXrz5lj4TJ1hG4",
+	"filament_id": "OFDFimPz",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Spectrum"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"200",
+		"200"
+	],
+	"nozzle_temperature_initial_layer": [
+		"205",
+		"205"
+	],
+	"nozzle_temperature_range_low": [
+		"185",
+		"185"
+	],
+	"nozzle_temperature_range_high": [
+		"215",
+		"215"
+	],
+	"hot_plate_temp": [
+		"45"
+	],
+	"hot_plate_temp_initial_layer": [
+		"45"
+	],
+	"textured_plate_temp": [
+		"45"
+	],
+	"textured_plate_temp_initial_layer": [
+		"45"
+	],
+	"filament_density": [
+		"1.24"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"25",
+		"50"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 185–215 °C, stół 0–45 °C.\nKarta techniczna: https://spectrumfilaments.com/wp-content/uploads/2021/12/en_tds_spectrum_pla_premium.pdf\nŹródło: Open Filament Database."
+	]
+}

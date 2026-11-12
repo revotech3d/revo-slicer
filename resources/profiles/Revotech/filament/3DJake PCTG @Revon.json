@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "3DJake PCTG @Revon",
+	"inherits": "Generic PCTG @System",
+	"from": "system",
+	"setting_id": "buqV7lyRYh9QCUtt",
+	"filament_id": "OFLMlLsc",
+	"instantiation": "true",
+	"filament_vendor": [
+		"3DJake"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"260",
+		"260",
+		"260",
+		"260",
+		"260",
+		"260"
+	],
+	"nozzle_temperature_initial_layer": [
+		"265",
+		"265",
+		"265",
+		"265",
+		"265",
+		"265"
+	],
+	"nozzle_temperature_range_low": [
+		"250",
+		"250",
+		"250",
+		"250",
+		"250",
+		"250"
+	],
+	"nozzle_temperature_range_high": [
+		"270",
+		"270",
+		"270",
+		"270",
+		"270",
+		"270"
+	],
+	"hot_plate_temp": [
+		"100"
+	],
+	"hot_plate_temp_initial_layer": [
+		"105"
+	],
+	"textured_plate_temp": [
+		"100"
+	],
+	"textured_plate_temp_initial_layer": [
+		"105"
+	],
+	"filament_density": [
+		"1.23"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 250–270 °C, stół 90–110 °C.\nKarta techniczna: https://3d.nice-cdn.com/upload/file/Technical_Data_Sheet_PCTG_V2.pdf\nŹródło: Open Filament Database."
+	]
+}

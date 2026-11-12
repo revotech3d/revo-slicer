@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "The Filament ASA @Revon",
+	"inherits": "Generic ASA @System",
+	"from": "system",
+	"setting_id": "T8sccZrMuVnWohjM",
+	"filament_id": "OF5aKAEa",
+	"instantiation": "true",
+	"filament_vendor": [
+		"The Filament"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"250",
+		"250"
+	],
+	"nozzle_temperature_initial_layer": [
+		"255",
+		"255"
+	],
+	"nozzle_temperature_range_low": [
+		"230",
+		"230"
+	],
+	"nozzle_temperature_range_high": [
+		"265",
+		"265"
+	],
+	"hot_plate_temp": [
+		"90"
+	],
+	"hot_plate_temp_initial_layer": [
+		"95"
+	],
+	"textured_plate_temp": [
+		"90"
+	],
+	"textured_plate_temp_initial_layer": [
+		"95"
+	],
+	"filament_density": [
+		"1.07"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"24",
+		"31"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 230–265 °C, stół 75–100 °C.\nKarta techniczna: https://spectrumfilaments.com/wp-content/uploads/2025/09/en_tds_the_filament_asa.pdf\nŹródło: Open Filament Database."
+	]
+}

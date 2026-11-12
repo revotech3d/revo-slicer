@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Devil Design Glow PLA @Revon",
+	"inherits": "Generic PLA @System",
+	"from": "system",
+	"setting_id": "PIBYIC4JW6KHxlI8",
+	"filament_id": "OFX0s2Vn",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Devil Design"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"220",
+		"220"
+	],
+	"nozzle_temperature_initial_layer": [
+		"225",
+		"225"
+	],
+	"nozzle_temperature_range_low": [
+		"200",
+		"200"
+	],
+	"nozzle_temperature_range_high": [
+		"235",
+		"235"
+	],
+	"hot_plate_temp": [
+		"55"
+	],
+	"hot_plate_temp_initial_layer": [
+		"60"
+	],
+	"textured_plate_temp": [
+		"55"
+	],
+	"textured_plate_temp_initial_layer": [
+		"60"
+	],
+	"filament_density": [
+		"1.24"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"25",
+		"50"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 200–235 °C, stół 50–60 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: https://devildesign.com/download/PLA_-_product_card.pdf\nŹródło: Open Filament Database."
+	]
+}

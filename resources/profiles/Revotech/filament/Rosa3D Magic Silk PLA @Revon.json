@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Rosa3D Magic Silk PLA @Revon",
+	"inherits": "Generic PLA Silk @System",
+	"from": "system",
+	"setting_id": "Zqn0yeA7ddahD4bP",
+	"filament_id": "OFYiSo6k",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Rosa3D"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"215",
+		"215"
+	],
+	"nozzle_temperature_initial_layer": [
+		"220",
+		"220"
+	],
+	"nozzle_temperature_range_low": [
+		"195",
+		"195"
+	],
+	"nozzle_temperature_range_high": [
+		"235",
+		"235"
+	],
+	"hot_plate_temp": [
+		"50"
+	],
+	"hot_plate_temp_initial_layer": [
+		"55"
+	],
+	"textured_plate_temp": [
+		"50"
+	],
+	"textured_plate_temp_initial_layer": [
+		"55"
+	],
+	"filament_density": [
+		"1.25"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"25",
+		"50"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 195–235 °C, stół 40–60 °C.\nŹródło: Open Filament Database."
+	]
+}

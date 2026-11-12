@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Prografen PETG Graphene Strong @Revon",
+	"inherits": "Generic PETG @System",
+	"from": "system",
+	"setting_id": "SfivMBzP7bb8YLA7",
+	"filament_id": "OFxROJkd",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Prografen"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"240",
+		"240"
+	],
+	"nozzle_temperature_initial_layer": [
+		"245",
+		"245"
+	],
+	"nozzle_temperature_range_low": [
+		"215",
+		"215"
+	],
+	"nozzle_temperature_range_high": [
+		"265",
+		"265"
+	],
+	"hot_plate_temp": [
+		"70"
+	],
+	"hot_plate_temp_initial_layer": [
+		"75"
+	],
+	"textured_plate_temp": [
+		"70"
+	],
+	"textured_plate_temp_initial_layer": [
+		"75"
+	],
+	"filament_density": [
+		"1.24"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"21",
+		"26"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 215–265 °C, stół 60–80 °C.\nŹródło: Open Filament Database."
+	]
+}

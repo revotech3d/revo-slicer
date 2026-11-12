@@ -1,6 +1,6 @@
 {
 	"name": "Revotech",
-	"version": "02.05.00.06",
+	"version": "02.05.00.07",
 	"force_update": "0",
 	"description": "Revotech – drukarki Revon (Revo OS)",
 	"machine_model_list": [
@@ -143,6 +143,1098 @@
 	],
 	"filament_list": [
 		{
+			"name": "3DJake ABS @Revon",
+			"sub_path": "filament/3DJake ABS @Revon.json"
+		},
+		{
+			"name": "3DJake ASA @Revon",
+			"sub_path": "filament/3DJake ASA @Revon.json"
+		},
+		{
+			"name": "3DJake Easy Matte PETG @Revon",
+			"sub_path": "filament/3DJake Easy Matte PETG @Revon.json"
+		},
+		{
+			"name": "3DJake Matte PLA @Revon",
+			"sub_path": "filament/3DJake Matte PLA @Revon.json"
+		},
+		{
+			"name": "3DJake PCTG @Revon",
+			"sub_path": "filament/3DJake PCTG @Revon.json"
+		},
+		{
+			"name": "3DJake TPU A95 @Revon",
+			"sub_path": "filament/3DJake TPU A95 @Revon.json"
+		},
+		{
+			"name": "3DJake easy PETG @Revon",
+			"sub_path": "filament/3DJake easy PETG @Revon.json"
+		},
+		{
+			"name": "3DJake eco PLA @Revon",
+			"sub_path": "filament/3DJake eco PLA @Revon.json"
+		},
+		{
+			"name": "3DJake eco Silk PLA @Revon",
+			"sub_path": "filament/3DJake eco Silk PLA @Revon.json"
+		},
+		{
+			"name": "3DJake magic PLA @Revon",
+			"sub_path": "filament/3DJake magic PLA @Revon.json"
+		},
+		{
+			"name": "3DPower ASA @Revon",
+			"sub_path": "filament/3DPower ASA @Revon.json"
+		},
+		{
+			"name": "3DPower Basic PETG @Revon",
+			"sub_path": "filament/3DPower Basic PETG @Revon.json"
+		},
+		{
+			"name": "3DPower Basic PLA @Revon",
+			"sub_path": "filament/3DPower Basic PLA @Revon.json"
+		},
+		{
+			"name": "3DPower Dual Color Silk PLA @Revon",
+			"sub_path": "filament/3DPower Dual Color Silk PLA @Revon.json"
+		},
+		{
+			"name": "3DPower Elasti 90A TPU @Revon",
+			"sub_path": "filament/3DPower Elasti 90A TPU @Revon.json"
+		},
+		{
+			"name": "3DPower HT 150 PLA @Revon",
+			"sub_path": "filament/3DPower HT 150 PLA @Revon.json"
+		},
+		{
+			"name": "3DPower Hyper Speed PETG @Revon",
+			"sub_path": "filament/3DPower Hyper Speed PETG @Revon.json"
+		},
+		{
+			"name": "3DPower Hyper Speed PLA @Revon",
+			"sub_path": "filament/3DPower Hyper Speed PLA @Revon.json"
+		},
+		{
+			"name": "3DPower Select PETG @Revon",
+			"sub_path": "filament/3DPower Select PETG @Revon.json"
+		},
+		{
+			"name": "3DPower Select PLA @Revon",
+			"sub_path": "filament/3DPower Select PLA @Revon.json"
+		},
+		{
+			"name": "3DXTech ABS @Revon",
+			"sub_path": "filament/3DXTech ABS @Revon.json"
+		},
+		{
+			"name": "3DXTech ASA 3DXMax @Revon",
+			"sub_path": "filament/3DXTech ASA 3DXMax @Revon.json"
+		},
+		{
+			"name": "3DXTech Carbonx CF PC @Revon",
+			"sub_path": "filament/3DXTech Carbonx CF PC @Revon.json"
+		},
+		{
+			"name": "3DXTech EcoMax PLA @Revon",
+			"sub_path": "filament/3DXTech EcoMax PLA @Revon.json"
+		},
+		{
+			"name": "3DXTech Economy PLA @Revon",
+			"sub_path": "filament/3DXTech Economy PLA @Revon.json"
+		},
+		{
+			"name": "3DXTech Max G PCTG @Revon",
+			"sub_path": "filament/3DXTech Max G PCTG @Revon.json"
+		},
+		{
+			"name": "3DXTech PA6 @Revon",
+			"sub_path": "filament/3DXTech PA6 @Revon.json"
+		},
+		{
+			"name": "3DXTech PA6 GF @Revon",
+			"sub_path": "filament/3DXTech PA6 GF @Revon.json"
+		},
+		{
+			"name": "3DXTech PC @Revon",
+			"sub_path": "filament/3DXTech PC @Revon.json"
+		},
+		{
+			"name": "3DXTech PETG @Revon",
+			"sub_path": "filament/3DXTech PETG @Revon.json"
+		},
+		{
+			"name": "Add North E PLA @Revon",
+			"sub_path": "filament/Add North E PLA @Revon.json"
+		},
+		{
+			"name": "Add North Matte PLA @Revon",
+			"sub_path": "filament/Add North Matte PLA @Revon.json"
+		},
+		{
+			"name": "Add North Matte TPU @Revon",
+			"sub_path": "filament/Add North Matte TPU @Revon.json"
+		},
+		{
+			"name": "Add North PA12 Adura @Revon",
+			"sub_path": "filament/Add North PA12 Adura @Revon.json"
+		},
+		{
+			"name": "Add North PETG @Revon",
+			"sub_path": "filament/Add North PETG @Revon.json"
+		},
+		{
+			"name": "Add North PLA Premium Silk @Revon",
+			"sub_path": "filament/Add North PLA Premium Silk @Revon.json"
+		},
+		{
+			"name": "Add North PLA Textura Flare @Revon",
+			"sub_path": "filament/Add North PLA Textura Flare @Revon.json"
+		},
+		{
+			"name": "Add North Silk PLA @Revon",
+			"sub_path": "filament/Add North Silk PLA @Revon.json"
+		},
+		{
+			"name": "Add North TPU EasyFlex @Revon",
+			"sub_path": "filament/Add North TPU EasyFlex @Revon.json"
+		},
+		{
+			"name": "Add North X-PLA @Revon",
+			"sub_path": "filament/Add North X-PLA @Revon.json"
+		},
+		{
+			"name": "Anycubic ASA @Revon",
+			"sub_path": "filament/Anycubic ASA @Revon.json"
+		},
+		{
+			"name": "Anycubic High-Speed PLA @Revon",
+			"sub_path": "filament/Anycubic High-Speed PLA @Revon.json"
+		},
+		{
+			"name": "Anycubic PETG @Revon",
+			"sub_path": "filament/Anycubic PETG @Revon.json"
+		},
+		{
+			"name": "Anycubic PLA Basic @Revon",
+			"sub_path": "filament/Anycubic PLA Basic @Revon.json"
+		},
+		{
+			"name": "Anycubic PLA Galaxy @Revon",
+			"sub_path": "filament/Anycubic PLA Galaxy @Revon.json"
+		},
+		{
+			"name": "Anycubic PLA Plus @Revon",
+			"sub_path": "filament/Anycubic PLA Plus @Revon.json"
+		},
+		{
+			"name": "Anycubic PLA Silk @Revon",
+			"sub_path": "filament/Anycubic PLA Silk @Revon.json"
+		},
+		{
+			"name": "Anycubic PLA Silk Dual-Tricolor @Revon",
+			"sub_path": "filament/Anycubic PLA Silk Dual-Tricolor @Revon.json"
+		},
+		{
+			"name": "Anycubic TPU @Revon",
+			"sub_path": "filament/Anycubic TPU @Revon.json"
+		},
+		{
+			"name": "Anycubic Translucent PETG @Revon",
+			"sub_path": "filament/Anycubic Translucent PETG @Revon.json"
+		},
+		{
+			"name": "AzureFilm ABS Plus @Revon",
+			"sub_path": "filament/AzureFilm ABS Plus @Revon.json"
+		},
+		{
+			"name": "AzureFilm ABS Prime @Revon",
+			"sub_path": "filament/AzureFilm ABS Prime @Revon.json"
+		},
+		{
+			"name": "AzureFilm ASA Original @Revon",
+			"sub_path": "filament/AzureFilm ASA Original @Revon.json"
+		},
+		{
+			"name": "AzureFilm ASA Prime @Revon",
+			"sub_path": "filament/AzureFilm ASA Prime @Revon.json"
+		},
+		{
+			"name": "AzureFilm Glitter PLA @Revon",
+			"sub_path": "filament/AzureFilm Glitter PLA @Revon.json"
+		},
+		{
+			"name": "AzureFilm Matte HS PLA @Revon",
+			"sub_path": "filament/AzureFilm Matte HS PLA @Revon.json"
+		},
+		{
+			"name": "AzureFilm PETG @Revon",
+			"sub_path": "filament/AzureFilm PETG @Revon.json"
+		},
+		{
+			"name": "AzureFilm PLA @Revon",
+			"sub_path": "filament/AzureFilm PLA @Revon.json"
+		},
+		{
+			"name": "AzureFilm Silk PLA @Revon",
+			"sub_path": "filament/AzureFilm Silk PLA @Revon.json"
+		},
+		{
+			"name": "AzureFilm TPU 85A @Revon",
+			"sub_path": "filament/AzureFilm TPU 85A @Revon.json"
+		},
+		{
+			"name": "Bambu Lab ABS @Revon",
+			"sub_path": "filament/Bambu Lab ABS @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PETG Basic @Revon",
+			"sub_path": "filament/Bambu Lab PETG Basic @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PETG HF @Revon",
+			"sub_path": "filament/Bambu Lab PETG HF @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PETG Translucent @Revon",
+			"sub_path": "filament/Bambu Lab PETG Translucent @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PLA Basic @Revon",
+			"sub_path": "filament/Bambu Lab PLA Basic @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PLA Matte @Revon",
+			"sub_path": "filament/Bambu Lab PLA Matte @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PLA Silk Dual Color @Revon",
+			"sub_path": "filament/Bambu Lab PLA Silk Dual Color @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PLA Silk+ @Revon",
+			"sub_path": "filament/Bambu Lab PLA Silk+ @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PLA Tough @Revon",
+			"sub_path": "filament/Bambu Lab PLA Tough @Revon.json"
+		},
+		{
+			"name": "Bambu Lab PLA Translucent @Revon",
+			"sub_path": "filament/Bambu Lab PLA Translucent @Revon.json"
+		},
+		{
+			"name": "Creality 95A TPU @Revon",
+			"sub_path": "filament/Creality 95A TPU @Revon.json"
+		},
+		{
+			"name": "Creality ABS @Revon",
+			"sub_path": "filament/Creality ABS @Revon.json"
+		},
+		{
+			"name": "Creality HP-TPU @Revon",
+			"sub_path": "filament/Creality HP-TPU @Revon.json"
+		},
+		{
+			"name": "Creality Hyper Luminous PLA @Revon",
+			"sub_path": "filament/Creality Hyper Luminous PLA @Revon.json"
+		},
+		{
+			"name": "Creality Hyper PLA @Revon",
+			"sub_path": "filament/Creality Hyper PLA @Revon.json"
+		},
+		{
+			"name": "Creality PETG @Revon",
+			"sub_path": "filament/Creality PETG @Revon.json"
+		},
+		{
+			"name": "Creality PLA @Revon",
+			"sub_path": "filament/Creality PLA @Revon.json"
+		},
+		{
+			"name": "Creality Silk PLA @Revon",
+			"sub_path": "filament/Creality Silk PLA @Revon.json"
+		},
+		{
+			"name": "Creality Soleyin Basic PETG @Revon",
+			"sub_path": "filament/Creality Soleyin Basic PETG @Revon.json"
+		},
+		{
+			"name": "Creality Soleyin Ultra PLA @Revon",
+			"sub_path": "filament/Creality Soleyin Ultra PLA @Revon.json"
+		},
+		{
+			"name": "Devil Design ABS @Revon",
+			"sub_path": "filament/Devil Design ABS @Revon.json"
+		},
+		{
+			"name": "Devil Design ASA @Revon",
+			"sub_path": "filament/Devil Design ASA @Revon.json"
+		},
+		{
+			"name": "Devil Design Galaxy PETG @Revon",
+			"sub_path": "filament/Devil Design Galaxy PETG @Revon.json"
+		},
+		{
+			"name": "Devil Design Glow PLA @Revon",
+			"sub_path": "filament/Devil Design Glow PLA @Revon.json"
+		},
+		{
+			"name": "Devil Design PA12 @Revon",
+			"sub_path": "filament/Devil Design PA12 @Revon.json"
+		},
+		{
+			"name": "Devil Design PETG @Revon",
+			"sub_path": "filament/Devil Design PETG @Revon.json"
+		},
+		{
+			"name": "Devil Design PLA @Revon",
+			"sub_path": "filament/Devil Design PLA @Revon.json"
+		},
+		{
+			"name": "Devil Design Silk PLA @Revon",
+			"sub_path": "filament/Devil Design Silk PLA @Revon.json"
+		},
+		{
+			"name": "Devil Design TPU @Revon",
+			"sub_path": "filament/Devil Design TPU @Revon.json"
+		},
+		{
+			"name": "Elegoo PETG @Revon",
+			"sub_path": "filament/Elegoo PETG @Revon.json"
+		},
+		{
+			"name": "Elegoo PETG PRO @Revon",
+			"sub_path": "filament/Elegoo PETG PRO @Revon.json"
+		},
+		{
+			"name": "Elegoo PLA @Revon",
+			"sub_path": "filament/Elegoo PLA @Revon.json"
+		},
+		{
+			"name": "Elegoo PLA Basic @Revon",
+			"sub_path": "filament/Elegoo PLA Basic @Revon.json"
+		},
+		{
+			"name": "Elegoo PLA MATTE @Revon",
+			"sub_path": "filament/Elegoo PLA MATTE @Revon.json"
+		},
+		{
+			"name": "Elegoo PLA PRO @Revon",
+			"sub_path": "filament/Elegoo PLA PRO @Revon.json"
+		},
+		{
+			"name": "Elegoo PLA Plus @Revon",
+			"sub_path": "filament/Elegoo PLA Plus @Revon.json"
+		},
+		{
+			"name": "Elegoo RAPID PETG @Revon",
+			"sub_path": "filament/Elegoo RAPID PETG @Revon.json"
+		},
+		{
+			"name": "Elegoo RAPID PLA Plus @Revon",
+			"sub_path": "filament/Elegoo RAPID PLA Plus @Revon.json"
+		},
+		{
+			"name": "Elegoo Silk PLA @Revon",
+			"sub_path": "filament/Elegoo Silk PLA @Revon.json"
+		},
+		{
+			"name": "Eryone PETG @Revon",
+			"sub_path": "filament/Eryone PETG @Revon.json"
+		},
+		{
+			"name": "Eryone PLA @Revon",
+			"sub_path": "filament/Eryone PLA @Revon.json"
+		},
+		{
+			"name": "Eryone PLA Matte @Revon",
+			"sub_path": "filament/Eryone PLA Matte @Revon.json"
+		},
+		{
+			"name": "Eryone PLA Matte Dual-Color @Revon",
+			"sub_path": "filament/Eryone PLA Matte Dual-Color @Revon.json"
+		},
+		{
+			"name": "Eryone PLA Silk @Revon",
+			"sub_path": "filament/Eryone PLA Silk @Revon.json"
+		},
+		{
+			"name": "Eryone PLA Silk High-Speed Dual-Color @Revon",
+			"sub_path": "filament/Eryone PLA Silk High-Speed Dual-Color @Revon.json"
+		},
+		{
+			"name": "Eryone PLA Silk High-Speed Quadruple @Revon",
+			"sub_path": "filament/Eryone PLA Silk High-Speed Quadruple @Revon.json"
+		},
+		{
+			"name": "Eryone PLA Silk Rainbow @Revon",
+			"sub_path": "filament/Eryone PLA Silk Rainbow @Revon.json"
+		},
+		{
+			"name": "Eryone PLA+ @Revon",
+			"sub_path": "filament/Eryone PLA+ @Revon.json"
+		},
+		{
+			"name": "Eryone PLA+ High-Speed @Revon",
+			"sub_path": "filament/Eryone PLA+ High-Speed @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 CF 150 PC @Revon",
+			"sub_path": "filament/FiberThree F3 CF 150 PC @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 GF PLA @Revon",
+			"sub_path": "filament/FiberThree F3 GF PLA @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 PA CF @Revon",
+			"sub_path": "filament/FiberThree F3 PA CF @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 PA CF Lite @Revon",
+			"sub_path": "filament/FiberThree F3 PA CF Lite @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 PA GF @Revon",
+			"sub_path": "filament/FiberThree F3 PA GF @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 PA Ortho @Revon",
+			"sub_path": "filament/FiberThree F3 PA Ortho @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 PA Pure @Revon",
+			"sub_path": "filament/FiberThree F3 PA Pure @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 PA Pure Lite @Revon",
+			"sub_path": "filament/FiberThree F3 PA Pure Lite @Revon.json"
+		},
+		{
+			"name": "FiberThree F3 PA-GF30 @Revon",
+			"sub_path": "filament/FiberThree F3 PA-GF30 @Revon.json"
+		},
+		{
+			"name": "FiberThree TPU F3 80A @Revon",
+			"sub_path": "filament/FiberThree TPU F3 80A @Revon.json"
+		},
+		{
+			"name": "Fiberlogy ABS @Revon",
+			"sub_path": "filament/Fiberlogy ABS @Revon.json"
+		},
+		{
+			"name": "Fiberlogy ASA @Revon",
+			"sub_path": "filament/Fiberlogy ASA @Revon.json"
+		},
+		{
+			"name": "Fiberlogy Easy PETG @Revon",
+			"sub_path": "filament/Fiberlogy Easy PETG @Revon.json"
+		},
+		{
+			"name": "Fiberlogy Easy PLA @Revon",
+			"sub_path": "filament/Fiberlogy Easy PLA @Revon.json"
+		},
+		{
+			"name": "Fiberlogy Impact PLA @Revon",
+			"sub_path": "filament/Fiberlogy Impact PLA @Revon.json"
+		},
+		{
+			"name": "Fiberlogy PCTG @Revon",
+			"sub_path": "filament/Fiberlogy PCTG @Revon.json"
+		},
+		{
+			"name": "Fiberlogy PLA FiberSilk @Revon",
+			"sub_path": "filament/Fiberlogy PLA FiberSilk @Revon.json"
+		},
+		{
+			"name": "Fiberlogy PP @Revon",
+			"sub_path": "filament/Fiberlogy PP @Revon.json"
+		},
+		{
+			"name": "Fiberlogy TPU FiberFlex 30D @Revon",
+			"sub_path": "filament/Fiberlogy TPU FiberFlex 30D @Revon.json"
+		},
+		{
+			"name": "Fiberlogy TPU FiberFlex 40D @Revon",
+			"sub_path": "filament/Fiberlogy TPU FiberFlex 40D @Revon.json"
+		},
+		{
+			"name": "Fiberon ASA-CF 08 @Revon",
+			"sub_path": "filament/Fiberon ASA-CF 08 @Revon.json"
+		},
+		{
+			"name": "Fiberon PA12-CF10 @Revon",
+			"sub_path": "filament/Fiberon PA12-CF10 @Revon.json"
+		},
+		{
+			"name": "Fiberon PA6-CF20 @Revon",
+			"sub_path": "filament/Fiberon PA6-CF20 @Revon.json"
+		},
+		{
+			"name": "Fiberon PA6-GF25 @Revon",
+			"sub_path": "filament/Fiberon PA6-GF25 @Revon.json"
+		},
+		{
+			"name": "Fiberon PA612-CF15 @Revon",
+			"sub_path": "filament/Fiberon PA612-CF15 @Revon.json"
+		},
+		{
+			"name": "Fiberon PET-CF17 @Revon",
+			"sub_path": "filament/Fiberon PET-CF17 @Revon.json"
+		},
+		{
+			"name": "Fiberon PETG-rCF08 @Revon",
+			"sub_path": "filament/Fiberon PETG-rCF08 @Revon.json"
+		},
+		{
+			"name": "FilamentPM ABS @Revon",
+			"sub_path": "filament/FilamentPM ABS @Revon.json"
+		},
+		{
+			"name": "FilamentPM ASA @Revon",
+			"sub_path": "filament/FilamentPM ASA @Revon.json"
+		},
+		{
+			"name": "FilamentPM Crystal Clear PLA @Revon",
+			"sub_path": "filament/FilamentPM Crystal Clear PLA @Revon.json"
+		},
+		{
+			"name": "FilamentPM Extrafill PLA @Revon",
+			"sub_path": "filament/FilamentPM Extrafill PLA @Revon.json"
+		},
+		{
+			"name": "FilamentPM Flexfill TPU @Revon",
+			"sub_path": "filament/FilamentPM Flexfill TPU @Revon.json"
+		},
+		{
+			"name": "FilamentPM HG100 CPE @Revon",
+			"sub_path": "filament/FilamentPM HG100 CPE @Revon.json"
+		},
+		{
+			"name": "FilamentPM PETG @Revon",
+			"sub_path": "filament/FilamentPM PETG @Revon.json"
+		},
+		{
+			"name": "FilamentPM PLA @Revon",
+			"sub_path": "filament/FilamentPM PLA @Revon.json"
+		},
+		{
+			"name": "FilamentPM Silk PLA @Revon",
+			"sub_path": "filament/FilamentPM Silk PLA @Revon.json"
+		},
+		{
+			"name": "FilamentPM Timberfill PLA @Revon",
+			"sub_path": "filament/FilamentPM Timberfill PLA @Revon.json"
+		},
+		{
+			"name": "Fillamentum ASA Extrafill @Revon",
+			"sub_path": "filament/Fillamentum ASA Extrafill @Revon.json"
+		},
+		{
+			"name": "Fillamentum CPE HG100 @Revon",
+			"sub_path": "filament/Fillamentum CPE HG100 @Revon.json"
+		},
+		{
+			"name": "Fillamentum PLA Crystal Clear @Revon",
+			"sub_path": "filament/Fillamentum PLA Crystal Clear @Revon.json"
+		},
+		{
+			"name": "Fillamentum PLA Extrafill @Revon",
+			"sub_path": "filament/Fillamentum PLA Extrafill @Revon.json"
+		},
+		{
+			"name": "FormFutura ASA ApolloX @Revon",
+			"sub_path": "filament/FormFutura ASA ApolloX @Revon.json"
+		},
+		{
+			"name": "FormFutura EasyFil ABS @Revon",
+			"sub_path": "filament/FormFutura EasyFil ABS @Revon.json"
+		},
+		{
+			"name": "FormFutura EasyFil PLA @Revon",
+			"sub_path": "filament/FormFutura EasyFil PLA @Revon.json"
+		},
+		{
+			"name": "FormFutura EasyFil ePETG @Revon",
+			"sub_path": "filament/FormFutura EasyFil ePETG @Revon.json"
+		},
+		{
+			"name": "FormFutura EasyFil ePLA @Revon",
+			"sub_path": "filament/FormFutura EasyFil ePLA @Revon.json"
+		},
+		{
+			"name": "FormFutura High Gloss PLA @Revon",
+			"sub_path": "filament/FormFutura High Gloss PLA @Revon.json"
+		},
+		{
+			"name": "FormFutura Matte PLA @Revon",
+			"sub_path": "filament/FormFutura Matte PLA @Revon.json"
+		},
+		{
+			"name": "FormFutura PETG Hdglass @Revon",
+			"sub_path": "filament/FormFutura PETG Hdglass @Revon.json"
+		},
+		{
+			"name": "FormFutura Python Flex TPU @Revon",
+			"sub_path": "filament/FormFutura Python Flex TPU @Revon.json"
+		},
+		{
+			"name": "FormFutura ReForm - rPET @Revon",
+			"sub_path": "filament/FormFutura ReForm - rPET @Revon.json"
+		},
+		{
+			"name": "Jayo ABS @Revon",
+			"sub_path": "filament/Jayo ABS @Revon.json"
+		},
+		{
+			"name": "Jayo Matte PLA @Revon",
+			"sub_path": "filament/Jayo Matte PLA @Revon.json"
+		},
+		{
+			"name": "Jayo PETG @Revon",
+			"sub_path": "filament/Jayo PETG @Revon.json"
+		},
+		{
+			"name": "Jayo PLA @Revon",
+			"sub_path": "filament/Jayo PLA @Revon.json"
+		},
+		{
+			"name": "Jayo PLA+ @Revon",
+			"sub_path": "filament/Jayo PLA+ @Revon.json"
+		},
+		{
+			"name": "Jayo Silk PLA @Revon",
+			"sub_path": "filament/Jayo Silk PLA @Revon.json"
+		},
+		{
+			"name": "Jayo TPU @Revon",
+			"sub_path": "filament/Jayo TPU @Revon.json"
+		},
+		{
+			"name": "Nebula ABS Art Glowing @Revon",
+			"sub_path": "filament/Nebula ABS Art Glowing @Revon.json"
+		},
+		{
+			"name": "Nebula ABS Art Thermo @Revon",
+			"sub_path": "filament/Nebula ABS Art Thermo @Revon.json"
+		},
+		{
+			"name": "Nebula ABS Tech 702 @Revon",
+			"sub_path": "filament/Nebula ABS Tech 702 @Revon.json"
+		},
+		{
+			"name": "Nebula ASA Tech 301 @Revon",
+			"sub_path": "filament/Nebula ASA Tech 301 @Revon.json"
+		},
+		{
+			"name": "Nebula PETG Premium @Revon",
+			"sub_path": "filament/Nebula PETG Premium @Revon.json"
+		},
+		{
+			"name": "Nebula PLA Art Glitter @Revon",
+			"sub_path": "filament/Nebula PLA Art Glitter @Revon.json"
+		},
+		{
+			"name": "Nebula PLA Premium @Revon",
+			"sub_path": "filament/Nebula PLA Premium @Revon.json"
+		},
+		{
+			"name": "Nebula PLA Premium Silk @Revon",
+			"sub_path": "filament/Nebula PLA Premium Silk @Revon.json"
+		},
+		{
+			"name": "Nebula PLA Tech 607 @Revon",
+			"sub_path": "filament/Nebula PLA Tech 607 @Revon.json"
+		},
+		{
+			"name": "Nebula PLA Tech 609 HD @Revon",
+			"sub_path": "filament/Nebula PLA Tech 609 HD @Revon.json"
+		},
+		{
+			"name": "Overture ASA @Revon",
+			"sub_path": "filament/Overture ASA @Revon.json"
+		},
+		{
+			"name": "Overture High Speed TPU @Revon",
+			"sub_path": "filament/Overture High Speed TPU @Revon.json"
+		},
+		{
+			"name": "Overture Matte PLA @Revon",
+			"sub_path": "filament/Overture Matte PLA @Revon.json"
+		},
+		{
+			"name": "Overture PETG @Revon",
+			"sub_path": "filament/Overture PETG @Revon.json"
+		},
+		{
+			"name": "Overture PLA @Revon",
+			"sub_path": "filament/Overture PLA @Revon.json"
+		},
+		{
+			"name": "Overture PLA Easy @Revon",
+			"sub_path": "filament/Overture PLA Easy @Revon.json"
+		},
+		{
+			"name": "Overture PLA Professional @Revon",
+			"sub_path": "filament/Overture PLA Professional @Revon.json"
+		},
+		{
+			"name": "Overture PLA Rock @Revon",
+			"sub_path": "filament/Overture PLA Rock @Revon.json"
+		},
+		{
+			"name": "Overture Silk PLA @Revon",
+			"sub_path": "filament/Overture Silk PLA @Revon.json"
+		},
+		{
+			"name": "Overture TPU @Revon",
+			"sub_path": "filament/Overture TPU @Revon.json"
+		},
+		{
+			"name": "Panchroma Basic PLA @Revon",
+			"sub_path": "filament/Panchroma Basic PLA @Revon.json"
+		},
+		{
+			"name": "Panchroma Dual Matte PLA @Revon",
+			"sub_path": "filament/Panchroma Dual Matte PLA @Revon.json"
+		},
+		{
+			"name": "Panchroma Dual Silk PLA @Revon",
+			"sub_path": "filament/Panchroma Dual Silk PLA @Revon.json"
+		},
+		{
+			"name": "Panchroma Galaxy PLA @Revon",
+			"sub_path": "filament/Panchroma Galaxy PLA @Revon.json"
+		},
+		{
+			"name": "Panchroma Gradient Matte PLA @Revon",
+			"sub_path": "filament/Panchroma Gradient Matte PLA @Revon.json"
+		},
+		{
+			"name": "Panchroma Matte PLA @Revon",
+			"sub_path": "filament/Panchroma Matte PLA @Revon.json"
+		},
+		{
+			"name": "Panchroma PET CoPE @Revon",
+			"sub_path": "filament/Panchroma PET CoPE @Revon.json"
+		},
+		{
+			"name": "Panchroma PLA Silk @Revon",
+			"sub_path": "filament/Panchroma PLA Silk @Revon.json"
+		},
+		{
+			"name": "Panchroma Satin PLA @Revon",
+			"sub_path": "filament/Panchroma Satin PLA @Revon.json"
+		},
+		{
+			"name": "Panchroma Starlight PLA @Revon",
+			"sub_path": "filament/Panchroma Starlight PLA @Revon.json"
+		},
+		{
+			"name": "PolyLite ABS @Revon",
+			"sub_path": "filament/PolyLite ABS @Revon.json"
+		},
+		{
+			"name": "PolyLite ASA @Revon",
+			"sub_path": "filament/PolyLite ASA @Revon.json"
+		},
+		{
+			"name": "PolyLite CosPLA Version A @Revon",
+			"sub_path": "filament/PolyLite CosPLA Version A @Revon.json"
+		},
+		{
+			"name": "PolyLite CosPLA Version B @Revon",
+			"sub_path": "filament/PolyLite CosPLA Version B @Revon.json"
+		},
+		{
+			"name": "PolyLite LW-PLA @Revon",
+			"sub_path": "filament/PolyLite LW-PLA @Revon.json"
+		},
+		{
+			"name": "PolyLite PC @Revon",
+			"sub_path": "filament/PolyLite PC @Revon.json"
+		},
+		{
+			"name": "PolyLite PETG @Revon",
+			"sub_path": "filament/PolyLite PETG @Revon.json"
+		},
+		{
+			"name": "PolyLite PLA @Revon",
+			"sub_path": "filament/PolyLite PLA @Revon.json"
+		},
+		{
+			"name": "PolyLite PLA Pro @Revon",
+			"sub_path": "filament/PolyLite PLA Pro @Revon.json"
+		},
+		{
+			"name": "PolyLite PLA-CF @Revon",
+			"sub_path": "filament/PolyLite PLA-CF @Revon.json"
+		},
+		{
+			"name": "Polymaker Dual Panchroma Matte PLA @Revon",
+			"sub_path": "filament/Polymaker Dual Panchroma Matte PLA @Revon.json"
+		},
+		{
+			"name": "Polymaker HT-PLA @Revon",
+			"sub_path": "filament/Polymaker HT-PLA @Revon.json"
+		},
+		{
+			"name": "Polymaker PETG @Revon",
+			"sub_path": "filament/Polymaker PETG @Revon.json"
+		},
+		{
+			"name": "Polymaker PLA Pro @Revon",
+			"sub_path": "filament/Polymaker PLA Pro @Revon.json"
+		},
+		{
+			"name": "Polymaker Panchroma Silk PLA @Revon",
+			"sub_path": "filament/Polymaker Panchroma Silk PLA @Revon.json"
+		},
+		{
+			"name": "Polymaker PolyMax PLA @Revon",
+			"sub_path": "filament/Polymaker PolyMax PLA @Revon.json"
+		},
+		{
+			"name": "Polymaker Polylite ABS @Revon",
+			"sub_path": "filament/Polymaker Polylite ABS @Revon.json"
+		},
+		{
+			"name": "Polymaker Polylite ASA @Revon",
+			"sub_path": "filament/Polymaker Polylite ASA @Revon.json"
+		},
+		{
+			"name": "Polymaker Polylite PETG @Revon",
+			"sub_path": "filament/Polymaker Polylite PETG @Revon.json"
+		},
+		{
+			"name": "Polymaker Polylite PLA @Revon",
+			"sub_path": "filament/Polymaker Polylite PLA @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Easyprint PLA @Revon",
+			"sub_path": "filament/PrimaCreator Easyprint PLA @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Marble PrimaSelect PLA @Revon",
+			"sub_path": "filament/PrimaCreator Marble PrimaSelect PLA @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Pastel PrimaSelect PLA @Revon",
+			"sub_path": "filament/PrimaCreator Pastel PrimaSelect PLA @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Primaselect ABS @Revon",
+			"sub_path": "filament/PrimaCreator Primaselect ABS @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Primaselect Matte PLA @Revon",
+			"sub_path": "filament/PrimaCreator Primaselect Matte PLA @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Primaselect PETG @Revon",
+			"sub_path": "filament/PrimaCreator Primaselect PETG @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Primaselect PLA @Revon",
+			"sub_path": "filament/PrimaCreator Primaselect PLA @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Primaselect TPU @Revon",
+			"sub_path": "filament/PrimaCreator Primaselect TPU @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Primavalue PLA @Revon",
+			"sub_path": "filament/PrimaCreator Primavalue PLA @Revon.json"
+		},
+		{
+			"name": "PrimaCreator Satin PrimaSelect PLA @Revon",
+			"sub_path": "filament/PrimaCreator Satin PrimaSelect PLA @Revon.json"
+		},
+		{
+			"name": "PrimaSelect ABS @Revon",
+			"sub_path": "filament/PrimaSelect ABS @Revon.json"
+		},
+		{
+			"name": "PrimaSelect ASA+ @Revon",
+			"sub_path": "filament/PrimaSelect ASA+ @Revon.json"
+		},
+		{
+			"name": "PrimaSelect PLA @Revon",
+			"sub_path": "filament/PrimaSelect PLA @Revon.json"
+		},
+		{
+			"name": "PrimaSelect PLA Glossy @Revon",
+			"sub_path": "filament/PrimaSelect PLA Glossy @Revon.json"
+		},
+		{
+			"name": "PrimaSelect PLA Matt @Revon",
+			"sub_path": "filament/PrimaSelect PLA Matt @Revon.json"
+		},
+		{
+			"name": "PrimaSelect PLA Satin @Revon",
+			"sub_path": "filament/PrimaSelect PLA Satin @Revon.json"
+		},
+		{
+			"name": "PrimaSelect Solid PETG @Revon",
+			"sub_path": "filament/PrimaSelect Solid PETG @Revon.json"
+		},
+		{
+			"name": "PrimaSelect Tough PLA @Revon",
+			"sub_path": "filament/PrimaSelect Tough PLA @Revon.json"
+		},
+		{
+			"name": "Professional LAB ASA @Revon",
+			"sub_path": "filament/Professional LAB ASA @Revon.json"
+		},
+		{
+			"name": "Professional LAB PETG Matte @Revon",
+			"sub_path": "filament/Professional LAB PETG Matte @Revon.json"
+		},
+		{
+			"name": "Professional LAB PETG-CF @Revon",
+			"sub_path": "filament/Professional LAB PETG-CF @Revon.json"
+		},
+		{
+			"name": "Professional LAB PLA Pastel @Revon",
+			"sub_path": "filament/Professional LAB PLA Pastel @Revon.json"
+		},
+		{
+			"name": "Prografen PETG Graphene Light @Revon",
+			"sub_path": "filament/Prografen PETG Graphene Light @Revon.json"
+		},
+		{
+			"name": "Prografen PETG Graphene Strong @Revon",
+			"sub_path": "filament/Prografen PETG Graphene Strong @Revon.json"
+		},
+		{
+			"name": "Prografen PLA Graphene Light @Revon",
+			"sub_path": "filament/Prografen PLA Graphene Light @Revon.json"
+		},
+		{
+			"name": "Prografen PLA Graphene Strong @Revon",
+			"sub_path": "filament/Prografen PLA Graphene Strong @Revon.json"
+		},
+		{
+			"name": "Protopasta Fiber HT Matte PLA @Revon",
+			"sub_path": "filament/Protopasta Fiber HT Matte PLA @Revon.json"
+		},
+		{
+			"name": "Protopasta Glitter PLA @Revon",
+			"sub_path": "filament/Protopasta Glitter PLA @Revon.json"
+		},
+		{
+			"name": "Protopasta Metallic PETG @Revon",
+			"sub_path": "filament/Protopasta Metallic PETG @Revon.json"
+		},
+		{
+			"name": "Protopasta Metallic PLA @Revon",
+			"sub_path": "filament/Protopasta Metallic PLA @Revon.json"
+		},
+		{
+			"name": "Protopasta Opaque PLA @Revon",
+			"sub_path": "filament/Protopasta Opaque PLA @Revon.json"
+		},
+		{
+			"name": "Protopasta PLA @Revon",
+			"sub_path": "filament/Protopasta PLA @Revon.json"
+		},
+		{
+			"name": "Protopasta PLA CF @Revon",
+			"sub_path": "filament/Protopasta PLA CF @Revon.json"
+		},
+		{
+			"name": "Protopasta Silk PLA @Revon",
+			"sub_path": "filament/Protopasta Silk PLA @Revon.json"
+		},
+		{
+			"name": "Protopasta Still Colorful Recycled PLA @Revon",
+			"sub_path": "filament/Protopasta Still Colorful Recycled PLA @Revon.json"
+		},
+		{
+			"name": "Protopasta Translucent PLA @Revon",
+			"sub_path": "filament/Protopasta Translucent PLA @Revon.json"
+		},
+		{
+			"name": "Prusament ASA @Revon",
+			"sub_path": "filament/Prusament ASA @Revon.json"
+		},
+		{
+			"name": "Prusament Blend Silk PLA @Revon",
+			"sub_path": "filament/Prusament Blend Silk PLA @Revon.json"
+		},
+		{
+			"name": "Prusament PC @Revon",
+			"sub_path": "filament/Prusament PC @Revon.json"
+		},
+		{
+			"name": "Prusament PC Blend @Revon",
+			"sub_path": "filament/Prusament PC Blend @Revon.json"
+		},
+		{
+			"name": "Prusament PC-CF @Revon",
+			"sub_path": "filament/Prusament PC-CF @Revon.json"
+		},
+		{
+			"name": "Prusament PETG @Revon",
+			"sub_path": "filament/Prusament PETG @Revon.json"
+		},
+		{
+			"name": "Prusament PETG V0 @Revon",
+			"sub_path": "filament/Prusament PETG V0 @Revon.json"
+		},
+		{
+			"name": "Prusament PLA @Revon",
+			"sub_path": "filament/Prusament PLA @Revon.json"
+		},
+		{
+			"name": "Prusament PLA Woodfill @Revon",
+			"sub_path": "filament/Prusament PLA Woodfill @Revon.json"
+		},
+		{
+			"name": "Prusament rPLA @Revon",
+			"sub_path": "filament/Prusament rPLA @Revon.json"
+		},
+		{
+			"name": "Recreus Balena Filaflex TPU @Revon",
+			"sub_path": "filament/Recreus Balena Filaflex TPU @Revon.json"
+		},
+		{
+			"name": "Recreus Filaflex TPU @Revon",
+			"sub_path": "filament/Recreus Filaflex TPU @Revon.json"
+		},
+		{
+			"name": "Recreus PET G Hf High Speed PETG @Revon",
+			"sub_path": "filament/Recreus PET G Hf High Speed PETG @Revon.json"
+		},
+		{
+			"name": "Recreus PLA @Revon",
+			"sub_path": "filament/Recreus PLA @Revon.json"
+		},
+		{
+			"name": "Recreus PP 3D @Revon",
+			"sub_path": "filament/Recreus PP 3D @Revon.json"
+		},
+		{
+			"name": "Recreus PP GF @Revon",
+			"sub_path": "filament/Recreus PP GF @Revon.json"
+		},
+		{
+			"name": "Recreus TPU @Revon",
+			"sub_path": "filament/Recreus TPU @Revon.json"
+		},
+		{
+			"name": "Recreus TPU FilaFlex 82A @Revon",
+			"sub_path": "filament/Recreus TPU FilaFlex 82A @Revon.json"
+		},
+		{
+			"name": "Recreus TPU FilaFlex 95 Foamy @Revon",
+			"sub_path": "filament/Recreus TPU FilaFlex 95 Foamy @Revon.json"
+		},
+		{
+			"name": "Recreus TPU FilaFlex 95A Medium Flex @Revon",
+			"sub_path": "filament/Recreus TPU FilaFlex 95A Medium Flex @Revon.json"
+		},
+		{
 			"name": "Revo Generic ABS @Revon",
 			"sub_path": "filament/Revo Generic ABS @Revon.json"
 		},
@@ -161,6 +1253,346 @@
 		{
 			"name": "Revo Generic TPU @Revon",
 			"sub_path": "filament/Revo Generic TPU @Revon.json"
+		},
+		{
+			"name": "Rosa3D ASA @Revon",
+			"sub_path": "filament/Rosa3D ASA @Revon.json"
+		},
+		{
+			"name": "Rosa3D Galaxy PLA @Revon",
+			"sub_path": "filament/Rosa3D Galaxy PLA @Revon.json"
+		},
+		{
+			"name": "Rosa3D High Speed PETG @Revon",
+			"sub_path": "filament/Rosa3D High Speed PETG @Revon.json"
+		},
+		{
+			"name": "Rosa3D Magic Silk PLA @Revon",
+			"sub_path": "filament/Rosa3D Magic Silk PLA @Revon.json"
+		},
+		{
+			"name": "Rosa3D Matte PLA CF @Revon",
+			"sub_path": "filament/Rosa3D Matte PLA CF @Revon.json"
+		},
+		{
+			"name": "Rosa3D PCTG @Revon",
+			"sub_path": "filament/Rosa3D PCTG @Revon.json"
+		},
+		{
+			"name": "Rosa3D PETG @Revon",
+			"sub_path": "filament/Rosa3D PETG @Revon.json"
+		},
+		{
+			"name": "Rosa3D Rosa Flex TPU @Revon",
+			"sub_path": "filament/Rosa3D Rosa Flex TPU @Revon.json"
+		},
+		{
+			"name": "Rosa3D Silk PLA @Revon",
+			"sub_path": "filament/Rosa3D Silk PLA @Revon.json"
+		},
+		{
+			"name": "Rosa3D Starter PLA @Revon",
+			"sub_path": "filament/Rosa3D Starter PLA @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Fibreheart ABS HT HF @Revon",
+			"sub_path": "filament/Siraya Tech Fibreheart ABS HT HF @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Fibreheart ABS-CF Core @Revon",
+			"sub_path": "filament/Siraya Tech Fibreheart ABS-CF Core @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Fibreheart ABS-GF @Revon",
+			"sub_path": "filament/Siraya Tech Fibreheart ABS-GF @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Fibreheart ASA-GF @Revon",
+			"sub_path": "filament/Siraya Tech Fibreheart ASA-GF @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Fibreheart PET-CF @Revon",
+			"sub_path": "filament/Siraya Tech Fibreheart PET-CF @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Fibreheart PETG-CF Pro @Revon",
+			"sub_path": "filament/Siraya Tech Fibreheart PETG-CF Pro @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Flex TPU 64D @Revon",
+			"sub_path": "filament/Siraya Tech Flex TPU 64D @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Flex TPU 85A @Revon",
+			"sub_path": "filament/Siraya Tech Flex TPU 85A @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Flex TPU Air 85A @Revon",
+			"sub_path": "filament/Siraya Tech Flex TPU Air 85A @Revon.json"
+		},
+		{
+			"name": "Siraya Tech Roamr TPU Air HR 80A @Revon",
+			"sub_path": "filament/Siraya Tech Roamr TPU Air HR 80A @Revon.json"
+		},
+		{
+			"name": "SmartPrint ASA @Revon",
+			"sub_path": "filament/SmartPrint ASA @Revon.json"
+		},
+		{
+			"name": "Spectrum ASA @Revon",
+			"sub_path": "filament/Spectrum ASA @Revon.json"
+		},
+		{
+			"name": "Spectrum High Speed PLA @Revon",
+			"sub_path": "filament/Spectrum High Speed PLA @Revon.json"
+		},
+		{
+			"name": "Spectrum Matte PLA @Revon",
+			"sub_path": "filament/Spectrum Matte PLA @Revon.json"
+		},
+		{
+			"name": "Spectrum PET-G Premium @Revon",
+			"sub_path": "filament/Spectrum PET-G Premium @Revon.json"
+		},
+		{
+			"name": "Spectrum PETG Premium High Speed @Revon",
+			"sub_path": "filament/Spectrum PETG Premium High Speed @Revon.json"
+		},
+		{
+			"name": "Spectrum PLA @Revon",
+			"sub_path": "filament/Spectrum PLA @Revon.json"
+		},
+		{
+			"name": "Spectrum PLA MATT @Revon",
+			"sub_path": "filament/Spectrum PLA MATT @Revon.json"
+		},
+		{
+			"name": "Spectrum PLA Premium @Revon",
+			"sub_path": "filament/Spectrum PLA Premium @Revon.json"
+		},
+		{
+			"name": "Spectrum PLA Premium HighSpeed @Revon",
+			"sub_path": "filament/Spectrum PLA Premium HighSpeed @Revon.json"
+		},
+		{
+			"name": "Spectrum PLA SILK @Revon",
+			"sub_path": "filament/Spectrum PLA SILK @Revon.json"
+		},
+		{
+			"name": "Sunlu ABS @Revon",
+			"sub_path": "filament/Sunlu ABS @Revon.json"
+		},
+		{
+			"name": "Sunlu High Speed PLA @Revon",
+			"sub_path": "filament/Sunlu High Speed PLA @Revon.json"
+		},
+		{
+			"name": "Sunlu PETG 2.0 @Revon",
+			"sub_path": "filament/Sunlu PETG 2.0 @Revon.json"
+		},
+		{
+			"name": "Sunlu PETG @Revon",
+			"sub_path": "filament/Sunlu PETG @Revon.json"
+		},
+		{
+			"name": "Sunlu PLA @Revon",
+			"sub_path": "filament/Sunlu PLA @Revon.json"
+		},
+		{
+			"name": "Sunlu PLA Matte @Revon",
+			"sub_path": "filament/Sunlu PLA Matte @Revon.json"
+		},
+		{
+			"name": "Sunlu PLA+ 2.0 @Revon",
+			"sub_path": "filament/Sunlu PLA+ 2.0 @Revon.json"
+		},
+		{
+			"name": "Sunlu PLA+ @Revon",
+			"sub_path": "filament/Sunlu PLA+ @Revon.json"
+		},
+		{
+			"name": "Sunlu PLA-Meta @Revon",
+			"sub_path": "filament/Sunlu PLA-Meta @Revon.json"
+		},
+		{
+			"name": "Sunlu Silk PLA+ @Revon",
+			"sub_path": "filament/Sunlu Silk PLA+ @Revon.json"
+		},
+		{
+			"name": "The Filament ASA @Revon",
+			"sub_path": "filament/The Filament ASA @Revon.json"
+		},
+		{
+			"name": "The Filament HT-PLA @Revon",
+			"sub_path": "filament/The Filament HT-PLA @Revon.json"
+		},
+		{
+			"name": "The Filament PETG @Revon",
+			"sub_path": "filament/The Filament PETG @Revon.json"
+		},
+		{
+			"name": "The Filament PETG CF @Revon",
+			"sub_path": "filament/The Filament PETG CF @Revon.json"
+		},
+		{
+			"name": "The Filament PETG Lite @Revon",
+			"sub_path": "filament/The Filament PETG Lite @Revon.json"
+		},
+		{
+			"name": "The Filament PLA @Revon",
+			"sub_path": "filament/The Filament PLA @Revon.json"
+		},
+		{
+			"name": "The Filament PLA CF @Revon",
+			"sub_path": "filament/The Filament PLA CF @Revon.json"
+		},
+		{
+			"name": "The Filament PLA HS @Revon",
+			"sub_path": "filament/The Filament PLA HS @Revon.json"
+		},
+		{
+			"name": "The Filament PLA Lite @Revon",
+			"sub_path": "filament/The Filament PLA Lite @Revon.json"
+		},
+		{
+			"name": "The Filament PLA Matte @Revon",
+			"sub_path": "filament/The Filament PLA Matte @Revon.json"
+		},
+		{
+			"name": "Verbatim ABS @Revon",
+			"sub_path": "filament/Verbatim ABS @Revon.json"
+		},
+		{
+			"name": "Verbatim PETG @Revon",
+			"sub_path": "filament/Verbatim PETG @Revon.json"
+		},
+		{
+			"name": "Verbatim PLA @Revon",
+			"sub_path": "filament/Verbatim PLA @Revon.json"
+		},
+		{
+			"name": "Verbatim PP @Revon",
+			"sub_path": "filament/Verbatim PP @Revon.json"
+		},
+		{
+			"name": "colorFabb ASA @Revon",
+			"sub_path": "filament/colorFabb ASA @Revon.json"
+		},
+		{
+			"name": "colorFabb CPE @Revon",
+			"sub_path": "filament/colorFabb CPE @Revon.json"
+		},
+		{
+			"name": "colorFabb Economy PLA @Revon",
+			"sub_path": "filament/colorFabb Economy PLA @Revon.json"
+		},
+		{
+			"name": "colorFabb High Speed PLA @Revon",
+			"sub_path": "filament/colorFabb High Speed PLA @Revon.json"
+		},
+		{
+			"name": "colorFabb Matte PLA @Revon",
+			"sub_path": "filament/colorFabb Matte PLA @Revon.json"
+		},
+		{
+			"name": "colorFabb PETG @Revon",
+			"sub_path": "filament/colorFabb PETG @Revon.json"
+		},
+		{
+			"name": "colorFabb PHA @Revon",
+			"sub_path": "filament/colorFabb PHA @Revon.json"
+		},
+		{
+			"name": "colorFabb PHA PLA @Revon",
+			"sub_path": "filament/colorFabb PHA PLA @Revon.json"
+		},
+		{
+			"name": "colorFabb TPU @Revon",
+			"sub_path": "filament/colorFabb TPU @Revon.json"
+		},
+		{
+			"name": "colorFabb r-Semi PLA @Revon",
+			"sub_path": "filament/colorFabb r-Semi PLA @Revon.json"
+		},
+		{
+			"name": "eSun ABS+ @Revon",
+			"sub_path": "filament/eSun ABS+ @Revon.json"
+		},
+		{
+			"name": "eSun PETG @Revon",
+			"sub_path": "filament/eSun PETG @Revon.json"
+		},
+		{
+			"name": "eSun PETG+HS @Revon",
+			"sub_path": "filament/eSun PETG+HS @Revon.json"
+		},
+		{
+			"name": "eSun PETG-Matte @Revon",
+			"sub_path": "filament/eSun PETG-Matte @Revon.json"
+		},
+		{
+			"name": "eSun PLA+ @Revon",
+			"sub_path": "filament/eSun PLA+ @Revon.json"
+		},
+		{
+			"name": "eSun PLA-Basic @Revon",
+			"sub_path": "filament/eSun PLA-Basic @Revon.json"
+		},
+		{
+			"name": "eSun PLA-HS @Revon",
+			"sub_path": "filament/eSun PLA-HS @Revon.json"
+		},
+		{
+			"name": "eSun PLA-Matte @Revon",
+			"sub_path": "filament/eSun PLA-Matte @Revon.json"
+		},
+		{
+			"name": "eSun PLA-Silk Magic @Revon",
+			"sub_path": "filament/eSun PLA-Silk Magic @Revon.json"
+		},
+		{
+			"name": "eSun TPU-95A @Revon",
+			"sub_path": "filament/eSun TPU-95A @Revon.json"
+		},
+		{
+			"name": "extrudr Basic PLA @Revon",
+			"sub_path": "filament/extrudr Basic PLA @Revon.json"
+		},
+		{
+			"name": "extrudr DuraPro ABS @Revon",
+			"sub_path": "filament/extrudr DuraPro ABS @Revon.json"
+		},
+		{
+			"name": "extrudr DuraPro ASA @Revon",
+			"sub_path": "filament/extrudr DuraPro ASA @Revon.json"
+		},
+		{
+			"name": "extrudr DuraPro ASA GF @Revon",
+			"sub_path": "filament/extrudr DuraPro ASA GF @Revon.json"
+		},
+		{
+			"name": "extrudr FLEX Medium TPU @Revon",
+			"sub_path": "filament/extrudr FLEX Medium TPU @Revon.json"
+		},
+		{
+			"name": "extrudr GreenTEC PLA @Revon",
+			"sub_path": "filament/extrudr GreenTEC PLA @Revon.json"
+		},
+		{
+			"name": "extrudr GreenTEC Pro PLA @Revon",
+			"sub_path": "filament/extrudr GreenTEC Pro PLA @Revon.json"
+		},
+		{
+			"name": "extrudr PCTG @Revon",
+			"sub_path": "filament/extrudr PCTG @Revon.json"
+		},
+		{
+			"name": "extrudr PETG @Revon",
+			"sub_path": "filament/extrudr PETG @Revon.json"
+		},
+		{
+			"name": "extrudr PLA NX2 Matt @Revon",
+			"sub_path": "filament/extrudr PLA NX2 Matt @Revon.json"
 		}
 	]
 }

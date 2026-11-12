@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "FiberThree F3 PA-GF30 @Revon",
+	"inherits": "Generic PA @System",
+	"from": "system",
+	"setting_id": "K448plaBrZZeLwuO",
+	"filament_id": "OFhLcEtZ",
+	"instantiation": "true",
+	"filament_vendor": [
+		"FiberThree"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"280",
+		"280",
+		"280",
+		"280",
+		"280",
+		"280"
+	],
+	"nozzle_temperature_initial_layer": [
+		"285",
+		"285",
+		"285",
+		"285",
+		"285",
+		"285"
+	],
+	"nozzle_temperature_range_low": [
+		"270",
+		"270",
+		"270",
+		"270",
+		"270",
+		"270"
+	],
+	"nozzle_temperature_range_high": [
+		"285",
+		"285",
+		"285",
+		"285",
+		"285",
+		"285"
+	],
+	"hot_plate_temp": [
+		"80"
+	],
+	"hot_plate_temp_initial_layer": [
+		"80"
+	],
+	"textured_plate_temp": [
+		"80"
+	],
+	"textured_plate_temp_initial_layer": [
+		"80"
+	],
+	"filament_density": [
+		"1.35"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 270–285 °C, stół 0–80 °C.\nKarta techniczna: http://fiberthree.com/downloads/tdb/filaments/TDS_F3_PA_GF30_Pro_English_vers12_2024.pdf\nŹródło: Open Filament Database."
+	]
+}

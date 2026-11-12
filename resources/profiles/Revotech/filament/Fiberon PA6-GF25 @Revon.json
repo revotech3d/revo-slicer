@@ -1,0 +1,103 @@
+{
+	"type": "filament",
+	"name": "Fiberon PA6-GF25 @Revon",
+	"inherits": "Generic PA @System",
+	"from": "system",
+	"setting_id": "8Sf7PIjGAEwhhzJ3",
+	"filament_id": "OF5B9sUc",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Polymaker"
+	],
+	"filament_type": [
+		"PA-GF"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"290",
+		"290",
+		"290",
+		"290",
+		"290",
+		"290"
+	],
+	"nozzle_temperature_initial_layer": [
+		"295",
+		"295",
+		"295",
+		"295",
+		"295",
+		"295"
+	],
+	"nozzle_temperature_range_low": [
+		"280",
+		"280",
+		"280",
+		"280",
+		"280",
+		"280"
+	],
+	"nozzle_temperature_range_high": [
+		"300",
+		"300",
+		"300",
+		"300",
+		"300",
+		"300"
+	],
+	"hot_plate_temp": [
+		"45"
+	],
+	"hot_plate_temp_initial_layer": [
+		"50"
+	],
+	"textured_plate_temp": [
+		"45"
+	],
+	"textured_plate_temp_initial_layer": [
+		"50"
+	],
+	"fan_max_speed": [
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0"
+	],
+	"fan_min_speed": [
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0"
+	],
+	"filament_density": [
+		"1.2"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 280–300 °C, stół 40–50 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0548/7299/7945/files/TDS_FIBERON_PA6-GF25_V1.1_EN.pdf?v=1733846089\nŹródło: Open Filament Database."
+	]
+}

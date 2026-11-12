@@ -1,0 +1,64 @@
+{
+	"type": "filament",
+	"name": "FiberThree TPU F3 80A @Revon",
+	"inherits": "Generic TPU @System",
+	"from": "system",
+	"setting_id": "pFtmE0yDQcF5jeXK",
+	"filament_id": "OF7hKIAm",
+	"instantiation": "true",
+	"filament_vendor": [
+		"FiberThree"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"230",
+		"230"
+	],
+	"nozzle_temperature_initial_layer": [
+		"235",
+		"235"
+	],
+	"nozzle_temperature_range_low": [
+		"220",
+		"220"
+	],
+	"nozzle_temperature_range_high": [
+		"240",
+		"240"
+	],
+	"filament_density": [
+		"1.09"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"4",
+		"4"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 220–240 °C.\nKarta techniczna: http://fiberthree.com/downloads/tdb/filaments/TDS_F3_TPU_80A_English_vers_12_2024.pdf\nŹródło: Open Filament Database."
+	]
+}

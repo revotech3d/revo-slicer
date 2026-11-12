@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "Prusament PC-CF @Revon",
+	"inherits": "Generic PC @System",
+	"from": "system",
+	"setting_id": "JiriyvK4r7wwPMAl",
+	"filament_id": "OFsTmJ2M",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Prusament"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"285",
+		"285",
+		"285",
+		"285",
+		"285",
+		"285"
+	],
+	"nozzle_temperature_initial_layer": [
+		"290",
+		"290",
+		"290",
+		"290",
+		"290",
+		"290"
+	],
+	"nozzle_temperature_range_low": [
+		"275",
+		"275",
+		"275",
+		"275",
+		"275",
+		"275"
+	],
+	"nozzle_temperature_range_high": [
+		"295",
+		"295",
+		"295",
+		"295",
+		"295",
+		"295"
+	],
+	"hot_plate_temp": [
+		"110"
+	],
+	"hot_plate_temp_initial_layer": [
+		"115"
+	],
+	"textured_plate_temp": [
+		"110"
+	],
+	"textured_plate_temp_initial_layer": [
+		"115"
+	],
+	"filament_density": [
+		"1.22"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 275–295 °C, stół 100–120 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: https://prusament.com/wp-content/uploads/2023/04/TDS_Prusament-PCCF_2023_EN.pdf\nŹródło: Open Filament Database."
+	]
+}

@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "Bambu Lab PLA Silk Dual Color @Revon",
+	"inherits": "Generic PLA Silk @System",
+	"from": "system",
+	"setting_id": "sA1VkuAZHZsRF9la",
+	"filament_id": "OFywmFiI",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Bambu Lab"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"225",
+		"225"
+	],
+	"nozzle_temperature_initial_layer": [
+		"230",
+		"230"
+	],
+	"nozzle_temperature_range_low": [
+		"210",
+		"210"
+	],
+	"nozzle_temperature_range_high": [
+		"240",
+		"240"
+	],
+	"hot_plate_temp": [
+		"40"
+	],
+	"hot_plate_temp_initial_layer": [
+		"45"
+	],
+	"textured_plate_temp": [
+		"40"
+	],
+	"textured_plate_temp_initial_layer": [
+		"45"
+	],
+	"fan_max_speed": [
+		"100",
+		"100"
+	],
+	"fan_min_speed": [
+		"100",
+		"100"
+	],
+	"filament_density": [
+		"1.32"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"25",
+		"50"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 210–240 °C, stół 35–45 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0584/7236/6216/files/Bambu_PLA_Silk_Dual_Color_Technical_Data_Sheet.pdf?v=1709276099\nŹródło: Open Filament Database."
+	]
+}

@@ -1,0 +1,72 @@
+{
+	"type": "filament",
+	"name": "FiberThree F3 PA Ortho @Revon",
+	"inherits": "Generic PA @System",
+	"from": "system",
+	"setting_id": "UqJw1aoGPLAdwEZD",
+	"filament_id": "OFWVdvCv",
+	"instantiation": "true",
+	"filament_vendor": [
+		"FiberThree"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"260",
+		"260",
+		"260",
+		"260",
+		"260",
+		"260"
+	],
+	"nozzle_temperature_initial_layer": [
+		"265",
+		"265",
+		"265",
+		"265",
+		"265",
+		"265"
+	],
+	"nozzle_temperature_range_low": [
+		"250",
+		"250",
+		"250",
+		"250",
+		"250",
+		"250"
+	],
+	"nozzle_temperature_range_high": [
+		"270",
+		"270",
+		"270",
+		"270",
+		"270",
+		"270"
+	],
+	"filament_density": [
+		"1.2"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 250–270 °C.\nKarta techniczna: http://fiberthree.com/downloads/tdb/filaments/TDS_F3_PA_Ortho_English_vers_12_2024.pdf\nŹródło: Open Filament Database."
+	]
+}

@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Fiberlogy TPU FiberFlex 30D @Revon",
+	"inherits": "Generic TPU @System",
+	"from": "system",
+	"setting_id": "7ljpAwjGXi5HHRRY",
+	"filament_id": "OFncCg1t",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Fiberlogy"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"210",
+		"210"
+	],
+	"nozzle_temperature_initial_layer": [
+		"215",
+		"215"
+	],
+	"nozzle_temperature_range_low": [
+		"200",
+		"200"
+	],
+	"nozzle_temperature_range_high": [
+		"220",
+		"220"
+	],
+	"hot_plate_temp": [
+		"45"
+	],
+	"hot_plate_temp_initial_layer": [
+		"50"
+	],
+	"textured_plate_temp": [
+		"45"
+	],
+	"textured_plate_temp_initial_layer": [
+		"50"
+	],
+	"filament_density": [
+		"1.07"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"4",
+		"4"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 200–220 °C, stół 30–60 °C.\nKarta techniczna: https://fiberlogy.com/app/uploads/2026/05/FIBERLOGY_FIBERFLEX30D_TDS.pdf\nŹródło: Open Filament Database."
+	]
+}

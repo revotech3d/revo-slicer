@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "Bambu Lab PETG Basic @Revon",
+	"inherits": "Generic PETG @System",
+	"from": "system",
+	"setting_id": "IQEuNIsbckGvK3CT",
+	"filament_id": "OFUuQy1U",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Bambu Lab"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"245",
+		"245"
+	],
+	"nozzle_temperature_initial_layer": [
+		"250",
+		"250"
+	],
+	"nozzle_temperature_range_low": [
+		"230",
+		"230"
+	],
+	"nozzle_temperature_range_high": [
+		"260",
+		"260"
+	],
+	"hot_plate_temp": [
+		"70"
+	],
+	"hot_plate_temp_initial_layer": [
+		"75"
+	],
+	"textured_plate_temp": [
+		"70"
+	],
+	"textured_plate_temp_initial_layer": [
+		"75"
+	],
+	"fan_max_speed": [
+		"40",
+		"40"
+	],
+	"fan_min_speed": [
+		"20",
+		"20"
+	],
+	"filament_density": [
+		"1.25"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"21",
+		"26"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 230–260 °C, stół 65–75 °C.\nKarta techniczna: https://store.bblcdn.com/s1/default/cb94589bf7994fdcbfa833badefae9cd/Bambu_PETG_Basic_Technical_Data_Sheet.pdf\nŹródło: Open Filament Database."
+	]
+}

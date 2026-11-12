@@ -1,0 +1,76 @@
+{
+	"type": "filament",
+	"name": "Fiberlogy ABS @Revon",
+	"inherits": "Generic ABS @System",
+	"from": "system",
+	"setting_id": "mLYSh3TR1WN9lbLA",
+	"filament_id": "OFboPhFp",
+	"instantiation": "true",
+	"filament_vendor": [
+		"Fiberlogy"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"260",
+		"260"
+	],
+	"nozzle_temperature_initial_layer": [
+		"265",
+		"265"
+	],
+	"nozzle_temperature_range_low": [
+		"250",
+		"250"
+	],
+	"nozzle_temperature_range_high": [
+		"265",
+		"265"
+	],
+	"hot_plate_temp": [
+		"100"
+	],
+	"hot_plate_temp_initial_layer": [
+		"105"
+	],
+	"textured_plate_temp": [
+		"100"
+	],
+	"textured_plate_temp_initial_layer": [
+		"105"
+	],
+	"filament_density": [
+		"1.05"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"24",
+		"31"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 250–265 °C, stół 90–110 °C.\nKarta techniczna: https://fiberlogy.com/app/uploads/2026/07/FIBERLOGY_ABS_TDS.pdf\nŹródło: Open Filament Database."
+	]
+}

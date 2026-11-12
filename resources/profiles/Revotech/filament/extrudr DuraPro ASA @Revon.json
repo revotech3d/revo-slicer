@@ -1,0 +1,84 @@
+{
+	"type": "filament",
+	"name": "extrudr DuraPro ASA @Revon",
+	"inherits": "Generic ASA @System",
+	"from": "system",
+	"setting_id": "w9oKSwIyFFmw6kug",
+	"filament_id": "OFCTNv9e",
+	"instantiation": "true",
+	"filament_vendor": [
+		"extrudr"
+	],
+	"compatible_printers": [
+		"Revon 1200x600x500 0.4 nozzle",
+		"Revon 1200x600x500 0.6 nozzle",
+		"Revon 1200x600x500 0.8 nozzle",
+		"Revon 1200x600x500 1.0 nozzle",
+		"Revon 1200x600x500 1.2 nozzle",
+		"Revon 600x600x400 0.4 nozzle",
+		"Revon 600x600x400 0.6 nozzle",
+		"Revon 600x600x400 0.8 nozzle",
+		"Revon 600x600x400 1.0 nozzle",
+		"Revon 600x600x400 1.2 nozzle",
+		"Revon 600x600x600 0.4 nozzle",
+		"Revon 600x600x600 0.6 nozzle",
+		"Revon 600x600x600 0.8 nozzle",
+		"Revon 600x600x600 1.0 nozzle",
+		"Revon 600x600x600 1.2 nozzle",
+		"Revon Belt 350x350x300 0.4 nozzle",
+		"Revon Belt 350x350x300 0.6 nozzle",
+		"Revon Belt 350x350x300 0.8 nozzle",
+		"Revon Belt 350x350x300 1.0 nozzle",
+		"Revon Belt 350x350x300 1.2 nozzle"
+	],
+	"nozzle_temperature": [
+		"245",
+		"245"
+	],
+	"nozzle_temperature_initial_layer": [
+		"250",
+		"250"
+	],
+	"nozzle_temperature_range_low": [
+		"220",
+		"220"
+	],
+	"nozzle_temperature_range_high": [
+		"270",
+		"270"
+	],
+	"hot_plate_temp": [
+		"105"
+	],
+	"hot_plate_temp_initial_layer": [
+		"110"
+	],
+	"textured_plate_temp": [
+		"105"
+	],
+	"textured_plate_temp_initial_layer": [
+		"110"
+	],
+	"fan_max_speed": [
+		"30",
+		"30"
+	],
+	"fan_min_speed": [
+		"0",
+		"0"
+	],
+	"filament_density": [
+		"1.05"
+	],
+	"filament_extruder_variant": [
+		"Direct Drive Standard",
+		"Direct Drive High Flow"
+	],
+	"filament_max_volumetric_speed": [
+		"24",
+		"31"
+	],
+	"filament_notes": [
+		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 220–270 °C, stół 100–110 °C.\nKarta techniczna: https://s3.extrudr.com/extrudr-media/datasheets/tds/tds-en/durapro-asa-TDS-en.pdf\nŹródło: Open Filament Database."
+	]
+}
