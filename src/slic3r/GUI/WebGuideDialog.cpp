@@ -126,6 +126,7 @@ static json guide_strings()
         {"new_vendors_installed", _u8L("New printer vendors installed: %s")},
         {"vendors_declined", _u8L("New printer vendors were found, but installation was cancelled.")},
         {"no_new_printers", _u8L("No new printers found.")},
+        {"printers_up_to_date", _u8L("Your Revon printer list is up to date. New printers arrive with [r]evo Slicer updates.")},
         {"filament_selection", _u8L("Filament Selection")},
         {"system_filaments", _u8L("System Filaments")},
         {"custom_filaments", _u8L("Custom Filaments")},
@@ -696,7 +697,13 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             else
                 response["sequence_id"] = "";
 
-            if (!m_MainPtr->preset_updater) {
+            // [r]evo: profile Revon są w aplikacji i aktualizują się razem z [r]evo Slicer – bez pytania
+            // zewnętrznych serwerów; od razu informacja, że lista drukarek jest aktualna.
+            if (true) {
+                response["uptodate"] = true;
+                wxString strJS = wxString::Format("HandleStudio(%s)", response.dump(-1, ' ', true));
+                wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
+            } else if (!m_MainPtr->preset_updater) {
                 response["error"] = _u8L("Printer update service is unavailable.");
                 wxString strJS = wxString::Format("HandleStudio(%s)", response.dump(-1, ' ', true));
                 wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });

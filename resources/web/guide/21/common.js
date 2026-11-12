@@ -55,6 +55,9 @@ function HandleStudio( pVal )
 		} else if (pVal["vendors"] && pVal["vendors"].length > 0) {
 			noticeBar.textContent = T("new_printers_found", "New printers found");
 			noticeText.textContent = T("new_vendors_installed", "New printer vendors installed: %s", pVal["vendors"].join(", "));
+		} else if (pVal["uptodate"]) {
+			noticeBar.textContent = T("information", "Information");
+			noticeText.textContent = T("printers_up_to_date", "Your Revon printer list is up to date. New printers arrive with [r]evo Slicer updates.");
 		} else if (pVal["declined"]) {
 			noticeBar.textContent = T("information", "Information");
 			noticeText.textContent = T("vendors_declined", "New printer vendors were found, but installation was cancelled.");
