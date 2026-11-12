@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <atomic>
+#include <functional>
+#include <memory>
 #include <mutex>
 #include <thread>
 #include <cmath>
@@ -12,6 +14,7 @@
 #include <string>
 #include <vector>
 
+#include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
 #include <wx/image.h>
@@ -375,7 +378,9 @@ std::string local_ipv4()
 }
 
 // Pyta /revo/sesja/odkryj (agent Revo, bez logowania) pod revon.local i pod każdym adresem sieci /24 tego komputera.
-std::vector<FoundPrinter> discover_printers()
+// Pyta /revo/sesja/odkryj (agent Revo, bez logowania) pod revon.local i pod każdym adresem sieci /24 tego komputera.
+// Działa w wątkach roboczych: on_found dostaje każdą maszynę od razu (raz na numer seryjny), stop przerywa szukanie.
+void discover_printers(const std::function<void(const FoundPrinter&)>& on_found, const std::shared_ptr<std::atomic<bool>>& stop)
 {
     std::vector<std::string> hosts{"revon.local"};
     const std::string        me = local_ipv4();
@@ -385,11 +390,11 @@ std::vector<FoundPrinter> discover_printers()
             if (me.substr(dot + 1) != std::to_string(i))
                 hosts.push_back(me.substr(0, dot + 1) + std::to_string(i));
 
-    std::vector<FoundPrinter> out;
-    std::mutex                mtx;
-    std::atomic<size_t>       next{0};
-    auto                      worker = [&] {
-        for (size_t i; (i = next++) < hosts.size();) {
+    std::vector<std::string> seen;
+    std::mutex               mtx;
+    std::atomic<size_t>      next{0};
+    auto                     worker = [&] {
+        for (size_t i; !*stop && (i = next++) < hosts.size();) {
             const std::string h = hosts[i];
             Http::get("http://" + h + "/revo/sesja/odkryj")
                 .timeout_connect(1)
@@ -405,13 +410,13 @@ std::vector<FoundPrinter> discover_printers()
                         f.model  = j.value("model", "");
                         f.state  = j.value("state", "");
                         f.nozzle = j.contains("dysza") && j["dysza"].is_number() ? j["dysza"].get<double>() : 0;
-                        std::lock_guard<std::mutex> l(mtx);
-                        // revon.local i jego IP to ta sama maszyna – zostaje jeden wpis (z IP)
-                        auto it = std::find_if(out.begin(), out.end(), [&](const FoundPrinter& o) { return o.id == f.id; });
-                        if (it == out.end())
-                            out.push_back(f);
-                        else if (it->ip == "revon.local")
-                            it->ip = f.ip;
+                        {
+                            std::lock_guard<std::mutex> l(mtx);
+                            if (std::find(seen.begin(), seen.end(), f.id) != seen.end())
+                                return; // revon.local i jego IP to ta sama maszyna
+                            seen.push_back(f.id);
+                        }
+                        on_found(f);
                     } catch (...) {}
                 })
                 .perform_sync();
@@ -422,8 +427,6 @@ std::vector<FoundPrinter> discover_printers()
         pool.emplace_back(worker);
     for (auto& t : pool)
         t.join();
-    std::sort(out.begin(), out.end(), [](const FoundPrinter& a, const FoundPrinter& b) { return a.id < b.id; });
-    return out;
 }
 
 wxString model_name(const std::string& m)
@@ -515,13 +518,18 @@ public:
         auto* card = new wxBoxSizer(wxHORIZONTAL);
         m_thumb    = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
         m_found    = new wxStaticText(this, wxID_ANY, _L("Searching for printers in your network…"));
-        auto* again = new wxButton(this, wxID_ANY, _L("Search again"));
-        again->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { search(); });
+        m_choose = new wxButton(this, wxID_ANY, _L("Choose printer"));
+        m_choose->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { choose(); });
+        m_choose->Hide();
+        m_again = new wxButton(this, wxID_ANY, _L("Search again"));
+        m_again->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { search(); });
         card->Add(m_thumb, 0, wxRIGHT, FromDIP(12));
         card->Add(m_found, 1, wxALIGN_CENTER_VERTICAL);
-        card->Add(again, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+        card->Add(m_choose, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+        card->Add(m_again, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
         s->Add(card, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(16));
         m_host  = new wxTextCtrl(this, wxID_ANY, "revon.local");
+        m_host->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { m_host_typed = !m_setting_host; e.Skip(); });
         m_login = new wxTextCtrl(this, wxID_ANY);
         m_pin   = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
         m_login->SetHint(_L("Manager login (optional)"));
@@ -540,34 +548,84 @@ public:
         CallAfter([this] { search(); });
     }
 
+public:
+    ~ConnectWizard() override { *m_stop = true; } // wątek szukania kończy się sam, wyniki do zamkniętego okna nie trafią
+
 private:
+    // Szukanie w tle: okno działa, znalezione drukarki pojawiają się na bieżąco.
     void search()
     {
-        m_found->SetLabel(_L("Searching for printers in your network…"));
+        *m_stop = true; // poprzednie szukanie (jeśli trwa) przestaje zgłaszać wyniki
+        m_stop  = std::make_shared<std::atomic<bool>>(false);
+        m_list.clear();
+        m_chosen = false;
+        m_choose->Hide();
+        m_again->Disable();
         m_thumb->SetBitmap(wxNullBitmap);
-        Layout();
-        Update();
-        std::vector<FoundPrinter> list;
-        {
-            wxBusyCursor busy;
-            list = discover_printers();
+        show_label(_L("Searching for printers in your network…"));
+        // wyniki wracają do wątku GUI; okno sprawdzamy flagą stop (ustawia ją destruktor, też w wątku GUI)
+        ConnectWizard* self = this;
+        auto           stop = m_stop;
+        std::thread([self, stop] {
+            discover_printers(
+                [self, stop](const FoundPrinter& f) {
+                    wxTheApp->CallAfter([self, stop, f] { if (!*stop) self->on_found(f); });
+                },
+                stop);
+            wxTheApp->CallAfter([self, stop] { if (!*stop) self->on_done(); });
+        }).detach();
+    }
+
+    void on_found(const FoundPrinter& f)
+    {
+        m_list.push_back(f);
+        if (m_list.size() == 1)
+            show_printer(0); // pierwsza znaleziona od razu gotowa do połączenia
+        else if (!m_chosen) {
+            m_thumb->SetBitmap(wxNullBitmap);
+            show_label(format_wxstr(_L_PLURAL("Found %1% printer.", "Found %1% printers.", m_list.size()), m_list.size()));
+            m_choose->Show();
+            Layout();
+            Fit();
         }
-        int sel = list.size() == 1 ? 0 : -1;
-        if (list.size() > 1) {
-            PickPrinterDialog dlg(this, list);
-            if (dlg.ShowModal() == wxID_OK)
-                sel = dlg.selection();
+    }
+
+    void on_done()
+    {
+        m_again->Enable();
+        if (m_list.empty())
+            show_label(_L("No printer found. Check that the printer is on and in the same network, or enter its address."));
+        else if (m_list.size() > 1 && !m_chosen)
+            choose();
+    }
+
+    void choose()
+    {
+        std::sort(m_list.begin(), m_list.end(), [](const FoundPrinter& a, const FoundPrinter& b) { return a.id < b.id; });
+        PickPrinterDialog dlg(this, m_list);
+        if (dlg.ShowModal() == wxID_OK && dlg.selection() >= 0) {
+            m_chosen = true;
+            show_printer(dlg.selection());
         }
-        if (list.empty())
-            m_found->SetLabel(_L("No printer found. Check that the printer is on and in the same network, or enter its address."));
-        else if (sel < 0)
-            m_found->SetLabel(format_wxstr(_L_PLURAL("Found %1% printer – click Search again to choose.", "Found %1% printers – click Search again to choose.", list.size()), list.size()));
-        else {
-            m_host->SetValue(from_u8(list[sel].ip));
-            m_thumb->SetBitmap(model_thumb(this, list[sel].model));
-            m_found->SetLabel(card_text(list[sel]));
+    }
+
+    void show_printer(int i)
+    {
+        const FoundPrinter& f = m_list[i];
+        if (!m_host_typed) { // adresu wpisanego ręcznie nie nadpisujemy
+            m_setting_host = true;
+            m_host->SetValue(from_u8(f.ip));
+            m_setting_host = false;
         }
-        m_found->Wrap(FromDIP(330));
+        m_thumb->SetBitmap(model_thumb(this, f.model));
+        m_choose->Show(m_list.size() > 1);
+        show_label(card_text(f));
+    }
+
+    void show_label(const wxString& t)
+    {
+        m_found->SetLabel(t);
+        m_found->Wrap(FromDIP(300));
         Layout();
         Fit();
     }
@@ -720,6 +778,10 @@ private:
     wxStaticText*   m_err;
     wxStaticText*   m_found;
     wxStaticBitmap* m_thumb;
+    wxButton *      m_choose, *m_again;
+    std::vector<FoundPrinter>          m_list;
+    std::shared_ptr<std::atomic<bool>> m_stop = std::make_shared<std::atomic<bool>>(false);
+    bool                               m_chosen = false, m_host_typed = false, m_setting_host = false;
 };
 
 } // namespace
