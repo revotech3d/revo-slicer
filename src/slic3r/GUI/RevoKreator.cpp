@@ -679,7 +679,7 @@ public:
         m_serial = label(this, spaced(from_u8(f.id)), 9, kMuted);
         nc->Add(m_name);
         nc->Add(m_serial, 0, wxTOP, FromDIP(2));
-        nc->SetMinSize(wxSize(FromDIP(230), -1));
+        nc->SetMinSize(wxSize(FromDIP(210), -1));
         row->Add(nc, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(18));
         auto field = [&](const wxString& cap, int min_w) {
             auto* c = new wxBoxSizer(wxVERTICAL);
@@ -690,10 +690,10 @@ public:
             row->Add(c, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
             return v;
         };
-        m_status = field(_L("Status"), 150);
+        m_status = field(_L("Status"), 140);
         m_nozzle = field(_L("Nozzle"), 70);
-        m_build  = field(_L("Build"), 120);
-        m_addr   = field(_L("Address"), 110);
+        m_build  = field(_L("Build"), 110);
+        m_addr   = field(_L("Address"), 120);
         row->AddStretchSpacer();
         m_action = new wxBoxSizer(wxVERTICAL);
         row->Add(m_action, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
@@ -794,7 +794,7 @@ public:
         m_list = new wxScrolledWindow(this, wxID_ANY);
         m_list->SetBackgroundColour(kBg);
         m_list->SetScrollRate(0, FromDIP(10));
-        m_list->SetMinSize(FromDIP(wxSize(900, 250)));
+        m_list->SetMinSize(FromDIP(wxSize(1060, 260))); // cały wiersz z DOCK widoczny bez rozciągania okna
         m_list_sizer = new wxBoxSizer(wxVERTICAL);
         m_list->SetSizer(m_list_sizer);
         s->Add(m_list, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
@@ -887,6 +887,12 @@ private:
         m_list_sizer->Add(r, 0, wxEXPAND);
         m_list->FitInside();
         m_list->Layout();
+        // okno rośnie, gdy wiersz (np. długi adres) nie mieści się w całości – DOCK zawsze widoczny
+        if (const int extra = m_list_sizer->GetMinSize().x - m_list->GetClientSize().x; extra > 0) {
+            SetMinSize(wxSize(GetMinSize().x + extra, GetMinSize().y));
+            SetSize(wxSize(GetSize().x + extra, GetSize().y));
+            Layout();
+        }
         m_horizon->flash();
         update_sub();
     }
