@@ -41,6 +41,7 @@
 #include "libslic3r/Flow.hpp"
 #include "libslic3r/Utils.hpp"
 #include "Plater.hpp"
+#include <wx/dcbuffer.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -63,6 +64,63 @@ int GetTextMax(wxWindow* parent, const std::vector<wxString>& labels)
     for (wxString label : labels)
         text_size.IncTo(parent->GetTextExtent(label));
     return text_size.x + parent->FromDIP(10);
+}
+
+
+// [r]evo: launch-style header for calibration dialogs - test graphic, three steps, time and filament.
+void add_revo_header(wxWindow* dlg, wxBoxSizer* v_sizer, const wxString& kicker, const wxString& title,
+                     const std::string& svg, const std::vector<wxString>& steps, const wxString& meta)
+{
+    auto panel = new wxPanel(dlg, wxID_ANY);
+    panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    panel->SetMinSize(dlg->FromDIP(wxSize(760, 250)));
+    wxBitmap bmp = create_scaled_bitmap(svg, dlg, 190);
+    panel->Bind(wxEVT_PAINT, [panel, bmp, kicker, title, steps, meta](wxPaintEvent&) {
+        wxAutoBufferedPaintDC dc(panel);
+        const wxSize sz = panel->GetClientSize();
+        const wxColour blue(90, 160, 255), gray(154, 164, 178), line(42, 47, 54);
+        dc.SetBackground(wxBrush(*wxBLACK));
+        dc.Clear();
+        const int pad = panel->FromDIP(14);
+        dc.SetTextForeground(gray);
+        dc.SetFont(Label::Body_12);
+        dc.DrawText(::Label::Spaced(kicker), pad, pad);
+        dc.SetTextForeground(*wxWHITE);
+        dc.SetFont(Label::Head_24);
+        dc.DrawText(::Label::Spaced(title), pad, pad + panel->FromDIP(16));
+        const int box_y = pad + panel->FromDIP(52);
+        const wxRect box(pad, box_y, sz.x - 2 * pad, sz.y - box_y - pad);
+        dc.SetPen(wxPen(line, 1));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle(box);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(blue));
+        dc.DrawRectangle(box.x, box.y, panel->FromDIP(3), box.height);
+        int x = box.x + panel->FromDIP(14);
+        if (bmp.IsOk()) {
+            dc.DrawBitmap(bmp, x, box.y + (box.height - bmp.GetScaledHeight()) / 2, true);
+            x += bmp.GetScaledWidth() + panel->FromDIP(18);
+        }
+        int y = box.y + panel->FromDIP(16);
+        const int wrap = box.GetRight() - x - pad;
+        for (size_t i = 0; i < steps.size(); ++i) {
+            dc.SetFont(Label::Head_14);
+            dc.SetTextForeground(blue);
+            dc.DrawText(wxString::Format("%02d", int(i + 1)), x, y);
+            dc.SetFont(Label::Body_14);
+            dc.SetTextForeground(wxColour(207, 214, 223));
+            wxString txt;
+            Label::split_lines(dc, wrap - panel->FromDIP(28), steps[i], txt);
+            dc.DrawText(txt, x + panel->FromDIP(28), y);
+            y += dc.GetMultiLineTextExtent(txt).y + panel->FromDIP(12);
+        }
+        dc.SetFont(Label::Body_12);
+        dc.SetTextForeground(gray);
+        dc.DrawText(::Label::Spaced(meta), x, y + panel->FromDIP(4));
+    });
+    dlg->SetBackgroundColour(*wxBLACK);
+    dlg->SetForegroundColour(wxColour(207, 214, 223));
+    v_sizer->Insert(0, panel, 0, wxEXPAND);
 }
 
 CheckBox* add_scale_checkbox(wxWindow* parent, wxSizer* settings_sizer)
@@ -150,6 +208,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Calibration"), _L("Pressure advance"), "revo_calib_pa", {_L("We print lines - pressure advance rises on each one."), _L("Look at the speed changes: find the line with no holes or gaps."), _L("Enter the value of that line.")}, _L("Time about 6 min · filament about 2 g"));
 
     // Extruder type Radio Group
     auto labeled_box_type = new LabeledStaticBox(this, _L("Extruder type"));
@@ -441,6 +500,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Calibration"), _L("Temperature tower"), "revo_calib_temp", {_L("We print a tower - each band is cooler than the one below."), _L("Look for clean bridges, no stringing and solid layers."), _L("Pick the best band and enter its temperature.")}, _L("Time about 25 min · filament about 8 g"));
 
     // Method Radio Group
     auto labeled_box_method = new LabeledStaticBox(this, _L("Filament type"));
@@ -676,6 +736,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Calibration"), _L("Max flow"), "revo_calib_mf", {_L("We print a tall wall - flow rises with height."), _L("The higher, the rougher: find where the wall starts to tear."), _L("Enter the last clean value, then go about a tenth lower.")}, _L("Time about 10 min · filament about 10 g"));
 
     // Settings
     wxString start_vol_str = _L("Start volumetric speed: ");
@@ -789,6 +850,7 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Advanced"), _L("VFA · wall ripples"), "revo_calib_vfa", {_L("We print a box - wall speed rises with height."), _L("Look at the walls in light: find bands with fine vertical ripples."), _L("Pick a speed band with a smooth wall and use it for outer walls.")}, _L("Time about 20 min · filament about 6 g"));
 
     // Settings
     wxString start_str    = _L("Start speed: ");
@@ -1051,6 +1113,7 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Calibration"), _L("Retraction tower"), "revo_calib_ret", {_L("We print two towers - retraction grows with height."), _L("Find the lowest band with no strings between the towers."), _L("Enter the retraction length of that band.")}, _L("Time about 15 min · filament about 4 g"));
 
     // Settings
     wxString start_length_str = _L("Start retraction length: ");
@@ -1170,6 +1233,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Advanced · Input shaping 1/2"), _L("Resonance frequency"), "revo_calib_isf", {_L("We print a wall with an opening - shaper frequency changes with height."), _L("Look right after the opening: echo lines repeat along its whole height."), _L("Pick the band with no echo and enter it for X and Y.")}, _L("Time about 20 min · filament about 6 g"));
 
     // Model selection
     auto labeled_box_model = new LabeledStaticBox(this, _L("Test model"));
@@ -1395,6 +1459,7 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Advanced · Input shaping 2/2"), _L("Damping"), "revo_calib_isd", {_L("Same wall with an opening - your frequency, damping rises with height."), _L("Find the band where the echo after the opening dies out fastest."), _L("Enter that damping value.")}, _L("Time about 20 min · filament about 6 g"));
 
     // Model selection
     auto labeled_box_model = new LabeledStaticBox(this, _L("Test model"));
@@ -1590,6 +1655,7 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Advanced"), _L("Cornering"), "revo_calib_cor", {_L("We print a box - corner speed (jerk) rises with height."), _L("Check the corners: too high gives bulges and ringing next to them."), _L("Pick the highest value with sharp, clean corners.")}, _L("Time about 15 min · filament about 5 g"));
 
     // Model selection
     auto labeled_box_model = new LabeledStaticBox(this, _L("Test model"));
@@ -1783,6 +1849,7 @@ FlowRateCalibrationDialog::FlowRateCalibrationDialog(wxWindow* parent, wxWindowI
 
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
+    add_revo_header(this, v_sizer, _L("Pre-flight · Calibration"), _L("Flow ratio"), "revo_calib_flow", {_L("We print test plates - each one with a different flow ratio."), _L("Find the plate with the smoothest top surface, no gaps and no ridges."), _L("Enter the value of that plate.")}, _L("Time about 15 min · filament about 10 g"));
 
     // Type selection
     auto labeled_box_type = new LabeledStaticBox(this, _L("Calibration Test Type"));
