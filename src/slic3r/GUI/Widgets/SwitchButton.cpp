@@ -281,9 +281,10 @@ ModeSwitchButton::ModeSwitchButton(wxWindow* parent, wxWindowID id)
 
     // [r]evo Slicer: poziomy Newbie / Pro / Monek
     // TRN [r]evo Slicer settings level name, keep in English
-    m_tooltips[0] = _L("Basic – essential settings");
+    m_tooltips[0] = _L("Beginner – essential settings");
     // TRN [r]evo Slicer settings level name, keep in English
     m_tooltips[1] = _L("Pro – all settings");
+    // [r]evo: tylko dwa poziomy – Beginner i Pro (wszystkie ustawienia)
     // TRN [r]evo Slicer: "Monek" is a proper name – the settings level with only the options Revotech recommends changing
     m_tooltips[2] = _L("Monek – settings recommended by Revotech");
     m_tooltips[4] = _L("Developer mode") + "\n" + _L("Launch troubleshoot center") + "...";
@@ -298,7 +299,7 @@ ModeSwitchButton::ModeSwitchButton(wxWindow* parent, wxWindowID id)
 
 void ModeSwitchButton::SetSelection(int selection)
 {
-    m_selection = std::clamp(selection, 0, 2);
+    m_selection = std::clamp(selection, 0, 1); // [r]evo: dwa poziomy
     update_tooltip();
     Refresh();
 }
@@ -309,7 +310,7 @@ void ModeSwitchButton::SelectAndNotify(int selection)
         return;
 
     SetSelection(selection);
-    Slic3r::GUI::wxGetApp().save_mode(m_selection == Slic3r::GUI::Revo::Monek::SELECTION ? Slic3r::GUI::Revo::Monek::MODE : m_selection == 1 ? Slic3r::comExpert : Slic3r::comSimple);
+    Slic3r::GUI::wxGetApp().save_mode(m_selection == 1 ? Slic3r::comExpert : Slic3r::comSimple);
 }
 
 void ModeSwitchButton::Rescale()
@@ -363,7 +364,7 @@ void ModeSwitchButton::doRender(wxDC& dc)
     dc.DrawRoundedRectangle(bounds, v_center);
 
     if (!m_dev_mode) {
-        double dot_dist = (bounds.width - bounds.height) * 0.50;
+        double dot_dist = (bounds.width - bounds.height); // [r]evo: dwa położenia
 
         // Track
         dc.SetPen(wxPen(track_border.colorForStates(states), 1));
@@ -374,7 +375,7 @@ void ModeSwitchButton::doRender(wxDC& dc)
 
         // Dots
         dc.SetPen(*wxTRANSPARENT_PEN);
-        for (int idx = 0; idx < 3; ++idx) {
+        for (int idx = 0; idx < 2; ++idx) {
             dc.SetBrush(wxBrush((idx <= m_selection ? dot_active : dot_dimmed).colorForStates(states)));
             dc.DrawCircle(wxPoint(v_center + dot_dist * idx, v_center), track_rc.height * (double)(idx == m_selection ? 0.32 : 0.16));
         }
@@ -465,7 +466,7 @@ int ModeSwitchButton::hit_test_selection(const wxPoint& point) const
 {
     const int width = std::max(1, GetClientSize().x);
     const int x = std::clamp(point.x, 0, width - 1);
-    return std::clamp((x * 3) / width, 0, 2);
+    return std::clamp((x * 2) / width, 0, 1);
 }
 
 wxRect ModeSwitchButton::thumb_rect_for(int selection) const

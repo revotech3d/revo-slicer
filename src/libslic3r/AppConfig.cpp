@@ -525,6 +525,8 @@ void AppConfig::set_defaults()
         set_bool("show_build_edgets", false);
     }
 
+    if (get("user_mode") == "monek") // [r]evo: poziom Monek wycofany – zostają Beginner i Pro
+        set("user_mode", "expert");
     if (get("revo_tips_off").empty()) { // [r]evo: porady dnia wyłączone (także u obecnych użytkowników, jednorazowo)
         set_bool("show_daily_tips", false);
         set("revo_tips_off", "1");
