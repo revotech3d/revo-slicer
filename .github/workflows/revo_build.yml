@@ -22,7 +22,19 @@ on:
         type: string
         default: ''
 jobs:
+  version_check:
+    name: Version matches version.inc
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.wydaj }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: REVO_SLICER_VERSION must equal the release version
+        run: |
+          v=$(grep 'set(REVO_SLICER_VERSION' version.inc | cut -d '"' -f2)
+          [ "$v" = "${{ inputs.wersja }}" ] || { echo "::error::version.inc has $v, release is ${{ inputs.wersja }} – bump REVO_SLICER_VERSION first"; exit 1; }
   windows:
+    needs: [version_check]
+    if: ${{ !failure() && !cancelled() }}
     name: Windows x64
     permissions:
       actions: write
@@ -35,7 +47,8 @@ jobs:
       compiler: clang
     secrets: inherit
   macos_arch:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.mac }}
+    needs: [version_check]
+    if: ${{ !failure() && !cancelled() && (github.event_name != 'workflow_dispatch' || inputs.mac) }}
     strategy:
       fail-fast: false
       matrix:
