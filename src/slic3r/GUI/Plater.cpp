@@ -3610,30 +3610,101 @@ Sidebar::Sidebar(Plater *parent)
         spliter_1->SetLineColour("#A6A9AA");
         scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
         scrolled_sizer->Add(params_panel->get_top_panel(), 0, wxEXPAND);
-        {   // [r]evo: flight plan summary – the key process values in telemetry rows
-            auto plan = new wxPanel(p->scrolled, wxID_ANY);
+        {   // [r]evo: flight plan – the key process values; click a value to pick a new one
+            struct Row { wxString key, value; std::vector<wxString> labels; std::vector<std::function<void(DynamicPrintConfig&)>> apply; int current = -1; };
+            struct State { int open = -1; std::vector<std::pair<wxRect, int>> value_hits; std::vector<std::pair<wxRect, int>> chip_hits; wxString sig; };
+            auto plan  = new wxPanel(p->scrolled, wxID_ANY);
+            auto state = std::make_shared<State>();
             plan->SetBackgroundStyle(wxBG_STYLE_PAINT);
-            plan->SetMinSize(wxSize(-1, FromDIP(4 * 26 + 12)));
+            plan->SetCursor(wxCursor(wxCURSOR_HAND));
             auto rows = []() {
-                std::vector<std::pair<wxString, wxString>> r;
+                std::vector<Row> r;
                 auto* bundle = wxGetApp().preset_bundle;
                 if (!bundle) return r;
                 const DynamicPrintConfig& c = bundle->prints.get_edited_preset().config;
-                auto num = [&c](const char* k) {
-                    const ConfigOption* o = c.option(k);
-                    if (auto* f = dynamic_cast<const ConfigOptionFloat*>(o)) return f->value;
-                    if (auto* i = dynamic_cast<const ConfigOptionInt*>(o)) return double(i->value);
-                    return 0.0;
-                };
-                const ConfigOptionPercent* d = c.option<ConfigOptionPercent>("sparse_infill_density");
-                const ConfigOptionBool*    sp = c.option<ConfigOptionBool>("enable_support");
-                r.push_back({_L("Layer height"), wxString::Format("%.2f mm", num("layer_height"))});
-                r.push_back({_L("Infill"), d ? wxString::Format("%d%%", int(std::lround(d->value))) : wxString("-")});
-                r.push_back({_L("Walls"), wxString::Format("%d", int(num("wall_loops")))});
-                r.push_back({_L("Support"), sp && sp->value ? _L("On") : _L("Off")});
+                const double lh   = c.opt_float("layer_height");
+                const int    inf  = int(std::lround(c.option<ConfigOptionPercent>("sparse_infill_density")->value));
+                const int    wl   = c.opt_int("wall_loops");
+                const bool   sup  = c.opt_bool("enable_support");
+                const bool   bpo  = c.opt_bool("support_on_build_plate_only");
+                const auto*  nd   = bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
+                const double d    = nd && !nd->values.empty() ? nd->values.front() : 0.4;
+
+                Row h{_L("Layer height"), wxString::Format("%.2f mm", lh)};
+                for (double f : {0.2, 0.3, 0.4, 0.5, 0.6, 0.7}) {
+                    const double v = std::round(d * f * 100) / 100;
+                    if (std::abs(v - lh) < 1e-6) h.current = int(h.labels.size());
+                    h.labels.push_back(wxString::Format("%.2f", v));
+                    h.apply.push_back([v](DynamicPrintConfig& cfg) { cfg.set_key_value("layer_height", new ConfigOptionFloat(v)); });
+                }
+                r.push_back(std::move(h));
+
+                Row i{_L("Infill"), wxString::Format("%d%%", inf)};
+                for (int v : {0, 10, 15, 20, 30, 50, 100}) {
+                    if (v == inf) i.current = int(i.labels.size());
+                    i.labels.push_back(wxString::Format("%d%%", v));
+                    i.apply.push_back([v](DynamicPrintConfig& cfg) { cfg.set_key_value("sparse_infill_density", new ConfigOptionPercent(v)); });
+                }
+                r.push_back(std::move(i));
+
+                Row w{_L("Walls"), wxString::Format("%d", wl)};
+                for (int v = 1; v <= 6; ++v) {
+                    if (v == wl) w.current = int(w.labels.size());
+                    w.labels.push_back(wxString::Format("%d", v));
+                    w.apply.push_back([v](DynamicPrintConfig& cfg) { cfg.set_key_value("wall_loops", new ConfigOptionInt(v)); });
+                }
+                r.push_back(std::move(w));
+
+                // TRN Support modes in the flight plan: Auto = from the build plate only, Everywhere = also on the model
+                const wxString sl[] = {_L("Off"), _L("Auto"), _L("Everywhere")};
+                Row s{_L("Support"), sl[!sup ? 0 : bpo ? 1 : 2]};
+                s.current = !sup ? 0 : bpo ? 1 : 2;
+                for (int v = 0; v < 3; ++v) {
+                    s.labels.push_back(sl[v]);
+                    s.apply.push_back([v](DynamicPrintConfig& cfg) {
+                        cfg.set_key_value("enable_support", new ConfigOptionBool(v != 0));
+                        if (v != 0) cfg.set_key_value("support_on_build_plate_only", new ConfigOptionBool(v == 1));
+                    });
+                }
+                r.push_back(std::move(s));
                 return r;
             };
-            plan->Bind(wxEVT_PAINT, [plan, rows](wxPaintEvent&) {
+            const int row_h = FromDIP(26), chip_h = FromDIP(24), gap = FromDIP(6), pad = FromDIP(14);
+            // Lays out the chips of the open row; returns the panel height.
+            auto layout = [plan, state, row_h, chip_h, gap, pad](wxDC& dc, const std::vector<Row>& r, int width) {
+                state->value_hits.clear();
+                state->chip_hits.clear();
+                int y = plan->FromDIP(6);
+                for (int k = 0; k < int(r.size()); ++k) {
+                    state->value_hits.push_back({wxRect(0, y, width, row_h), k});
+                    y += row_h;
+                    if (k == state->open) {
+                        int x = pad;
+                        y += gap;
+                        for (int c = 0; c < int(r[k].labels.size()); ++c) {
+                            const int cw = dc.GetTextExtent(r[k].labels[c]).x + plan->FromDIP(20);
+                            if (x + cw > width - pad && x > pad) { x = pad; y += chip_h + gap; }
+                            state->chip_hits.push_back({wxRect(x, y, cw, chip_h), c});
+                            x += cw + gap;
+                        }
+                        y += chip_h + gap;
+                    }
+                }
+                return y + plan->FromDIP(6);
+            };
+            auto resize = [plan, state, rows, layout]() {
+                wxClientDC dc(plan);
+                dc.SetFont(Label::Body_13);
+                const int h = layout(dc, rows(), plan->GetClientSize().x);
+                if (plan->GetMinSize().y != h) {
+                    plan->SetMinSize(wxSize(-1, h));
+                    plan->GetParent()->Layout();
+                    plan->GetParent()->FitInside();
+                }
+                plan->Refresh();
+            };
+            plan->SetMinSize(wxSize(-1, FromDIP(4 * 26 + 12)));
+            plan->Bind(wxEVT_PAINT, [plan, state, rows, layout, pad](wxPaintEvent&) {
                 wxAutoBufferedPaintDC dc(plan);
                 const wxSize sz = plan->GetClientSize();
                 dc.SetBackground(wxBrush(wxColour(5, 8, 12)));
@@ -3642,24 +3713,61 @@ Sidebar::Sidebar(Plater *parent)
                 dc.SetBrush(wxBrush(wxColour(90, 160, 255)));
                 dc.DrawRectangle(0, 0, plan->FromDIP(3), sz.y);
                 dc.SetFont(Label::Body_13);
-                const int pad = plan->FromDIP(14);
-                int y = plan->FromDIP(6);
-                for (const auto& [k, v] : rows()) {
-                    dc.SetTextForeground(wxColour(207, 214, 223));
-                    dc.DrawText(::Label::Spaced(k), pad, y + plan->FromDIP(5));
-                    dc.SetTextForeground(wxColour(90, 160, 255));
-                    const wxSize ts = dc.GetTextExtent(v);
-                    dc.DrawText(v, sz.x - pad - ts.x, y + plan->FromDIP(5));
-                    y += plan->FromDIP(26);
-                    dc.SetPen(wxPen(wxColour(26, 31, 38), 1));
-                    dc.DrawLine(pad, y, sz.x - pad, y);
-                    dc.SetPen(*wxTRANSPARENT_PEN);
+                const std::vector<Row> r = rows();
+                layout(dc, r, sz.x);
+                const wxColour blue(90, 160, 255), light(207, 214, 223), line(26, 31, 38);
+                for (const auto& [rect, k] : state->value_hits) {
+                    const int ty = rect.y + plan->FromDIP(5);
+                    dc.SetTextForeground(light);
+                    dc.DrawText(::Label::Spaced(r[k].key), pad, ty);
+                    const wxString v = r[k].value + (k == state->open ? wxString::FromUTF8(" \xE2\x96\xB4") : wxString::FromUTF8(" \xE2\x96\xBE"));
+                    dc.SetTextForeground(blue);
+                    dc.DrawText(v, sz.x - pad - dc.GetTextExtent(v).x, ty);
+                    if (k != state->open) {
+                        dc.SetPen(wxPen(line, 1));
+                        dc.DrawLine(pad, rect.GetBottom() + 1, sz.x - pad, rect.GetBottom() + 1);
+                        dc.SetPen(*wxTRANSPARENT_PEN);
+                    }
                 }
+                if (state->open >= 0 && state->open < int(r.size()))
+                    for (const auto& [rect, c] : state->chip_hits) {
+                        const bool on = c == r[state->open].current;
+                        dc.SetPen(wxPen(on ? blue : wxColour(42, 49, 59), 1));
+                        dc.SetBrush(on ? wxBrush(wxColour(14, 36, 64)) : *wxTRANSPARENT_BRUSH);
+                        dc.DrawRoundedRectangle(rect, plan->FromDIP(4));
+                        const wxString& l = r[state->open].labels[c];
+                        const wxSize ts = dc.GetTextExtent(l);
+                        dc.SetTextForeground(on ? *wxWHITE : light);
+                        dc.DrawText(l, rect.x + (rect.width - ts.x) / 2, rect.y + (rect.height - ts.y) / 2);
+                    }
             });
-            plan->Bind(wxEVT_IDLE, [plan, rows, last = wxString()](wxIdleEvent&) mutable {
+            plan->Bind(wxEVT_LEFT_UP, [plan, state, rows, resize](wxMouseEvent& e) {
+                const wxPoint pt = e.GetPosition();
+                if (state->open >= 0)
+                    for (const auto& [rect, c] : state->chip_hits)
+                        if (rect.Contains(pt)) {
+                            std::vector<Row> r = rows();
+                            if (Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+                                DynamicPrintConfig cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                                r[state->open].apply[c](cfg);
+                                tab->load_config(cfg);
+                            }
+                            state->open = -1;
+                            resize();
+                            return;
+                        }
+                for (const auto& [rect, k] : state->value_hits)
+                    if (rect.Contains(pt)) {
+                        state->open = state->open == k ? -1 : k;
+                        resize();
+                        return;
+                    }
+            });
+            plan->Bind(wxEVT_SIZE, [resize](wxSizeEvent& e) { e.Skip(); resize(); });
+            plan->Bind(wxEVT_IDLE, [plan, state, rows](wxIdleEvent&) {
                 wxString sig;
-                for (const auto& r : rows()) sig += r.second + "|";
-                if (sig != last) { last = sig; plan->Refresh(); }
+                for (const auto& r : rows()) sig += r.value + "|";
+                if (sig != state->sig) { state->sig = sig; plan->Refresh(); }
             });
             scrolled_sizer->Add(plan, 0, wxEXPAND);
         }
