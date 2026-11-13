@@ -1,4 +1,4 @@
-# [r]evo Slicer – budowanie dla Windows (x64) i macOS (tylko Apple Silicon). Linux nie jest wspierany.
+# [r]evo Slicer – builds for Windows (x64) and macOS (Apple Silicon only). Linux is not supported.
 name: Revo Slicer – build
 on:
   push:
@@ -6,19 +6,19 @@ on:
   workflow_dispatch:
     inputs:
       wydaj:
-        description: 'Opublikuj wydanie po udanej kompilacji'
+        description: 'Publish a release after a successful build'
         type: boolean
         default: false
       wersja:
-        description: 'Wersja [r]evo Slicer, np. 1.0.0'
+        description: '[r]evo Slicer version, e.g. 1.0.0'
         type: string
         default: '1.0.0'
       mac:
-        description: 'Buduj też wersję na Maca (wyłącz, gdy DMG robimy lokalnie)'
+        description: 'Also build the Mac version (turn off when the DMG is built locally)'
         type: boolean
         default: true
       opis:
-        description: 'Co nowego (dopisywane do notki wydania)'
+        description: "What's new (added to the release notes, in English)"
         type: string
         default: ''
 jobs:
@@ -77,8 +77,8 @@ jobs:
           fi
           gh release create "v${{ inputs.wersja }}" out/* -R "${{ github.repository }}" --target "${{ github.sha }}" \
             --title "[r]evo Slicer ${{ inputs.wersja }}" \
-            --notes "[r]evo Slicer ${{ inputs.wersja }} – slicer Revotech dla drukarek Revon. Sometimes evolution. Sometimes [r]evolution.
+            --notes "[r]evo Slicer ${{ inputs.wersja }} – the Revotech slicer for Revon printers. Sometimes evolution. Sometimes [r]evolution.
 
           ${{ inputs.opis }}
 
-          Windows: uruchom instalator; jeśli pojawi się „System Windows ochronił ten komputer” – Więcej informacji → Uruchom mimo to. Mac (Apple Silicon): otwórz plik .dmg i przeciągnij [r]evo Slicer do Aplikacji; przy pierwszym uruchomieniu prawy przycisk → Otwórz → Otwórz."
+          Windows: run the installer; if you see "Windows protected your PC", choose More info → Run anyway. Mac (Apple Silicon): open the .dmg and drag [r]evo Slicer to Applications; on first launch right-click → Open → Open."
