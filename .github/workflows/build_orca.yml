@@ -721,7 +721,8 @@ jobs:
           content_type: application/x-msdownload
 
       - name: Build MSIX Store package Win
-        if: runner.os == 'Windows' && !vars.SELF_HOSTED
+        # [r]evo Slicer is not published to the Microsoft Store (the MSIX manifest targets orca-slicer.exe)
+        if: github.repository == 'OrcaSlicer/OrcaSlicer' && runner.os == 'Windows' && !vars.SELF_HOSTED
         working-directory: ${{ github.workspace }}
         shell: pwsh
         run: |
@@ -734,7 +735,8 @@ jobs:
             -PublisherDisplayName "${{ vars.ORCA_MSIX_PUBLISHER_DISPLAY_NAME || 'OrcaSlicer' }}"
 
       - name: Upload artifacts Win MSIX
-        if: runner.os == 'Windows' && !vars.SELF_HOSTED
+        # [r]evo Slicer is not published to the Microsoft Store (the MSIX manifest targets orca-slicer.exe)
+        if: github.repository == 'OrcaSlicer/OrcaSlicer' && runner.os == 'Windows' && !vars.SELF_HOSTED
         uses: actions/upload-artifact@v7
         with:
           name: RevoSlicer_Windows_MSIX_${{ env.ver }}${{ env.ARCH_SUFFIX }}
