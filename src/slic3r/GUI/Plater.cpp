@@ -4350,6 +4350,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             }
             p->label_nozzle_type->SetLabel(nozzle_type);
             p->label_nozzle_type->SetToolTip(nozzle_type == "-" ? "" : nozzle_type);
+            p->label_nozzle_type->Show(nozzle_type != "-"); // [r]evo: bez pustej kreski, gdy profil nie podaje materiału dyszy
 
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
         }

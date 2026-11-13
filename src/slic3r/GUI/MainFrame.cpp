@@ -944,9 +944,7 @@ bool MainFrame::handle_global_shortcut(const KeyChord& chord)
         if (can_add_models() && m_plater)
             m_plater->add_file();
         break;
-    case Shortcut::Publish3mf:
-        if (can_export_model())
-            publish_project();
+    case Shortcut::Publish3mf: // [r]evo: publikacji nie używamy
         break;
     case Shortcut::Quit:
         Close(false);

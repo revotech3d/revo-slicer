@@ -319,6 +319,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -591,6 +592,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -824,6 +826,7 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -971,6 +974,7 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1218,6 +1222,7 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1406,6 +1411,7 @@ Input_Shaping_Freq_Test_Dlg::Input_Shaping_Freq_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1613,6 +1619,7 @@ Input_Shaping_Damp_Test_Dlg::Input_Shaping_Damp_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1817,6 +1824,7 @@ Cornering_Test_Dlg::Cornering_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1964,6 +1972,7 @@ FlowRateCalibrationDialog::FlowRateCalibrationDialog(wxWindow* parent, wxWindowI
     v_sizer->AddSpacer(FromDIP(5));
 
     auto dlg_btns = new DialogButtons(this, {"OK"});
+    dlg_btns->GetOK()->SetLabel(::Label::Spaced(_L("Launch test"))); // [r]evo
 
     auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
 
