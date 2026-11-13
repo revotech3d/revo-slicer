@@ -17,6 +17,10 @@ on:
         description: 'Buduj też wersję na Maca (wyłącz, gdy DMG robimy lokalnie)'
         type: boolean
         default: true
+      opis:
+        description: 'Co nowego (dopisywane do notki wydania)'
+        type: string
+        default: ''
 jobs:
   windows:
     name: Windows x64
@@ -74,5 +78,7 @@ jobs:
           gh release create "v${{ inputs.wersja }}" out/* -R "${{ github.repository }}" --target "${{ github.sha }}" \
             --title "[r]evo Slicer ${{ inputs.wersja }}" \
             --notes "[r]evo Slicer ${{ inputs.wersja }} – slicer Revotech dla drukarek Revon. Sometimes evolution. Sometimes [r]evolution.
+
+          ${{ inputs.opis }}
 
           Windows: uruchom instalator; jeśli pojawi się „System Windows ochronił ten komputer” – Więcej informacji → Uruchom mimo to. Mac (Apple Silicon): otwórz plik .dmg i przeciągnij [r]evo Slicer do Aplikacji; przy pierwszym uruchomieniu prawy przycisk → Otwórz → Otwórz."
