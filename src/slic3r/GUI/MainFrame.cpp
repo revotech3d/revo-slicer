@@ -4696,9 +4696,8 @@ void MainFrame::load_printer_url()
     const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
     if (cfg.has("printhost_apikey") && host_type != htSimplyPrint)
         apikey = cfg.opt_string("printhost_apikey");
-    if (!url.empty()) {
-        load_printer_url(url, apikey);
-    }
+    // [r]evo: an empty address clears the device page (printer undocked or none docked)
+    load_printer_url(url, apikey);
 }
 
 bool MainFrame::is_printer_view() const { return m_tabpanel->GetSelectedPageName() == TAB_ID_MONITOR; }

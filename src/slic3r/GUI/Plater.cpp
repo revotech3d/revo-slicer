@@ -4090,9 +4090,7 @@ void Sidebar::update_all_preset_comboboxes()
                                                       : MainFrame::PrintSelectType::eExportGcode;
         wxString url = from_u8(PrintHost::get_print_host_webui(&cfg));
         wxString apikey;
-        if(url.empty())
-            url = file_url_from_path(boost::filesystem::path(resources_dir()) / "web/orca/missing_connection.html");
-        else {
+        if (!url.empty()) { // [r]evo: an empty address shows the "No printer docked" page
             const auto host_type = cfg.option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
             if (cfg.has("printhost_apikey") && (host_type != htSimplyPrint))
                 apikey = cfg.opt_string("printhost_apikey");
@@ -14231,13 +14229,6 @@ void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
         if (selecting_web_device_tab) {
             // Use the selected discovered machine when the preset has no host.
             main_frame->load_printer_url();
-        } else if (new_name == TAB_ID_MONITOR && wxGetApp().preset_bundle != nullptr) {
-            auto     cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-            wxString url = from_u8(PrintHost::get_print_host_webui(&cfg));
-            if (PrinterWebView* view = PrinterWebView::if_built(); view != nullptr && url.empty()) {
-                // It's missing_connection page, reload so that we can replay the gif image
-                view->reload();
-            }
         }
     }
 }

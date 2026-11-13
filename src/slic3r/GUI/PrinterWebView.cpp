@@ -236,6 +236,19 @@ void PrinterWebView::load_url(wxString& url, wxString apikey)
     m_url = url;
     m_apikey = apikey;
     m_host_type = host_type;
+    // [r]evo: no docked printer – say so instead of keeping the last machine's panel
+    if (url.IsEmpty()) {
+        m_url_deferred.clear();
+        m_url_loaded = true;
+        const wxString title = _L("No printer docked");
+        const wxString text  = _L("Dock a printer in Main Launch Control to see it here.");
+        m_browser->SetPage("<html><body style=\"margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;"
+                           "background:#05080c;color:#cfd6df;font-family:'Barlow Condensed',sans-serif\">"
+                           "<div style=\"letter-spacing:.3em;font-size:28px;color:#fff;text-transform:uppercase\">" + title + "</div>"
+                           "<div style=\"margin-top:12px;font-size:15px;letter-spacing:.08em;color:#5AA0FF\">" + text + "</div></body></html>",
+                           wxEmptyString);
+        return;
+    }
     // [r]evo Slicer: Panel Revo wymaga sesji – logujemy się raz kluczem slicera (agent ustawia cookie i przekierowuje na panel)
     wxString target = url;
     if (host_type == htMoonraker && !apikey.IsEmpty()) {
