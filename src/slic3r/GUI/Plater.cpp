@@ -3741,7 +3741,7 @@ Sidebar::Sidebar(Plater *parent)
                         dc.DrawText(l, rect.x + (rect.width - ts.x) / 2, rect.y + (rect.height - ts.y) / 2);
                     }
             });
-            plan->Bind(wxEVT_LEFT_UP, [plan, state, rows, resize](wxMouseEvent& e) {
+            plan->Bind(wxEVT_LEFT_UP, [state, rows, resize](wxMouseEvent& e) {
                 const wxPoint pt = e.GetPosition();
                 if (state->open >= 0)
                     for (const auto& [rect, c] : state->chip_hits)
