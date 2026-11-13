@@ -20,6 +20,7 @@
 #include <wx/window.h>
 #include <wx/defs.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
 
 class wxObject;
 
