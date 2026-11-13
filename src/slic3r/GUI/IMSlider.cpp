@@ -59,7 +59,7 @@ static const float  LEFT_MARGIN       = 13.0f + 100.0f;  // avoid thumbnail tool
 static const float  HORIZONTAL_SLIDER_WINDOW_HEIGHT  = 64.0f;
 // ORCA: widen slider window to account for one-layer label box left shift.
 static const float  VERTICAL_SLIDER_WINDOW_WIDTH     = 164.0f;
-static const float  GROOVE_WIDTH      = 4.0f;   // [r]evo: cienka linia
+static const float  GROOVE_WIDTH      = 7.0f;   // [r]evo: wyraźna linia
 static const ImVec2 ONE_LAYER_MARGIN  = ImVec2(20.0f, 20.0f);
 static const ImVec2 ONE_LAYER_BUTTON_SIZE  = ImVec2(56.0f, 56.0f);
 
@@ -1287,9 +1287,10 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         }
         imgui.end();
     } else {
-        // [r]evo: suwak warstw po lewej stronie widoku (panel ustawień jest po prawej), niżej – pod legendą
-        ImVec2 size = ImVec2(VERTICAL_SLIDER_WINDOW_WIDTH * m_scale, 0.62f * canvas_height);
-        imgui.set_next_window_pos(0.0f, 0.6f * static_cast<float>(canvas_height), ImGuiCond_Always, 0.0f, 0.5f);
+        // [r]evo: suwak warstw po prawej stronie widoku, tam gdzie szukają go użytkownicy Orca/Bambu;
+        // krótszy, żeby nie nachodził na przycisk jednej warstwy w prawym dolnym rogu
+        ImVec2 size = ImVec2(VERTICAL_SLIDER_WINDOW_WIDTH * m_scale, 0.7f * canvas_height);
+        imgui.set_next_window_pos(canvas_width, 0.47f * static_cast<float>(canvas_height), ImGuiCond_Always, 1.0f, 0.5f);
         imgui.begin(std::string("laysers_slider"), windows_flag);
 
         int higher_value = GetHigherValue();
