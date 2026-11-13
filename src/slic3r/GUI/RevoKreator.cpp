@@ -946,7 +946,7 @@ private:
         dc.SetTextForeground(kMuted);
         dc.DrawText(spaced(_L("Your profile"), 2), pad, pad);
         std::vector<std::pair<wxString, wxString>> rows = {{_L("Type"), m_type.empty() ? wxString::FromUTF8("\xE2\x80\x94") : from_u8(m_type)}};
-        const wxString names[] = {_L("Nozzle"), _L("Flow ratio"), _L("Max flow"), _L("PA"), _L("Retraction")};
+        const wxString names[] = {_L("Nozzle temp."), _L("Flow ratio"), _L("Max flow"), _L("PA"), _L("Retraction")};
         for (int s = 0; s < 5; ++s) rows.push_back({names[s], profile_val(s)});
         int y = pad + m_side->FromDIP(24);
         f.SetPointSize(11);
@@ -1191,13 +1191,14 @@ private:
                 wxFont f = box->GetFont();
                 f.SetPointSize(14);
                 dc.SetFont(f);
-                const wxString names[] = {_L("Nozzle"), _L("Flow ratio"), _L("Max flow"), _L("PA"), _L("Retraction")};
+                const wxString names[] = {_L("Nozzle temp."), _L("Flow ratio"), _L("Max flow"), _L("PA"), _L("Retraction")};
                 int y = box->FromDIP(14);
                 const int pad = box->FromDIP(18);
                 for (int s = 0; s < 5; ++s) {
                     dc.SetTextForeground(kText);
                     dc.DrawText(spaced(names[s]), pad, y);
-                    const wxString v = s == 1 ? wxString::FromDouble(value(1), 3) : fmt_val(s, value(s));
+                    // flow: final ratio plus the step picked on the test, so it matches the side panel
+                    const wxString v = s == 1 ? wxString::FromDouble(value(1), 3) + wxString::FromUTF8(" \xC2\xB7 ") + profile_val(1) : fmt_val(s, value(s));
                     dc.SetTextForeground(kBlue);
                     const wxSize ts = dc.GetTextExtent(v);
                     dc.DrawText(v, z.x - pad - ts.x, y);
