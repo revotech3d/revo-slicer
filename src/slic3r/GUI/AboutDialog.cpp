@@ -282,6 +282,8 @@ AboutDialog::AboutDialog()
     std::vector<wxString> text_list;
     // [r]evo: our own description; the origin and licence stay credited (AGPL-3.0)
     text_list.push_back(_L("[r]evo Slicer is the Revotech slicer for Revon 3D printers: ready Revon profiles, the new filament wizard and printing straight to Revo OS with one click."));
+    text_list.push_back(_L("This is a modified version of OrcaSlicer. Revotech develops and maintains it: we adapt it to Revon machines and Revo OS, add our own tools and the [r]evo interface, and test every release on our printers."));
+    text_list.push_back(_L("Revotech Sp. z o.o. · Czeladź, Poland · biuro@revo3d.pl · +48 512 960 411 · revo3d.pl"));
     text_list.push_back(_L("It is built on OrcaSlicer, which grew from Slic3r, PrusaSlicer, Bambu Studio and SuperSlicer. We thank all their authors and communities."));
     text_list.push_back(_L("[r]evo Slicer is free software under the GNU AGPL-3.0 licence. The source code is available at github.com/revotech3d/revo-slicer."));
 
