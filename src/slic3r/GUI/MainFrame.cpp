@@ -4828,6 +4828,7 @@ void MainFrame::update_side_preset_ui()
 
 void MainFrame::on_select_default_preset(SimpleEvent& evt)
 {
+    if (wxGetApp().app_config->get_stealth_mode()) return; // [r]evo: no Orca Cloud sync
     MessageDialog dialog(this,
                     _L("Do you want to synchronize your personal data from Orca Cloud?\n"
                         "It contains the following information:\n"
