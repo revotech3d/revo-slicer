@@ -840,7 +840,13 @@ private:
                 else if (m == "PA-CF" || m == "PA-GF" || m == "PET-CF") { hi = 320; lo = 280; }
                 range(lo, hi, 5);
             }
-            else if (s == 2) range(c + 8, std::max(2.0, c - 8), 2);
+            else if (s == 2) { // max flow wg gatunku (jak w oknie testu), góra wieży = najwięcej
+                double lo = 10, hi = 35;
+                if (m_type == "PETG" || m_type == "ABS" || m_type == "ASA") { lo = 8; hi = 30; }
+                else if (m_type == "TPU") { lo = 2; hi = 12; }
+                else if (m_type == "PA-CF" || m_type == "PA-GF" || m_type == "PET-CF") { lo = 6; hi = 25; }
+                range(hi, lo, 1);
+            }
             else if (s == 3) { // PA wg gatunku – flex potrzebuje dużo więcej
                 if (m_type == "TPU") range(0, 0.3, 0.01);
                 else range(0, m_type == "PETG" ? 0.1 : 0.08, 0.005);
@@ -1147,7 +1153,7 @@ private:
             auto* top = new wxBoxSizer(wxHORIZONTAL);
             top->Add(label(m_body, m_printed[si] ? _L("1. Test sent - look at the printed result:") : _L("1. First print the test:"), 15, kText), 1, wxALIGN_CENTER_VERTICAL);
             top->Add(new PulseButton(m_body, spaced(_L("Print this test")), !m_printed[si],
-                                     [this, si, kind = st.kind] { m_printed[si] = true; if (kind == CalibKind::Temperature || kind == CalibKind::PressureAdvance) g_revo_wizard_material = m_type; wxGetApp().mainframe->run_calibration(kind); }), 0, wxALIGN_CENTER_VERTICAL);
+                                     [this, si, kind = st.kind] { m_printed[si] = true; if (kind == CalibKind::Temperature || kind == CalibKind::PressureAdvance || kind == CalibKind::MaxVolumetric) g_revo_wizard_material = m_type; wxGetApp().mainframe->run_calibration(kind); }), 0, wxALIGN_CENTER_VERTICAL);
             s->Add(top, 0, wxEXPAND | wxBOTTOM, FromDIP(14));
             auto* ex = new wxBoxSizer(wxHORIZONTAL);
             ex->Add(example(m_body, "revo_wz_" + st.art + "_bad", false, st.bad), 1, wxRIGHT, FromDIP(16));

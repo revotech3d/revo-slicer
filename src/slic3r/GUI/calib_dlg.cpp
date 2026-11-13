@@ -846,6 +846,21 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     Layout();
     Fit();
     v_sizer->SetSizeHints(this);
+    // [r]evo: opened from the filament wizard - flow range for the material (Revon hotends go well above 20 mm³/s)
+    Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
+        e.Skip();
+        if (!e.IsShown() || g_revo_wizard_material.empty())
+            return;
+        const std::string m = g_revo_wizard_material;
+        g_revo_wizard_material.clear();
+        int lo = 10, hi = 35;
+        if (m == "PETG" || m == "ABS" || m == "ASA" || m == "PCTG") { lo = 8; hi = 30; }
+        else if (m == "TPU") { lo = 2; hi = 12; }
+        else if (m == "PA-CF" || m == "PA-GF" || m == "PET-CF") { lo = 6; hi = 25; }
+        m_tiStart->GetTextCtrl()->SetValue(std::to_string(lo));
+        m_tiEnd->GetTextCtrl()->SetValue(std::to_string(hi));
+        m_tiStep->GetTextCtrl()->SetValue("1");
+    });
 }
 
 MaxVolumetricSpeed_Test_Dlg::~MaxVolumetricSpeed_Test_Dlg() {
