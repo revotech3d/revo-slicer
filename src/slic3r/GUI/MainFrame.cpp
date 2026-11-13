@@ -4679,7 +4679,8 @@ void MainFrame::load_printer_url()
         return;
 
     auto     cfg = preset_bundle.printers.get_edited_preset().config;
-    if (cfg.opt_string("print_host").empty()) {
+    // [r]evo: an undocked printer stays undocked – borrow a discovered machine only in printer-agents mode
+    if (cfg.opt_string("print_host").empty() && wxGetApp().app_config->get_bool("use_printer_agents")) {
         if (auto *device_manager = wxGetApp().getDeviceManager()) {
             auto *machine = device_manager->get_selected_machine();
             if (!machine) {
