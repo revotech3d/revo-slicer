@@ -5,13 +5,15 @@
   <key>CFBundleExecutable</key>
   <string>@SLIC3R_APP_KEY@</string>
   <key>CFBundleGetInfoString</key>
-  <string>@SLIC3R_APP_NAME@ Copyright(C) 2026 OrcaSlicer Pte Ltd All Rights Reserved</string>
+  <string>[r]evo Slicer @REVO_SLICER_VERSION@ – Revotech (based on Orca Slicer, AGPL-3.0)</string>
   <key>CFBundleIconFile</key>
   <string>images/OrcaSlicer.icns</string>
   <key>CFBundleName</key>
-  <string>@SLIC3R_APP_KEY@</string>
+  <string>[r]evo Slicer</string>
+  <key>CFBundleDisplayName</key>
+  <string>[r]evo Slicer</string>
   <key>CFBundleShortVersionString</key>
-  <string>@SLIC3R_APP_NAME@ @SLIC3R_BUILD_ID@</string>
+  <string>@REVO_SLICER_VERSION@</string>
   <key>CFBundleIdentifier</key>
   <string>com.orcaslicer.OrcaSlicer</string>
   <key>CFBundleInfoDictionaryVersion</key>

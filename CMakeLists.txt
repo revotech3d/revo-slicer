@@ -1358,9 +1358,11 @@ configure_file(${LIBDIR}/dev-utils/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/dev-ut
 
 set (CPACK_PACKAGE_NAME "RevoSlicer")
 set (CPACK_PACKAGE_VENDOR "Revotech")
-set (CPACK_PACKAGE_VERSION_MAJOR "${ORCA_VERSION_MAJOR}")
-set (CPACK_PACKAGE_VERSION_MINOR "${ORCA_VERSION_MINOR}")
-set (CPACK_PACKAGE_VERSION_PATCH "${ORCA_VERSION_PATCH}")
+# [r]evo: the installer shows our own version (REVO_SLICER_VERSION), not the Orca base
+string (REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" _revo_ver "${REVO_SLICER_VERSION}")
+set (CPACK_PACKAGE_VERSION_MAJOR "${CMAKE_MATCH_1}")
+set (CPACK_PACKAGE_VERSION_MINOR "${CMAKE_MATCH_2}")
+set (CPACK_PACKAGE_VERSION_PATCH "${CMAKE_MATCH_3}")
 set (CPACK_PACKAGE_FILE_NAME "RevoSlicer_Windows_Installer_V${REVO_SLICER_VERSION}")
 # Suffix the Windows installer with its target arch so the x64 and arm64 builds
 # produce distinct filenames (matches ARCH_SUFFIX in build_orca.yml). Same
@@ -1379,14 +1381,14 @@ set (CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/images\\\\OrcaSlicer.ico"
 set (CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set (CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
 # Relative to the install dir: CPack's NSIS template prefixes $INSTDIR itself.
-set (CPACK_NSIS_INSTALLED_ICON_NAME "orca-slicer.exe")
+set (CPACK_NSIS_INSTALLED_ICON_NAME "RevoSlicer.exe")
 set (CPACK_PACKAGE_CHECKSUM SHA256)
 set (CPACK_PACKAGE_INSTALL_REGISTRY_KEY "RevoSlicer")
 set (CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 set (CPACK_NSIS_EXECUTABLES_DIRECTORY ".")
 # set (CPACK_NSIS_MODIFY_PATH "ON")
-set(CPACK_PACKAGE_EXECUTABLES "orca-slicer;[r]evo Slicer")
-set(CPACK_CREATE_DESKTOP_LINKS "orca-slicer")
+set(CPACK_PACKAGE_EXECUTABLES "RevoSlicer;[r]evo Slicer")
+set(CPACK_CREATE_DESKTOP_LINKS "RevoSlicer")
 set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE.txt) # must also include in install command
 
 # CI release builds Authenticode-sign the installer as makensis builds it: the payload before it is
