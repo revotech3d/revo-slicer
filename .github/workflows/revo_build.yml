@@ -83,15 +83,19 @@ jobs:
       - name: Publikacja
         env:
           GH_TOKEN: ${{ github.token }}
+          OPIS: ${{ inputs.opis }}
         run: |
           if gh release view "v${{ inputs.wersja }}" -R "${{ github.repository }}" >/dev/null 2>&1; then
             gh release upload "v${{ inputs.wersja }}" out/* -R "${{ github.repository }}" --clobber
             exit 0
           fi
+          # notes from a file: quotes in the text must not end the shell string
+          cat > notes.md <<NOTES
+          [r]evo Slicer ${{ inputs.wersja }} – the Revotech slicer for Revon printers. Sometimes evolution. Sometimes [r]evolution.
+
+          $OPIS
+
+          Windows: run the installer; if you see "Windows protected your PC", choose More info → Run anyway. Mac (Apple Silicon): open the .dmg and drag [r]evo Slicer to Applications; on first launch right-click → Open → Open.
+          NOTES
           gh release create "v${{ inputs.wersja }}" out/* -R "${{ github.repository }}" --target "${{ github.sha }}" \
-            --title "[r]evo Slicer ${{ inputs.wersja }}" \
-            --notes "[r]evo Slicer ${{ inputs.wersja }} – the Revotech slicer for Revon printers. Sometimes evolution. Sometimes [r]evolution.
-
-          ${{ inputs.opis }}
-
-          Windows: run the installer; if you see "Windows protected your PC", choose More info → Run anyway. Mac (Apple Silicon): open the .dmg and drag [r]evo Slicer to Applications; on first launch right-click → Open → Open."
+            --title "[r]evo Slicer ${{ inputs.wersja }}" --notes-file notes.md
