@@ -748,7 +748,7 @@ public:
             {_L("Max flow"), _L("Where does the wall start to tear?"), _L("Look at the tall wall from the side, from bottom to top."),
              _L("Tap the LAST band that still looks good:"), _L("Torn, frayed layers, holes in the wall."),
              _L("Even, solid layers all the way."), _L("Not sure? Pick one lower - safer, a bit slower."), "mf",
-             CalibKind::MaxVolumetric, int(CalibMode::Calib_Vol_speed_Tower), wxString::FromUTF8("mm\xC2\xB3/s"), 1},
+             CalibKind::MaxVolumetric, int(CalibMode::Calib_Vol_speed_Tower), wxString::FromUTF8("mm\xC2\xB3/s"), 0},
             {_L("Pressure adv."), _L("Which line has no holes?"), _L("Look closely where each line changes speed - the middle part."),
              _L("Tap the line that looks most even:"), _L("A hole or thin spot in the middle of the line."),
              _L("One even line, same width everywhere."), _L("Not sure? Pick the middle one - it will still print fine."), "pa",
@@ -816,7 +816,7 @@ private:
             if (step <= 0) return;
             const int n = std::min(60, int(std::lround(std::abs(b - a) / step)) + 1);
             const double d = b >= a ? step : -step;
-            for (int i = 0; i < n; ++i) v.push_back(a + d * i);
+            for (int i = 0; i < n; ++i) { const double x = a + d * i; v.push_back(std::abs(x) < 1e-9 ? 0.0 : x); } // bez „-0.0”
         };
         if (s == 1) { // przepływ: płytki z przesunięciem w %
             if (g_flow_pass == 2) range(0, -9, 1); else range(20, -20, 5);
@@ -845,7 +845,7 @@ private:
                 if (m_type == "TPU") range(0, 0.3, 0.01);
                 else range(0, m_type == "PETG" ? 0.1 : 0.08, 0.005);
             }
-            else range(c + 1.0, std::max(0.0, c - 1.0), 0.2);
+            else range(c + 1.0, std::max(0.2, c - 1.0), 0.2); // retrakcja zawsze > 0
         }
         return v;
     }
