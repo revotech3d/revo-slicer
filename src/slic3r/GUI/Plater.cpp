@@ -3612,9 +3612,7 @@ Sidebar::Sidebar(Plater *parent)
         scrolled_sizer->Add(params_panel->get_top_panel(), 0, wxEXPAND);
         {   // [r]evo: flight plan – the key process values; click a value to pick a new one
             struct Row { wxString key, value; std::vector<wxString> labels; std::vector<std::function<void(DynamicPrintConfig&)>> apply; int current = -1; };
-            struct State { int open = -1; std::vector<std::pair<wxRect, int>> value_hits; std::vector<std::pair<wxRect, int>> chip_hits; wxString sig; };
             auto plan  = new wxPanel(p->scrolled, wxID_ANY);
-            auto state = std::make_shared<State>();
             plan->SetBackgroundStyle(wxBG_STYLE_PAINT);
             plan->SetCursor(wxCursor(wxCURSOR_HAND));
             auto rows = []() {
@@ -3669,42 +3667,9 @@ Sidebar::Sidebar(Plater *parent)
                 r.push_back(std::move(s));
                 return r;
             };
-            const int row_h = FromDIP(26), chip_h = FromDIP(24), gap = FromDIP(6), pad = FromDIP(14);
-            // Lays out the chips of the open row; returns the panel height.
-            auto layout = [plan, state, row_h, chip_h, gap, pad](wxDC& dc, const std::vector<Row>& r, int width) {
-                state->value_hits.clear();
-                state->chip_hits.clear();
-                int y = plan->FromDIP(6);
-                for (int k = 0; k < int(r.size()); ++k) {
-                    state->value_hits.push_back({wxRect(0, y, width, row_h), k});
-                    y += row_h;
-                    if (k == state->open) {
-                        int x = pad;
-                        y += gap;
-                        for (int c = 0; c < int(r[k].labels.size()); ++c) {
-                            const int cw = dc.GetTextExtent(r[k].labels[c]).x + plan->FromDIP(20);
-                            if (x + cw > width - pad && x > pad) { x = pad; y += chip_h + gap; }
-                            state->chip_hits.push_back({wxRect(x, y, cw, chip_h), c});
-                            x += cw + gap;
-                        }
-                        y += chip_h + gap;
-                    }
-                }
-                return y + plan->FromDIP(6);
-            };
-            auto resize = [plan, state, rows, layout]() {
-                wxClientDC dc(plan);
-                dc.SetFont(Label::Body_13);
-                const int h = layout(dc, rows(), plan->GetClientSize().x);
-                if (plan->GetMinSize().y != h) {
-                    plan->SetMinSize(wxSize(-1, h));
-                    plan->GetParent()->Layout();
-                    plan->GetParent()->FitInside();
-                }
-                plan->Refresh();
-            };
-            plan->SetMinSize(wxSize(-1, FromDIP(4 * 26 + 12)));
-            plan->Bind(wxEVT_PAINT, [plan, state, rows, layout, pad](wxPaintEvent&) {
+            const int row_h = FromDIP(26), pad = FromDIP(14), top = FromDIP(6);
+            plan->SetMinSize(wxSize(-1, 4 * row_h + 2 * top));
+            plan->Bind(wxEVT_PAINT, [plan, rows, row_h, pad, top](wxPaintEvent&) {
                 wxAutoBufferedPaintDC dc(plan);
                 const wxSize sz = plan->GetClientSize();
                 dc.SetBackground(wxBrush(wxColour(5, 8, 12)));
@@ -3713,61 +3678,81 @@ Sidebar::Sidebar(Plater *parent)
                 dc.SetBrush(wxBrush(wxColour(90, 160, 255)));
                 dc.DrawRectangle(0, 0, plan->FromDIP(3), sz.y);
                 dc.SetFont(Label::Body_13);
-                const std::vector<Row> r = rows();
-                layout(dc, r, sz.x);
-                const wxColour blue(90, 160, 255), light(207, 214, 223), line(26, 31, 38);
-                for (const auto& [rect, k] : state->value_hits) {
-                    const int ty = rect.y + plan->FromDIP(5);
-                    dc.SetTextForeground(light);
-                    dc.DrawText(::Label::Spaced(r[k].key), pad, ty);
-                    const wxString v = r[k].value + (k == state->open ? wxString::FromUTF8(" \xE2\x96\xB4") : wxString::FromUTF8(" \xE2\x96\xBE"));
-                    dc.SetTextForeground(blue);
-                    dc.DrawText(v, sz.x - pad - dc.GetTextExtent(v).x, ty);
-                    if (k != state->open) {
-                        dc.SetPen(wxPen(line, 1));
-                        dc.DrawLine(pad, rect.GetBottom() + 1, sz.x - pad, rect.GetBottom() + 1);
-                        dc.SetPen(*wxTRANSPARENT_PEN);
-                    }
+                int y = top;
+                for (const Row& r : rows()) {
+                    dc.SetTextForeground(wxColour(207, 214, 223));
+                    dc.DrawText(::Label::Spaced(r.key), pad, y + plan->FromDIP(5));
+                    const wxString v = r.value + wxString::FromUTF8(" \xE2\x96\xBE");
+                    dc.SetTextForeground(wxColour(90, 160, 255));
+                    dc.DrawText(v, sz.x - pad - dc.GetTextExtent(v).x, y + plan->FromDIP(5));
+                    y += row_h;
+                    dc.SetPen(wxPen(wxColour(26, 31, 38), 1));
+                    dc.DrawLine(pad, y, sz.x - pad, y);
+                    dc.SetPen(*wxTRANSPARENT_PEN);
                 }
-                if (state->open >= 0 && state->open < int(r.size()))
-                    for (const auto& [rect, c] : state->chip_hits) {
-                        const bool on = c == r[state->open].current;
-                        dc.SetPen(wxPen(on ? blue : wxColour(42, 49, 59), 1));
-                        dc.SetBrush(on ? wxBrush(wxColour(14, 36, 64)) : *wxTRANSPARENT_BRUSH);
-                        dc.DrawRoundedRectangle(rect, plan->FromDIP(4));
-                        const wxString& l = r[state->open].labels[c];
-                        const wxSize ts = dc.GetTextExtent(l);
-                        dc.SetTextForeground(on ? *wxWHITE : light);
-                        dc.DrawText(l, rect.x + (rect.width - ts.x) / 2, rect.y + (rect.height - ts.y) / 2);
-                    }
             });
-            plan->Bind(wxEVT_LEFT_UP, [state, rows, resize](wxMouseEvent& e) {
-                const wxPoint pt = e.GetPosition();
-                if (state->open >= 0)
-                    for (const auto& [rect, c] : state->chip_hits)
-                        if (rect.Contains(pt)) {
-                            std::vector<Row> r = rows();
+            // Click on a row: the choices open in a popup under it, so the sidebar layout never moves.
+            plan->Bind(wxEVT_LEFT_UP, [plan, rows, row_h, pad, top](wxMouseEvent& e) {
+                const int k = (e.GetY() - top) / row_h;
+                std::vector<Row> r = rows();
+                if (e.GetY() < top || k < 0 || k >= int(r.size()))
+                    return;
+                static PopupWindow* last_pop = nullptr; // one popup at a time; the previous one is freed here
+                if (last_pop) last_pop->Destroy();
+                auto* pop = last_pop = new PopupWindow(plan);
+                const int w = plan->GetClientSize().x, chip_h = plan->FromDIP(24), gap = plan->FromDIP(6);
+                auto chips  = std::make_shared<std::vector<wxRect>>();
+                {   // lay the chips out in rows that fit the sidebar width
+                    wxClientDC dc(plan);
+                    dc.SetFont(Label::Body_13);
+                    int x = pad, y = gap;
+                    for (const wxString& l : r[k].labels) {
+                        const int cw = dc.GetTextExtent(l).x + plan->FromDIP(20);
+                        if (x + cw > w - pad && x > pad) { x = pad; y += chip_h + gap; }
+                        chips->push_back(wxRect(x, y, cw, chip_h));
+                        x += cw + gap;
+                    }
+                    pop->SetSize(w, y + chip_h + gap);
+                }
+                pop->SetBackgroundStyle(wxBG_STYLE_PAINT);
+                pop->Bind(wxEVT_PAINT, [pop, chips, r, k](wxPaintEvent&) {
+                    wxAutoBufferedPaintDC dc(pop);
+                    dc.SetBackground(wxBrush(wxColour(5, 8, 12)));
+                    dc.Clear();
+                    dc.SetPen(wxPen(wxColour(90, 160, 255), 1));
+                    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                    dc.DrawRectangle(wxPoint(0, 0), pop->GetClientSize());
+                    dc.SetFont(Label::Body_13);
+                    for (int c = 0; c < int(chips->size()); ++c) {
+                        const bool   on = c == r[k].current;
+                        const wxRect& rc = (*chips)[c];
+                        dc.SetPen(wxPen(on ? wxColour(90, 160, 255) : wxColour(42, 49, 59), 1));
+                        dc.SetBrush(on ? wxBrush(wxColour(14, 36, 64)) : *wxTRANSPARENT_BRUSH);
+                        dc.DrawRoundedRectangle(rc, pop->FromDIP(4));
+                        const wxSize ts = dc.GetTextExtent(r[k].labels[c]);
+                        dc.SetTextForeground(on ? *wxWHITE : wxColour(207, 214, 223));
+                        dc.DrawText(r[k].labels[c], rc.x + (rc.width - ts.x) / 2, rc.y + (rc.height - ts.y) / 2);
+                    }
+                });
+                pop->Bind(wxEVT_LEFT_UP, [pop, chips, r, k](wxMouseEvent& ev) {
+                    for (int c = 0; c < int(chips->size()); ++c)
+                        if ((*chips)[c].Contains(ev.GetPosition())) {
                             if (Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
                                 DynamicPrintConfig cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-                                r[state->open].apply[c](cfg);
+                                r[k].apply[c](cfg);
                                 tab->load_config(cfg);
                             }
-                            state->open = -1;
-                            resize();
+                            pop->Dismiss();
                             return;
                         }
-                for (const auto& [rect, k] : state->value_hits)
-                    if (rect.Contains(pt)) {
-                        state->open = state->open == k ? -1 : k;
-                        resize();
-                        return;
-                    }
+                });
+                pop->Position(plan->ClientToScreen(wxPoint(0, top + (k + 1) * row_h)), wxSize(0, 0));
+                pop->Popup();
             });
-            plan->Bind(wxEVT_SIZE, [resize](wxSizeEvent& e) { e.Skip(); resize(); });
-            plan->Bind(wxEVT_IDLE, [plan, state, rows](wxIdleEvent&) {
+            plan->Bind(wxEVT_IDLE, [plan, rows, last = wxString()](wxIdleEvent&) mutable {
                 wxString sig;
                 for (const auto& r : rows()) sig += r.value + "|";
-                if (sig != state->sig) { state->sig = sig; plan->Refresh(); }
+                if (sig != last) { last = sig; plan->Refresh(); }
             });
             scrolled_sizer->Add(plan, 0, wxEXPAND);
         }
