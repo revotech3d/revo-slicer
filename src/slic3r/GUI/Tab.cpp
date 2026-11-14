@@ -3461,6 +3461,11 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
         optgroup->append_single_option_line("slicing_mode", "others_settings_special_mode#slicing-mode");
         optgroup->append_single_option_line("print_sequence", "others_settings_special_mode#print-sequence");
+        // Revo flat belt: per-job choices, also set from the flight plan and the New mission screen.
+        optgroup->append_single_option_line("flat_belt_mode");
+        optgroup->append_single_option_line("flat_belt_object_gap");
+        optgroup->append_single_option_line("flat_belt_seam");
+        optgroup->append_single_option_line("flat_belt_step_length");
         optgroup->append_single_option_line("print_order", "others_settings_special_mode#intra-layer-order");
         optgroup->append_single_option_line("spiral_mode", "others_settings_special_mode#spiral-vase");
         optgroup->append_single_option_line("spiral_mode_smooth", "others_settings_special_mode#smooth-spiral");
@@ -5568,8 +5573,8 @@ void TabPrinter::build_fff()
 
         {
             auto fb = page->new_optgroup(L("Flat belt (experimental)"), L"param_advanced");
-            fb->append_single_option_line("flat_belt_mode");
-            fb->append_single_option_line("flat_belt_object_gap");
+            fb->append_single_option_line("flat_belt_head_clearance_z");
+            fb->append_single_option_line("flat_belt_head_clearance_y");
             fb->append_single_option_line("flat_belt_lift");
             Option option = fb->get_option("flat_belt_advance_gcode");
             option.opt.full_width = true;
@@ -6771,11 +6776,8 @@ void TabPrinter::toggle_options()
         const wxString belt_printer_reason = _L("Enable belt printer mode to use this setting.");
         toggle_line("belt_printer_infinite_y", is_belt, -1, belt_printer_reason);
         {
-            toggle_line("flat_belt_mode", is_belt, -1, belt_printer_reason);
-            const bool flat_belt = is_belt && m_config->opt_enum<FlatBeltMode>("flat_belt_mode") != FlatBeltMode::FixedBed;
-            const wxString flat_belt_reason = _L("Select a flat belt mode other than Fixed bed to use this setting.");
-            for (const char *key : {"flat_belt_object_gap", "flat_belt_lift", "flat_belt_advance_gcode"})
-                toggle_line(key, flat_belt, -1, flat_belt_reason);
+            for (const char *key : {"flat_belt_head_clearance_z", "flat_belt_head_clearance_y", "flat_belt_lift", "flat_belt_advance_gcode"})
+                toggle_line(key, is_belt, -1, belt_printer_reason);
         }
         // Belt tilt: the sole mesh-side belt transform (visible by default in belt mode).
         toggle_line("belt_slice_rotation_angle", is_belt, -1, belt_printer_reason);

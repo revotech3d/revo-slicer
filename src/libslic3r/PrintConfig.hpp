@@ -347,6 +347,14 @@ enum class FlatBeltMode
     Count,
 };
 
+enum class FlatBeltSeam
+{
+    Auto,     // steps when they fit the build area, otherwise a slope
+    Slope,    // one sloped face, angle from the toolhead clearance
+    Steps,    // each layer overlaps the previous segment by the step length
+    Count,
+};
+
 enum class BeltRotationAxis
 {
     None = 0,
@@ -816,6 +824,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BeltRotationAxis)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FlatBeltMode)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FlatBeltSeam)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(RemapAxis)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
@@ -1998,6 +2007,10 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionEnum<FlatBeltMode>,             flat_belt_mode))
     ((ConfigOptionFloat,                          flat_belt_object_gap))
     ((ConfigOptionFloat,                          flat_belt_lift))
+    ((ConfigOptionEnum<FlatBeltSeam>,             flat_belt_seam))
+    ((ConfigOptionFloat,                          flat_belt_step_length))
+    ((ConfigOptionFloat,                          flat_belt_head_clearance_z))
+    ((ConfigOptionFloat,                          flat_belt_head_clearance_y))
     ((ConfigOptionString,                         flat_belt_advance_gcode))
     //BBS
     ((ConfigOptionInts,               additional_cooling_fan_speed))

@@ -440,6 +440,13 @@ static t_config_enum_values s_keys_map_FlatBeltMode {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FlatBeltMode)
 
+static t_config_enum_values s_keys_map_FlatBeltSeam {
+    { "auto",  int(FlatBeltSeam::Auto) },
+    { "slope", int(FlatBeltSeam::Slope) },
+    { "steps", int(FlatBeltSeam::Steps) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FlatBeltSeam)
+
 static t_config_enum_values s_keys_map_RemapAxis {
     { "pos_x", int(RemapAxis::PosX) },
     { "pos_y", int(RemapAxis::PosY) },
@@ -7715,7 +7722,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("flat_belt_mode", coEnum);
     def->label = L("Flat belt mode");
-    def->category = L("Printable space");
+    def->category = L("Others");
     def->tooltip = L("Experimental. Printers with a flat conveyor belt and a gantry moving in Z.\n"
                      "Fixed bed: the belt stands still, a classic print inside the build volume.\n"
                      "Sequential: objects are printed one by one at the bed centre and the belt advances "
@@ -7729,7 +7736,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("flat_belt_object_gap", coFloat);
     def->label = L("Gap between objects");
-    def->category = L("Printable space");
+    def->category = L("Others");
     def->tooltip = L("Sequential flat belt mode. Distance left on the belt between two printed objects. "
                      "It must keep the toolhead clear of the previous object.");
     def->sidetext = L("mm");
@@ -7745,6 +7752,47 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
+
+    def = this->add("flat_belt_seam", coEnum);
+    def->label = L("Seam");
+    def->category = L("Others");
+    def->tooltip = L("Long parts flat belt mode. How two segments are joined.\n"
+                     "Steps: each layer overlaps the previous segment by the step length, the strongest joint for low parts.\n"
+                     "Slope: one sloped face, its angle set by the toolhead clearance.\n"
+                     "Auto: steps when the seam fits the build area, otherwise a slope.");
+    def->enum_keys_map = &ConfigOptionEnum<FlatBeltSeam>::get_enum_values();
+    def->enum_values  = {"auto", "slope", "steps"};
+    def->enum_labels  = {L("Auto"), L("Slope"), L("Steps")};
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<FlatBeltSeam>(FlatBeltSeam::Auto));
+
+    def = this->add("flat_belt_step_length", coFloat);
+    def->label = L("Step length");
+    def->category = L("Others");
+    def->tooltip = L("Long parts flat belt mode. Overlap of each layer onto the previous segment. "
+                     "It must be longer than the toolhead front clearance.");
+    def->sidetext = L("mm");
+    def->min = 1;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(20.));
+
+    def = this->add("flat_belt_head_clearance_z", coFloat);
+    def->label = L("Nozzle below toolhead");
+    def->category = L("Printable space");
+    def->tooltip = L("How far the nozzle tip reaches below the lowest other part of the toolhead (heater block, sock, duct, probe).");
+    def->sidetext = L("mm");
+    def->min = 0.1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2.5));
+
+    def = this->add("flat_belt_head_clearance_y", coFloat);
+    def->label = L("Toolhead front");
+    def->category = L("Printable space");
+    def->tooltip = L("Distance from the nozzle axis to the front edge of that lowest part, towards the front of the machine.");
+    def->sidetext = L("mm");
+    def->min = 0.1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(11.));
 
     def = this->add("flat_belt_advance_gcode", coString);
     def->label = L("Belt advance G-code");

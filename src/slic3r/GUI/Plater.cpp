@@ -112,6 +112,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include <wx/textdlg.h>
 #include <wx/colour.h>
 #include <wx/font.h>
 #include <wx/aui/framemanager.h>
@@ -3665,6 +3666,85 @@ Sidebar::Sidebar(Plater *parent)
                     });
                 }
                 r.push_back(std::move(s));
+
+                // [r]evo flat belt: shown only on belt printers. A "Custom" chip asks for a value in mm.
+                const auto* belt_opt = bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("belt_printer");
+                const auto* mode_opt = c.option<ConfigOptionEnum<FlatBeltMode>>("flat_belt_mode");
+                const auto* seam_opt = c.option<ConfigOptionEnum<FlatBeltSeam>>("flat_belt_seam");
+                if (belt_opt && belt_opt->value && mode_opt && seam_opt) {
+                    auto ask_mm = [](const wxString& title, double current, double& out) {
+                        wxTextEntryDialog dlg(nullptr, _L("Value in mm"), title, wxString::Format("%g", current));
+                        double v = 0.;
+                        if (dlg.ShowModal() != wxID_OK || !dlg.GetValue().ToCDouble(&v) || v <= 0.)
+                            return false;
+                        out = v;
+                        return true;
+                    };
+                    const auto mode = mode_opt->value;
+                    // TRN Flat belt modes in the flight plan
+                    const wxString ml[] = {_L("Fixed bed"), _L("Sequential"), _L("Long parts")};
+                    Row b{_L("Belt"), ml[int(mode)]};
+                    b.current = int(mode);
+                    for (int v = 0; v < 3; ++v) {
+                        b.labels.push_back(ml[v]);
+                        b.apply.push_back([v](DynamicPrintConfig& cfg) {
+                            cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode(v)));
+                            // sequential belt printing is object by object
+                            if (FlatBeltMode(v) == FlatBeltMode::Sequential)
+                                cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByObject));
+                        });
+                    }
+                    r.push_back(std::move(b));
+
+                    if (mode == FlatBeltMode::Sequential) {
+                        const double gap = c.opt_float("flat_belt_object_gap");
+                        Row g{_L("Gap"), wxString::Format("%g mm", gap)};
+                        for (double v : {30., 50., 80., 100.}) {
+                            if (std::abs(v - gap) < 1e-6) g.current = int(g.labels.size());
+                            g.labels.push_back(wxString::Format("%g", v));
+                            g.apply.push_back([v](DynamicPrintConfig& cfg) { cfg.set_key_value("flat_belt_object_gap", new ConfigOptionFloat(v)); });
+                        }
+                        if (g.current < 0) g.current = int(g.labels.size());
+                        g.labels.push_back(_L("Custom"));
+                        g.apply.push_back([ask_mm, gap](DynamicPrintConfig& cfg) {
+                            double v;
+                            if (ask_mm(_L("Gap between objects"), gap, v))
+                                cfg.set_key_value("flat_belt_object_gap", new ConfigOptionFloat(v));
+                        });
+                        r.push_back(std::move(g));
+                    } else if (mode == FlatBeltMode::LongParts) {
+                        const auto   seam = seam_opt->value;
+                        const double step = c.opt_float("flat_belt_step_length");
+                        const wxString value = seam == FlatBeltSeam::Steps ? wxString::Format(_L("Steps %g mm"), step) :
+                                               seam == FlatBeltSeam::Slope ? _L("Slope") : _L("Auto");
+                        Row m{_L("Seam"), value};
+                        auto set_seam = [](DynamicPrintConfig& cfg, FlatBeltSeam s) {
+                            cfg.set_key_value("flat_belt_seam", new ConfigOptionEnum<FlatBeltSeam>(s));
+                        };
+                        m.labels = {_L("Auto"), _L("Slope")};
+                        m.apply.push_back([set_seam](DynamicPrintConfig& cfg) { set_seam(cfg, FlatBeltSeam::Auto); });
+                        m.apply.push_back([set_seam](DynamicPrintConfig& cfg) { set_seam(cfg, FlatBeltSeam::Slope); });
+                        if (seam != FlatBeltSeam::Steps) m.current = int(seam);
+                        for (double v : {10., 20., 30.}) {
+                            if (seam == FlatBeltSeam::Steps && std::abs(v - step) < 1e-6) m.current = int(m.labels.size());
+                            m.labels.push_back(wxString::Format(_L("Steps %g"), v));
+                            m.apply.push_back([set_seam, v](DynamicPrintConfig& cfg) {
+                                set_seam(cfg, FlatBeltSeam::Steps);
+                                cfg.set_key_value("flat_belt_step_length", new ConfigOptionFloat(v));
+                            });
+                        }
+                        if (m.current < 0) m.current = int(m.labels.size());
+                        m.labels.push_back(_L("Custom"));
+                        m.apply.push_back([ask_mm, set_seam, step](DynamicPrintConfig& cfg) {
+                            double v;
+                            if (ask_mm(_L("Step length"), step, v)) {
+                                set_seam(cfg, FlatBeltSeam::Steps);
+                                cfg.set_key_value("flat_belt_step_length", new ConfigOptionFloat(v));
+                            }
+                        });
+                        r.push_back(std::move(m));
+                    }
+                }
                 return r;
             };
             const int row_h = FromDIP(26), pad = FromDIP(14), top = FromDIP(6);
@@ -3749,9 +3829,15 @@ Sidebar::Sidebar(Plater *parent)
                 pop->Position(plan->ClientToScreen(wxPoint(0, top + (k + 1) * row_h)), wxSize(0, 0));
                 pop->Popup();
             });
-            plan->Bind(wxEVT_IDLE, [plan, rows, last = wxString()](wxIdleEvent&) mutable {
+            plan->Bind(wxEVT_IDLE, [plan, rows, row_h, top, last = wxString(), last_n = size_t(4)](wxIdleEvent&) mutable {
                 wxString sig;
-                for (const auto& r : rows()) sig += r.value + "|";
+                const auto r = rows();
+                for (const auto& row : r) sig += row.value + "|";
+                if (r.size() != last_n) { // belt rows come and go with the printer and the mode
+                    last_n = r.size();
+                    plan->SetMinSize(wxSize(-1, int(last_n) * row_h + 2 * top));
+                    plan->GetParent()->Layout();
+                }
                 if (sig != last) { last = sig; plan->Refresh(); }
             });
             scrolled_sizer->Add(plan, 0, wxEXPAND);
