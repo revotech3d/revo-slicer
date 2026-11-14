@@ -22065,6 +22065,10 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->update_print_volume_state();
             get_current_canvas3D()->requires_check_outside_state();
             update_scheduled = true;
+            // A change from the Flight plan popup arrives while the canvas cannot reload (the
+            // reload is delayed); reload once the popup is gone, so the off-bed error and the
+            // Slice button follow the new mode.
+            wxGetApp().CallAfter([this]() { get_current_canvas3D()->reload_scene(true); });
         }
         else if (opt_key == "printer_model") {
             p->reset_gcode_toolpaths();
