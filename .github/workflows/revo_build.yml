@@ -58,6 +58,16 @@ jobs:
       os: macos-15
       arch: ${{ matrix.arch }}
     secrets: inherit
+  # Unit tests of the Mac build (fff_print covers the Belt modes). A release does not wait for them.
+  tests_mac:
+    name: macOS arm64 tests
+    needs: [macos_arch]
+    if: ${{ !cancelled() && needs.macos_arch.result == 'success' }}
+    uses: ./.github/workflows/unit_tests.yml
+    with:
+      os: macos-15
+      artifact: ${{ github.sha }}-tests-macos-arm64
+      test-dir: build/arm64/tests
 
   # Wydanie: tylko z ręcznego uruchomienia z „wydaj: true”. Instalator Windows + aplikacja Mac (DMG, bez podpisu Apple).
   wydanie:

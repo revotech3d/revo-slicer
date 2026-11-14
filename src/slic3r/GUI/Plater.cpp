@@ -3830,6 +3830,9 @@ Sidebar::Sidebar(Plater *parent)
                                 DynamicPrintConfig cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                                 r[k].apply[c](cfg);
                                 tab->load_config(cfg);
+                                // load_config() does not notify the plater; the Belt mode decides
+                                // whether a part may lie past the bed, so refresh that state now.
+                                wxGetApp().plater()->on_config_change(*tab->get_config());
                             }
                             pop->Dismiss();
                             return;
