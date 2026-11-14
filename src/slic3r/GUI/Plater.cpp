@@ -3689,9 +3689,11 @@ Sidebar::Sidebar(Plater *parent)
                         b.labels.push_back(ml[v]);
                         b.apply.push_back([v](DynamicPrintConfig& cfg) {
                             cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode(v)));
-                            // sequential belt printing is object by object
+                            // sequential belt printing is object by object, long parts are printed by layer
                             if (FlatBeltMode(v) == FlatBeltMode::Sequential)
                                 cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByObject));
+                            else if (FlatBeltMode(v) == FlatBeltMode::LongParts)
+                                cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
                         });
                     }
                     r.push_back(std::move(b));
@@ -8239,6 +8241,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , main_frame(main_frame)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
+        // [r]evo flat belt: Long parts lets a part lie past the bed, so a Belt mode change rechecks the objects.
+        "flat_belt", "flat_belt_mode",
         "printable_area", "bed_exclude_area", "bed_exclude_volumes", "bed_exclude_volume_mode", "extruder_bed_exclude_volumes", "extruder_offset",
         "wrapping_exclude_area", "extruder_printable_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
         "extruder_clearance_radius",
@@ -22065,13 +22069,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             p->update_print_volume_state();
             get_current_canvas3D()->requires_check_outside_state();
             update_scheduled = true;
-            // A change from the Flight plan popup arrives while the canvas cannot reload (the
-            // reload is delayed); reload once the popup is gone, so the off-bed error and the
-            // Slice button follow the new mode.
-            wxGetApp().CallAfter([this]() {
-                get_current_canvas3D()->reload_scene(true);
-                wxWakeUpIdle(); // a delayed reload runs on the next idle render
-            });
         }
         else if (opt_key == "printer_model") {
             p->reset_gcode_toolpaths();
