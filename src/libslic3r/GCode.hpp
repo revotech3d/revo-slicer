@@ -431,6 +431,10 @@ protected:
         // Formats and write into a file the given data.
         void write_format(const char* format, ...);
 
+        // While set, writes go into this buffer instead of the file and the processor
+        // (flat belt Long parts: the layers are segmented before they are written).
+        std::string *capture = nullptr;
+
     private:
         FILE *f = nullptr;
         GCodeProcessor &m_processor;

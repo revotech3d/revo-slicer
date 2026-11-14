@@ -89,6 +89,8 @@ set(lisbslic3r_sources
     BeltBrim.hpp
     BeltGCode.cpp
     BeltGCode.hpp
+    FlatBelt.cpp
+    FlatBelt.hpp
     BeltPurge.cpp
     BeltSliceStrategy.cpp
     BeltSliceStrategy.hpp

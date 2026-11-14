@@ -2248,8 +2248,20 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
             return {L("Flat belt modes need a belt tilt angle of 0 degrees."), nullptr, "flat_belt_mode"};
         if (this->flat_belt_mode() == FlatBeltMode::Sequential && m_config.print_sequence != PrintSequence::ByObject)
             return {L("Sequential flat belt mode needs the \"By object\" print sequence."), nullptr, "print_sequence"};
-        if (this->flat_belt_mode() == FlatBeltMode::LongParts)
-            return {L("Long parts flat belt mode is not available yet."), nullptr, "flat_belt_mode"};
+        if (this->flat_belt_mode() == FlatBeltMode::LongParts) {
+            if (m_objects.size() != 1 || m_objects.front()->instances().size() != 1)
+                return {L("Long parts flat belt mode prints a single object."), nullptr, "flat_belt_mode"};
+            if (m_config.print_sequence != PrintSequence::ByLayer)
+                return {L("Long parts flat belt mode needs the \"By layer\" print sequence."), nullptr, "print_sequence"};
+            if (!m_config.use_relative_e_distances.value)
+                return {L("Long parts flat belt mode needs relative E distances."), nullptr, "use_relative_e_distances"};
+            if (m_config.enable_arc_fitting.value != ArcFittingMode::Disabled)
+                return {L("Long parts flat belt mode needs Arc fitting disabled."), nullptr, "enable_arc_fitting"};
+            if (m_config.enable_prime_tower.value)
+                return {L("Long parts flat belt mode does not support a prime tower."), nullptr, "enable_prime_tower"};
+            if (this->extruders().size() > 1)
+                return {L("Long parts flat belt mode prints with a single filament."), nullptr, "flat_belt_mode"};
+        }
     }
     if (m_config.print_sequence == PrintSequence::ByObject && (m_objects.size() > 1 || m_objects[0]->instances().size() > 1)) {
         if (m_config.timelapse_type == TimelapseType::tlSmooth)

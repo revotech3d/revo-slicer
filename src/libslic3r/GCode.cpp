@@ -32,6 +32,7 @@
 #include "I18N.hpp"
 #include "IMEXHelpers.hpp"
 #include "GCode.hpp"
+#include "FlatBelt.hpp"
 #include <cstdio>
 #include "Exception.hpp"
 #include "LifecycleEvents.hpp"
@@ -4812,6 +4813,22 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
             // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
             // and export G-code into file.
+            if (print.flat_belt_mode() == FlatBeltMode::LongParts && !print.objects().empty() &&
+                !print.objects().front()->layers().empty()) {
+                // Generate the whole part, then replay it segment by segment (FlatBelt.hpp).
+                const PrintObject &object = *print.objects().front();
+                const double height = object.layers().back()->print_z;
+                const FlatBelt::LongPartsPlan plan = FlatBelt::plan_long_parts(print.config(), height, object.layers().size());
+                std::string layers_gcode;
+                file.capture = &layers_gcode;
+                this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
+                file.capture = nullptr;
+                DynamicConfig belt_config;
+                belt_config.set_key_value("belt_advance", new ConfigOptionFloat(plan.advance));
+                const std::string advance_gcode = this->placeholder_parser_process("flat_belt_advance_gcode",
+                    print.config().flat_belt_advance_gcode.value, initial_extruder_id, &belt_config);
+                file.write(FlatBelt::segment_long_parts(layers_gcode, plan, print.config(), height, advance_gcode));
+            } else
             this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
             {
                 //save the flush statitics stored in tool ordering
@@ -9128,6 +9145,10 @@ void GCode::GCodeOutputStream::close()
 
 void GCode::GCodeOutputStream::write(const char *what)
 {
+    if (what != nullptr && capture != nullptr) {
+        capture->append(what);
+        return;
+    }
     if (what != nullptr) {
         const char* gcode = what;
         // writes string to file
