@@ -43,10 +43,7 @@
 	"thumbnails": [
 		"300x300/PNG"
 	],
-	"belt_printer": "1",
-	"belt_printer_infinite_y": "1",
-	"belt_slice_rotation": "none",
-	"belt_slice_rotation_angle": "0",
+	"flat_belt": "1",
 	"flat_belt_head_clearance_z": "2.5",
 	"flat_belt_head_clearance_y": "11",
 	"flat_belt_lift": "5",

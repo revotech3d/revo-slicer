@@ -3668,7 +3668,7 @@ Sidebar::Sidebar(Plater *parent)
                 r.push_back(std::move(s));
 
                 // [r]evo flat belt: shown only on belt printers. A "Custom" chip asks for a value in mm.
-                const auto* belt_opt = bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("belt_printer");
+                const auto* belt_opt = bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("flat_belt");
                 const auto* mode_opt = c.option<ConfigOptionEnum<FlatBeltMode>>("flat_belt_mode");
                 const auto* seam_opt = c.option<ConfigOptionEnum<FlatBeltSeam>>("flat_belt_seam");
                 if (belt_opt && belt_opt->value && mode_opt && seam_opt) {

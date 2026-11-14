@@ -2003,7 +2003,9 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // Belt-printer-only "type" of purge tower: enables the auto-generated belt
     // purge prism (the belt replacement for the classic wipe/prime tower).
     ((ConfigOptionBool,                           enable_belt_purge_tower))
-    // Revo flat belt (experimental).
+    // Revo flat belt (experimental): a flat conveyor belt with a Z gantry. Independent of
+    // belt_printer, which is the tilted-belt pipeline (rotation, shear, belt brim).
+    ((ConfigOptionBool,                           flat_belt))
     ((ConfigOptionEnum<FlatBeltMode>,             flat_belt_mode))
     ((ConfigOptionFloat,                          flat_belt_object_gap))
     ((ConfigOptionFloat,                          flat_belt_lift))

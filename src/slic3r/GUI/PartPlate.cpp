@@ -5288,7 +5288,12 @@ bool PartPlate::belt_open_y() const
 	const DynamicPrintConfig &printer = wxGetApp().preset_bundle->printers.get_edited_preset().config;
 	const auto *belt       = printer.option<ConfigOptionBool>("belt_printer");
 	const auto *infinite_y = printer.option<ConfigOptionBool>("belt_printer_infinite_y");
-	return belt != nullptr && belt->value && infinite_y != nullptr && infinite_y->value;
+	if (belt != nullptr && belt->value && infinite_y != nullptr && infinite_y->value)
+		return true;
+	// [r]evo flat belt: only Long parts prints past the bed along the belt.
+	const auto *flat = printer.option<ConfigOptionBool>("flat_belt");
+	const auto *mode = wxGetApp().preset_bundle->prints.get_edited_preset().config.option<ConfigOptionEnum<FlatBeltMode>>("flat_belt_mode");
+	return flat != nullptr && flat->value && mode != nullptr && mode->value == FlatBeltMode::LongParts;
 }
 
 bool PartPlate::contains(const Vec3d& point) const

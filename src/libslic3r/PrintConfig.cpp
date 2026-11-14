@@ -7720,6 +7720,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("flat_belt", coBool);
+    def->label = L("Flat belt printer");
+    def->category = L("Printable space");
+    def->tooltip = L("Experimental. A flat conveyor belt as the bed and a gantry moving in Z. Enables the Belt modes: "
+                     "Fixed bed, Sequential and Long parts. Not the same as belt printing, which is for tilted belts.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("flat_belt_mode", coEnum);
     def->label = L("Belt mode");
     def->category = L("Others");

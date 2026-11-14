@@ -1380,9 +1380,9 @@ public:
     // Unset types are just ignored.
     static int get_compatible_filament_type(const std::set<int>& types);
 
-    // Revo flat belt mode; only a belt printer has one, anything else prints on a fixed bed.
+    // Revo flat belt mode; only a flat belt printer has one, anything else prints on a fixed bed.
     FlatBeltMode flat_belt_mode() const {
-        return m_config.belt_printer.value ? m_config.flat_belt_mode.value : FlatBeltMode::FixedBed;
+        return m_config.flat_belt.value ? m_config.flat_belt_mode.value : FlatBeltMode::FixedBed;
     }
     bool is_all_objects_are_short() const {
         return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });

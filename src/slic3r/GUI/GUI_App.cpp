@@ -5658,7 +5658,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_newproject") == 0) {
                 // [r]evo: on a belt printer a new mission starts with the mission type picker
-                const auto* belt = preset_bundle ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("belt_printer") : nullptr;
+                const auto* belt = preset_bundle ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("flat_belt") : nullptr;
                 const auto& pc   = preset_bundle->prints.get_edited_preset().config;
                 const auto* mode = belt ? pc.option<ConfigOptionEnum<FlatBeltMode>>("flat_belt_mode") : nullptr;
                 const auto* seam = belt ? pc.option<ConfigOptionEnum<FlatBeltSeam>>("flat_belt_seam") : nullptr;

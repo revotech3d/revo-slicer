@@ -3594,6 +3594,15 @@ void TabPrint::toggle_options()
 
     m_config_manipulation.toggle_print_fff_options(m_config, int(intptr_t(m_extruder_switch->GetClientData())), m_type < Preset::TYPE_COUNT);
 
+    // [r]evo: the Belt mode settings only mean something on a flat belt printer.
+    if (m_preset_bundle && m_config->has("flat_belt_mode")) {
+        const auto *flat = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("flat_belt");
+        const bool  on   = flat != nullptr && flat->value;
+        for (const char *key : {"flat_belt_mode", "flat_belt_object_gap", "flat_belt_seam", "flat_belt_step_length",
+                                "flat_belt_slope_angle", "flat_belt_endless", "flat_belt_endless_count"})
+            toggle_line(key, on);
+    }
+
     if (m_type == Preset::TYPE_PLATE) {
         const auto &printer_config = m_preset_bundle->printers.get_edited_preset().config;
         toggle_option("curr_bed_type", m_preset_bundle->is_bbl_vendor() || printer_config.opt_bool("support_multi_bed_types"), -1,
@@ -5576,6 +5585,7 @@ void TabPrinter::build_fff()
 
         {
             auto fb = page->new_optgroup(L("Belt (experimental)"), L"param_advanced");
+            fb->append_single_option_line("flat_belt");
             fb->append_single_option_line("flat_belt_head_clearance_z");
             fb->append_single_option_line("flat_belt_head_clearance_y");
             fb->append_single_option_line("flat_belt_lift");
@@ -6779,8 +6789,10 @@ void TabPrinter::toggle_options()
         const wxString belt_printer_reason = _L("Enable belt printer mode to use this setting.");
         toggle_line("belt_printer_infinite_y", is_belt, -1, belt_printer_reason);
         {
+            const bool flat_belt = m_config->opt_bool("flat_belt");
+            const wxString flat_belt_reason = _L("Enable Flat belt printer to use this setting.");
             for (const char *key : {"flat_belt_head_clearance_z", "flat_belt_head_clearance_y", "flat_belt_lift", "flat_belt_advance_gcode"})
-                toggle_line(key, is_belt, -1, belt_printer_reason);
+                toggle_line(key, flat_belt, -1, flat_belt_reason);
         }
         // Belt tilt: the sole mesh-side belt transform (visible by default in belt mode).
         toggle_line("belt_slice_rotation_angle", is_belt, -1, belt_printer_reason);

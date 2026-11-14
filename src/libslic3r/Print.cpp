@@ -507,6 +507,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "print_sequence"
+            || opt_key == "flat_belt"
             || opt_key == "flat_belt_mode"
             || opt_key == "flat_belt_object_gap"
             || opt_key == "flat_belt_lift"
@@ -2247,8 +2248,8 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
     }
 
     if (this->flat_belt_mode() != FlatBeltMode::FixedBed) {
-        if (std::abs(m_config.belt_slice_rotation_angle.value) > EPSILON)
-            return {L("Belt modes need a belt tilt angle of 0 degrees."), nullptr, "flat_belt_mode"};
+        if (m_config.belt_printer.value)
+            return {L("Belt modes are for flat belt printers; turn off tilted belt printing."), nullptr, "belt_printer"};
         if (this->flat_belt_mode() == FlatBeltMode::Sequential && m_config.print_sequence != PrintSequence::ByObject)
             return {L("Sequential Belt mode needs the \"By object\" print sequence."), nullptr, "print_sequence"};
         if (this->flat_belt_mode() == FlatBeltMode::LongParts) {

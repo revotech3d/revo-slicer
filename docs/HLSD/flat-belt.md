@@ -1,9 +1,11 @@
 # Flat belt (Revo)
 
 A flat belt printer has a horizontal conveyor belt as its bed and a gantry that moves in Z.
-The belt only moves between prints or segments, never while a layer is printed. It is a
-belt printer (`belt_printer`) with a 0° tilt and no slicing rotation, so the tilted-belt
-transforms are identities and the open Y axis of belt printers lets parts be longer than the bed.
+The belt only moves between prints or segments, never while a layer is printed. The printer
+sets `flat_belt`, which is independent of `belt_printer` (the tilted-belt pipeline: mesh
+rotation, shear, belt brim, no skirt): a flat belt prints like a fixed bed, with skirt, brim
+and prime tower as usual. Only in Long parts does the plate open along Y
+(`PartPlate::belt_open_y()`), so a part can be longer than the bed.
 
 `flat_belt_mode` (process) chooses how the belt is used:
 
