@@ -1470,7 +1470,12 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     std::map<std::pair<int, int>, ModelInstanceEPrintVolumeState> model_state;
 
     GUI::PartPlate* curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
-    const Pointfs& pp_bed_shape = curr_plate->get_shape();
+    Pointfs pp_bed_shape = curr_plate->get_shape();
+    if (curr_plate->belt_open_y()) {
+        // Open along the belt, like PartPlate::contains(): a belt part may be longer than the bed.
+        const BoundingBoxf bed(pp_bed_shape);
+        pp_bed_shape = { Vec2d(bed.min.x(), -1e5), Vec2d(bed.max.x(), -1e5), Vec2d(bed.max.x(), 1e5), Vec2d(bed.min.x(), 1e5) };
+    }
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height(), build_volume.extruder_areas(), build_volume.extruder_heights());
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
