@@ -9656,7 +9656,15 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         }
         }
         if (m_requires_check_outside_state) {
-            m_volumes.check_outside_state(build_volume, nullptr, nullptr);
+            if (m_canvas_type == ECanvasType::CanvasAssembleView)
+                m_volumes.check_outside_state(build_volume, nullptr, nullptr);
+            else {
+                // Keep the "laid over the boundary" notification in step with the new state: a
+                // reload_scene() requested from a popup (Flight plan Belt mode) can be delayed.
+                ObjectFilamentResults object_results;
+                m_volumes.check_outside_state(build_volume, nullptr, &object_results);
+                _set_warning_notification(EWarning::ObjectClashed, construct_error_string(object_results, get_object_clashed_text()));
+            }
             m_requires_check_outside_state = false;
         }
     }
