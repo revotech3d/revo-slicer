@@ -2263,6 +2263,11 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                 return {L("Long parts flat belt mode does not support a prime tower."), nullptr, "enable_prime_tower"};
             if (this->extruders().size() > 1)
                 return {L("Long parts flat belt mode prints with a single filament."), nullptr, "flat_belt_mode"};
+            warn(m_config.flat_belt_endless.value ?
+                     L("Endless: the preview, print time and filament cover the first segment and one repeat. "
+                       "The printer shows the segments and the belt length printed.") :
+                     L("Long parts: the preview shows every segment on the bed at once; the print time and filament are for the whole part."),
+                 "flat_belt_mode");
         }
     }
     if (m_config.print_sequence == PrintSequence::ByObject && (m_objects.size() > 1 || m_objects[0]->instances().size() > 1)) {

@@ -249,6 +249,13 @@ std::string segment_long_parts(const std::string   &layers_gcode,
     for (const Item &it : layers.front().items)
         if (!it.is_move)
             out << it.raw << "\n";
+    // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts segments instead of a file percentage.
+    {
+        char info[128];
+        std::snprintf(info, sizeof(info), "FLAT_BELT_INFO ENDLESS=%d ADVANCE=%.3f SEGMENTS=%d\n",
+                      endless ? 1 : 0, plan.advance, endless ? 0 : int(n_seg));
+        out << info;
+    }
 
     auto emit_segment = [&](size_t k) {
         // Segment k sits on the bed after k advances: front of the part at the front of the print zone.
