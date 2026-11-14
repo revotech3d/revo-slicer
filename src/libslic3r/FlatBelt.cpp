@@ -8,6 +8,7 @@
 #include "libslic3r.h"
 
 #include <algorithm>
+#include <functional>
 #include <cmath>
 #include <cstdio>
 #include <limits>
@@ -115,6 +116,8 @@ public:
     void set_shift(double dy) { m_dy = dy; }
     void set_layer_z(double z) { m_z = z; }
     void approach_from_above(double z) { m_high = true; m_cur_z = z; m_has_pos = false; }
+    // The extruder is already retracted (a repeated block that starts where the previous one ended).
+    void assume_retracted() { m_retracted = true; }
 
     void extrude(double xa, double ya, double xb, double yb, double e, double f)
     {
@@ -172,14 +175,12 @@ private:
 
 } // namespace
 
-std::string segment_long_parts(const std::string   &layers_gcode,
-                               const LongPartsPlan &plan,
-                               const PrintConfig   &config,
-                               double               part_height,
-                               const std::string   &advance_gcode)
+// Parses the layers' G-code into layers of extrusion moves (with their start and end points) and raw
+// lines; the travels, retracts, wipes and Z hops are left out, the emitter makes its own. Returns the
+// extent of the extrusions along Y; false when there are none.
+static bool parse_layers(const std::string &layers_gcode, std::vector<Layer> &layers, double &y_front, double &y_back)
 {
-    // 1) Parse into layers, with every move's start and end point.
-    std::vector<Layer> layers(1); // layers[0]: whatever comes before the first layer change
+    layers.assign(1, Layer{}); // layers[0]: whatever comes before the first layer change
     double x = 0., y = 0., f = 1800.;
     {
         std::istringstream in(layers_gcode);
@@ -217,14 +218,27 @@ std::string segment_long_parts(const std::string   &layers_gcode,
         }
     }
     // A layer's height: the Z the layer change moved to (the first Z found in it).
-    double y_front = std::numeric_limits<double>::max(), y_back = std::numeric_limits<double>::lowest();
+    y_front = std::numeric_limits<double>::max();
+    y_back  = std::numeric_limits<double>::lowest();
     for (size_t i = 1; i < layers.size(); ++i) {
         y_front = std::min(y_front, layers[i].y_min);
         y_back  = std::max(y_back, layers[i].y_max);
         if (layers[i].z == 0.)
             layers[i].z = layers[i - 1].z;
     }
-    if (layers.size() < 2 || y_front > y_back)
+    return layers.size() >= 2 && y_front <= y_back;
+}
+
+std::string segment_long_parts(const std::string   &layers_gcode,
+                               const LongPartsPlan &plan,
+                               const PrintConfig   &config,
+                               double               part_height,
+                               const std::string   &advance_gcode)
+{
+    // 1) Parse into layers, with every move's start and end point.
+    std::vector<Layer> layers;
+    double y_front, y_back;
+    if (!parse_layers(layers_gcode, layers, y_front, y_back))
         return layers_gcode;
 
     // 2) Segment boundaries along the part: Ys_j = j * advance + seam, receding with each layer.
@@ -255,7 +269,7 @@ std::string segment_long_parts(const std::string   &layers_gcode,
     // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts segments instead of a file percentage.
     {
         char info[128];
-        std::snprintf(info, sizeof(info), "FLAT_BELT_INFO ENDLESS=%d ADVANCE=%.3f SEGMENTS=%d\n",
+        std::snprintf(info, sizeof(info), "FLAT_BELT_INFO ENDLESS=%d ADVANCE=%.3f SEGMENTS=%d UNIT=segment\n",
                       endless ? 1 : 0, plan.advance, endless ? 0 : int(n_seg));
         out << info;
     }
@@ -315,6 +329,77 @@ std::string segment_long_parts(const std::string   &layers_gcode,
         }
     }
     em.retract();
+    return out.str();
+}
+
+std::string repeat_plates(const std::string                         &layers_gcode,
+                          const PrintConfig                         &config,
+                          double                                     plate_height,
+                          const std::function<std::string(double)>  &advance_gcode)
+{
+    std::vector<Layer> layers;
+    double y_front, y_back;
+    if (!parse_layers(layers_gcode, layers, y_front, y_back))
+        return layers_gcode;
+    // The printed plate moves forward by its depth plus the gap, so the next one prints on a clear bed.
+    const double advance = y_back - y_front + config.flat_belt_object_gap.value;
+    const int    copies  = std::max(0, config.flat_belt_copies.value);
+
+    const double retract   = config.retraction_length.get_at(0);
+    const double retract_f = 60. * config.retraction_speed.get_at(0);
+    const double travel_v  = config.travel_speed.get_at(0);
+    const double travel_f  = 60. * (std::isfinite(travel_v) && travel_v > 0. ? travel_v : 150.);
+    const double safe_z    = plate_height + config.flat_belt_lift.value;
+
+    std::ostringstream out;
+    for (const Item &it : layers.front().items)
+        if (!it.is_move)
+            out << it.raw << "\n";
+    // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts plates.
+    {
+        char info[160];
+        std::snprintf(info, sizeof(info), "FLAT_BELT_INFO ENDLESS=%d ADVANCE=%.3f SEGMENTS=%d UNIT=plate\n",
+                      copies == 0 ? 1 : 0, advance, copies);
+        out << info;
+    }
+    // Every plate is the same text: it starts and ends retracted, lifted to safe_z.
+    {
+        Emitter em(out, retract, retract_f, travel_f);
+        em.retract();
+    }
+    std::ostringstream plate_out;
+    {
+        Emitter em(plate_out, retract, retract_f, travel_f);
+        em.assume_retracted();
+        em.lift_to(safe_z);
+        em.approach_from_above(safe_z);
+        for (size_t li = 1; li < layers.size(); ++li) {
+            em.set_layer_z(layers[li].z);
+            for (const Item &it : layers[li].items) {
+                if (!it.is_move)
+                    plate_out << it.raw << "\n";
+                else
+                    em.extrude(it.move.x0, it.move.y0, it.move.x1, it.move.y1, it.move.e, it.move.f);
+            }
+        }
+        em.lift_to(safe_z);
+    }
+    const std::string plate = plate_out.str();
+    std::string advance_block = "; FLAT_BELT_ADVANCE\n" + advance_gcode(advance);
+    if (!advance_block.empty() && advance_block.back() != '\n')
+        advance_block += '\n';
+
+    if (copies == 0) {
+        // Until stopped: Klipper's [sdcard_loop] repeats one plate; SDCARD_LOOP_DESIST ends it after the current one.
+        out << "SDCARD_LOOP_BEGIN COUNT=0\n; FLAT_BELT_PLATE REPEAT\n" << plate << advance_block << "SDCARD_LOOP_END\n";
+    } else {
+        // A known number is written out plate by plate, so the file progress and time left stay right.
+        for (int k = 0; k < copies; ++k) {
+            out << "; FLAT_BELT_PLATE " << (k + 1) << "/" << copies << "\n" << plate;
+            if (k + 1 < copies)
+                out << advance_block;
+        }
+    }
     return out.str();
 }
 

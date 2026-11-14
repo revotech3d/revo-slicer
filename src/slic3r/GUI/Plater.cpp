@@ -3682,23 +3682,24 @@ Sidebar::Sidebar(Plater *parent)
                     };
                     const auto mode = mode_opt->value;
                     // TRN Flat belt modes in the flight plan
-                    const wxString ml[] = {_L("Fixed bed"), _L("Sequential"), _L("Long parts")};
+                    const wxString ml[] = {_L("Fixed bed"), _L("Sequential"), _L("Long parts"), _L("Plates")};
                     Row b{_L("Belt"), ml[int(mode)]};
-                    b.current = int(mode);
-                    for (int v = 0; v < 3; ++v) {
-                        b.labels.push_back(ml[v]);
+                    // shown in the order of the New mission screen
+                    for (FlatBeltMode v : {FlatBeltMode::FixedBed, FlatBeltMode::Sequential, FlatBeltMode::Plates, FlatBeltMode::LongParts}) {
+                        if (v == mode) b.current = int(b.labels.size());
+                        b.labels.push_back(ml[int(v)]);
                         b.apply.push_back([v](DynamicPrintConfig& cfg) {
-                            cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode(v)));
-                            // sequential belt printing is object by object, long parts are printed by layer
-                            if (FlatBeltMode(v) == FlatBeltMode::Sequential)
+                            cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(v));
+                            // sequential belt printing is object by object, the other modes print by layer
+                            if (v == FlatBeltMode::Sequential)
                                 cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByObject));
-                            else if (FlatBeltMode(v) == FlatBeltMode::LongParts)
+                            else if (v != FlatBeltMode::FixedBed)
                                 cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
                         });
                     }
                     r.push_back(std::move(b));
 
-                    if (mode == FlatBeltMode::Sequential) {
+                    if (mode == FlatBeltMode::Sequential || mode == FlatBeltMode::Plates) {
                         const double gap = c.opt_float("flat_belt_object_gap");
                         Row g{_L("Gap"), wxString::Format("%g mm", gap)};
                         for (double v : {30., 50., 80., 100.}) {
@@ -3714,6 +3715,28 @@ Sidebar::Sidebar(Plater *parent)
                                 cfg.set_key_value("flat_belt_object_gap", new ConfigOptionFloat(v));
                         });
                         r.push_back(std::move(g));
+
+                        // Sequential: each object N times; Plates: the whole plate N times, 0 = until stopped
+                        const bool plates = mode == FlatBeltMode::Plates;
+                        const int  copies = std::max(plates ? 0 : 1, c.opt_int("flat_belt_copies"));
+                        // TRN Flight plan, flat belt: number of copies, e.g. "50×"; "∞" prints until stopped
+                        const wxString infinity = wxString::FromUTF8("\xE2\x88\x9E");
+                        Row n{_L("Copies"), copies == 0 ? infinity : wxString::Format("%d", copies) + wxString::FromUTF8("\xC3\x97")};
+                        std::vector<int> choices = plates ? std::vector<int>{2, 5, 7, 10, 0} : std::vector<int>{1, 10, 20, 50};
+                        for (int v : choices) {
+                            if (v == copies) n.current = int(n.labels.size());
+                            n.labels.push_back(v == 0 ? infinity : wxString::Format("%d", v));
+                            n.apply.push_back([v](DynamicPrintConfig& cfg) { cfg.set_key_value("flat_belt_copies", new ConfigOptionInt(v)); });
+                        }
+                        if (n.current < 0) n.current = int(n.labels.size());
+                        n.labels.push_back(_L("Custom"));
+                        n.apply.push_back([copies](DynamicPrintConfig& cfg) {
+                            wxTextEntryDialog dlg(nullptr, _L("Number of copies"), _L("Copies"), wxString::Format("%d", std::max(1, copies)));
+                            long v = 0;
+                            if (dlg.ShowModal() == wxID_OK && dlg.GetValue().ToLong(&v) && v >= 1)
+                                cfg.set_key_value("flat_belt_copies", new ConfigOptionInt(int(v)));
+                        });
+                        r.push_back(std::move(n));
                     } else if (mode == FlatBeltMode::LongParts) {
                         const auto   seam = seam_opt->value;
                         const double step = c.opt_float("flat_belt_step_length");

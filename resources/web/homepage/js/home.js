@@ -737,7 +737,7 @@ window.postMessage = HandleStudio;
 
 
 /*---- [r]evo: New mission picker (belt printers) ----*/
-var m_Mission = { mode: 0, gap: 50, seam: "auto", step: 20, endless: "0" };
+var m_Mission = { mode: 0, gap: 50, seam: "auto", step: 20, endless: "0", copies: 1 };
 
 function MsChips(key, items, current, unit)
 {
@@ -758,7 +758,12 @@ function RenderMission()
 {
 	$('.PbMode').removeClass('PbSel');
 	$('.PbMode[data-mode="'+m_Mission.mode+'"]').addClass('PbSel');
-	$('#MsGap').toggle(m_Mission.mode==1);
+	let plates=m_Mission.mode==3;
+	$('#MsGap').toggle(m_Mission.mode==1 || plates);
+	$('#MsGapCap').text(plates ? 'GAP BETWEEN PLATES' : 'GAP BETWEEN OBJECTS');
+	$('#MsCopiesCap').text(plates ? 'COPIES · HOW MANY PLATES' : 'COPIES · EACH OBJECT');
+	if(!plates && m_Mission.copies*1<1) m_Mission.copies=1;
+	MsChips('copies', plates ? [[2,'2'],[5,'5'],[7,'7'],[10,'10'],[0,'∞ UNTIL STOPPED']] : [[1,'1'],[10,'10'],[20,'20'],[50,'50']], m_Mission.copies, '×');
 	$('#MsSeam').toggle(m_Mission.mode==2);
 	MsChips('gap', [[30,'30'],[50,'50'],[80,'80'],[100,'100']], m_Mission.gap, 'MM');
 	MsChips('seam', [['auto','AUTO'],['slope','SLOPE'],['steps','STEPS']], m_Mission.seam, null);
@@ -769,7 +774,7 @@ function RenderMission()
 
 function ShowMissionPicker(d)
 {
-	m_Mission = { mode: d.mode*1, gap: d.gap*1, seam: d.seam, step: d.step*1, endless: d.endless ? "1" : "0" };
+	m_Mission = { mode: d.mode*1, gap: d.gap*1, seam: d.seam, step: d.step*1, endless: d.endless ? "1" : "0", copies: (d.copies==null ? 1 : d.copies*1) };
 	$('#MsVehicle').text(d.vehicle||'');
 	$('.PbMode').off('click').click(function(){ m_Mission.mode=$(this).attr('data-mode')*1; RenderMission(); });
 	RenderMission();
@@ -780,6 +785,7 @@ function ShowMissionPicker(d)
 function StartMission()
 {
 	SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_newmission",data:{
-		mode:m_Mission.mode*1, gap:m_Mission.gap*1, seam:String(m_Mission.seam), step:m_Mission.step*1, endless:m_Mission.endless=="1"}}));
+		mode:m_Mission.mode*1, gap:m_Mission.gap*1, seam:String(m_Mission.seam), step:m_Mission.step*1, endless:m_Mission.endless=="1",
+		copies:Math.max(0, Math.round(m_Mission.copies*1))}}));
 	GotoMenu('printers');
 }

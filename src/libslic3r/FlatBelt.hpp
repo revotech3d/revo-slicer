@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 
 namespace Slic3r {
@@ -43,6 +44,14 @@ std::string segment_long_parts(const std::string   &layers_gcode,
                                const PrintConfig   &config,
                                double               part_height,
                                const std::string   &advance_gcode);
+
+// Plates mode: the whole plate (relative E, no arcs) printed flat_belt_copies times, the belt moving each
+// printed plate forward by its depth plus flat_belt_object_gap; 0 copies loops it until stopped.
+// advance_gcode returns the processed belt advance G-code for a distance in mm.
+std::string repeat_plates(const std::string                         &layers_gcode,
+                          const PrintConfig                         &config,
+                          double                                     plate_height,
+                          const std::function<std::string(double)>  &advance_gcode);
 
 } // namespace FlatBelt
 } // namespace Slic3r

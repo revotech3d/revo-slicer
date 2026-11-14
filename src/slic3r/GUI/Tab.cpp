@@ -3464,6 +3464,7 @@ void TabPrint::build()
         // Revo flat belt: per-job choices, also set from the flight plan and the New mission screen.
         optgroup->append_single_option_line("flat_belt_mode");
         optgroup->append_single_option_line("flat_belt_object_gap");
+        optgroup->append_single_option_line("flat_belt_copies");
         optgroup->append_single_option_line("flat_belt_seam");
         optgroup->append_single_option_line("flat_belt_step_length");
         optgroup->append_single_option_line("flat_belt_slope_angle");
@@ -3599,7 +3600,7 @@ void TabPrint::toggle_options()
         const auto *flat = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("flat_belt");
         const bool  on   = flat != nullptr && flat->value;
         for (const char *key : {"flat_belt_mode", "flat_belt_object_gap", "flat_belt_seam", "flat_belt_step_length",
-                                "flat_belt_slope_angle", "flat_belt_endless", "flat_belt_endless_count"})
+                                "flat_belt_slope_angle", "flat_belt_endless", "flat_belt_endless_count", "flat_belt_copies"})
             toggle_line(key, on);
     }
 

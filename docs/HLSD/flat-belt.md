@@ -13,7 +13,15 @@ and prime tower as usual. Only in Long parts does the plate open along Y
 - **Sequential** – objects print one by one (`By object`) at the bed centre. Between them the
   gantry lifts by `flat_belt_lift` and `flat_belt_advance_gcode` advances the belt by the
   previous object's depth (skirt and brim included) plus `flat_belt_object_gap`. Objects
-  never share the bed, so the sequential clearance check is skipped.
+  never share the bed, so the sequential clearance check is skipped. `flat_belt_copies` repeats
+  each object that many times in a row: the instance ordering simply lists it again.
+- **Plates** – the whole plate is printed by layer like a fixed bed, then the belt moves it forward
+  by its depth along Y (the extent of its extrusions) plus `flat_belt_object_gap`, and the plate is
+  printed again, `flat_belt_copies` times. GCode generates the plate's layers once into a buffer and
+  `FlatBelt::repeat_plates()` replays them with its own travels and retractions, so every plate is
+  the same text that starts and ends retracted above the plate. A known number of plates is written
+  out one after another (file progress and time left stay right); 0 copies loops one plate in
+  `[sdcard_loop]` until stopped.
 - **Long parts** – a part longer than the bed is printed in segments. GCode generates the
   part's layers whole into a buffer; `FlatBelt::segment_long_parts()` replays them once per
   segment, clipping each extrusion to the segment's band along Y, shifting it back onto the
@@ -44,4 +52,8 @@ pass; it starts and ends retracted. Revo OS ends the loop with `FLAT_BELT_FINISH
 ## Constraints
 
 Long parts needs one object, `By layer`, relative E, no arc fitting, no prime tower and a
-single filament, because the segmenter replays straight `G1` moves with relative extrusion.
+single filament, because the segmenter replays straight `G1` moves with relative extrusion. Plates
+replays the same way and has the same needs, except that it takes any number of objects.
+
+Every mode that moves the belt writes `FLAT_BELT_INFO ENDLESS= ADVANCE= SEGMENTS= UNIT=` at the
+start of the print, so Revo OS can count segments, plates or pieces on the screen.

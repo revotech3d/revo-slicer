@@ -5676,24 +5676,30 @@ std::string GUI_App::handle_web_request(std::string cmd)
                                                     {"gap", pc.opt_float("flat_belt_object_gap")},
                                                     {"seam", seams[int(seam->value)]},
                                                     {"step", pc.opt_float("flat_belt_step_length")},
-                                                    {"endless", pc.opt_bool("flat_belt_endless")}}}};
+                                                    {"endless", pc.opt_bool("flat_belt_endless")},
+                                                    {"copies", pc.opt_int("flat_belt_copies")}}}};
                     WebViewPanel::if_built()->RunScript(wxString::Format("window.postMessage(%s)", from_u8(msg.dump())));
                 } else
                     this->request_open_project("<new>");
             }
             else if (command_str.compare("homepage_newmission") == 0) {   // [r]evo: start a belt mission of the chosen type
-                const int         mode = std::clamp(root.get<int>("data.mode", 0), 0, 2);
+                const int         mode = std::clamp(root.get<int>("data.mode", 0), 0, int(FlatBeltMode::Count) - 1);
                 const double      gap  = root.get<double>("data.gap", 50.);
                 const std::string seam = root.get<std::string>("data.seam", "auto");
                 const double      step = root.get<double>("data.step", 20.);
                 const bool        endless = root.get<bool>("data.endless", false);
-                CallAfter([this, mode, gap, seam, step, endless] {
+                const int         copies  = std::max(0, root.get<int>("data.copies", 1));
+                CallAfter([this, mode, gap, seam, step, endless, copies] {
                     this->request_open_project("<new>");
                     if (Tab* tab = get_tab(Preset::TYPE_PRINT)) {
                         DynamicPrintConfig cfg = preset_bundle->prints.get_edited_preset().config;
                         cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode(mode)));
                         if (FlatBeltMode(mode) == FlatBeltMode::Sequential)
                             cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByObject));
+                        else if (FlatBeltMode(mode) != FlatBeltMode::FixedBed)
+                            cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
+                        cfg.set_key_value("flat_belt_copies", new ConfigOptionInt(
+                            FlatBeltMode(mode) == FlatBeltMode::Plates ? copies : std::max(1, copies)));
                         if (gap > 0.) cfg.set_key_value("flat_belt_object_gap", new ConfigOptionFloat(gap));
                         if (step > 0.) cfg.set_key_value("flat_belt_step_length", new ConfigOptionFloat(step));
                         cfg.set_key_value("flat_belt_endless", new ConfigOptionBool(endless));

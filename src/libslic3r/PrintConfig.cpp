@@ -437,6 +437,7 @@ static t_config_enum_values s_keys_map_FlatBeltMode {
     { "fixed_bed",  int(FlatBeltMode::FixedBed) },
     { "sequential", int(FlatBeltMode::Sequential) },
     { "long_parts", int(FlatBeltMode::LongParts) },
+    { "plates",     int(FlatBeltMode::Plates) },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FlatBeltMode)
 
@@ -7735,10 +7736,12 @@ void PrintConfigDef::init_fff_params()
                      "Fixed bed: the belt stands still, a classic print inside the build volume.\n"
                      "Sequential: objects are printed one by one at the bed centre and the belt advances "
                      "by the object depth plus the gap between objects.\n"
-                     "Long parts: parts longer than the bed are printed in segments joined by a sloped seam.");
+                     "Long parts: parts longer than the bed are printed in segments joined by a sloped seam.\n"
+                     "Plates: the whole plate is printed by layer, the belt moves it off by its depth plus the gap "
+                     "and the plate is printed again.");
     def->enum_keys_map = &ConfigOptionEnum<FlatBeltMode>::get_enum_values();
-    def->enum_values  = {"fixed_bed", "sequential", "long_parts"};
-    def->enum_labels  = {L("Fixed bed"), L("Sequential"), L("Long parts")};
+    def->enum_values  = {"fixed_bed", "sequential", "long_parts", "plates"};
+    def->enum_labels  = {L("Fixed bed"), L("Sequential"), L("Long parts"), L("Plates")};
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode::FixedBed));
 
@@ -7811,6 +7814,16 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
+
+    def = this->add("flat_belt_copies", coInt);
+    def->label = L("Copies");
+    def->category = L("Others");
+    def->tooltip = L("Sequential Belt mode: how many times each object is printed, one after another.\n"
+                     "Plates Belt mode: how many times the whole plate is printed. 0 repeats it until the print is "
+                     "stopped (needs [sdcard_loop] in the Klipper configuration).");
+    def->min = 0;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("flat_belt_head_clearance_z", coFloat);
     def->label = L("Nozzle below toolhead");

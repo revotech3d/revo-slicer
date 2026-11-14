@@ -516,6 +516,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "flat_belt_slope_angle"
             || opt_key == "flat_belt_endless"
             || opt_key == "flat_belt_endless_count"
+            || opt_key == "flat_belt_copies"
             || opt_key == "flat_belt_head_clearance_z"
             || opt_key == "flat_belt_head_clearance_y"
             || opt_key == "flat_belt_advance_gcode"
@@ -2270,6 +2271,21 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                        "The printer shows the segments and the belt length printed.") :
                      L("Long parts: the preview shows every segment on the bed at once; the print time and filament are for the whole part."),
                  "flat_belt_mode");
+        }
+        if (this->flat_belt_mode() == FlatBeltMode::Plates) {
+            // the plate is replayed by FlatBelt::repeat_plates(), the same straight-move G-code as Long parts
+            if (m_config.print_sequence != PrintSequence::ByLayer)
+                return {L("Plates Belt mode needs the \"By layer\" print sequence."), nullptr, "print_sequence"};
+            if (!m_config.use_relative_e_distances.value)
+                return {L("Plates Belt mode needs relative E distances."), nullptr, "use_relative_e_distances"};
+            if (m_config.enable_arc_fitting.value != ArcFittingMode::Disabled)
+                return {L("Plates Belt mode needs Arc fitting disabled."), nullptr, "enable_arc_fitting"};
+            if (m_config.enable_prime_tower.value)
+                return {L("Plates Belt mode does not support a prime tower."), nullptr, "enable_prime_tower"};
+            if (this->extruders().size() > 1)
+                return {L("Plates Belt mode prints with a single filament."), nullptr, "flat_belt_mode"};
+            if (m_config.flat_belt_copies.value == 0)
+                warn(L("Plates until stopped: the preview, print time and filament are for one plate."), "flat_belt_copies");
         }
     }
     if (m_config.print_sequence == PrintSequence::ByObject && (m_objects.size() > 1 || m_objects[0]->instances().size() > 1)) {

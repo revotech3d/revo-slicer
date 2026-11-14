@@ -344,6 +344,7 @@ enum class FlatBeltMode
     FixedBed,      // belt stands still, classic print inside the build volume
     Sequential,    // objects printed one by one at the bed centre, belt advances between them
     LongParts,     // parts longer than the bed, printed in segments joined by a sloped seam
+    Plates,        // the whole plate printed by layer, moved off by the belt and printed again
     Count,
 };
 
@@ -2014,6 +2015,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,                          flat_belt_slope_angle))
     ((ConfigOptionBool,                           flat_belt_endless))
     ((ConfigOptionInt,                            flat_belt_endless_count))
+    ((ConfigOptionInt,                            flat_belt_copies))
     ((ConfigOptionFloat,                          flat_belt_head_clearance_z))
     ((ConfigOptionFloat,                          flat_belt_head_clearance_y))
     ((ConfigOptionString,                         flat_belt_advance_gcode))

@@ -3616,6 +3616,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Order object instances for sequential print.
         print_object_instances_ordering = sort_object_instances_by_model_order(print);
 //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
+        // Flat belt sequential: every object is printed flat_belt_copies times in a row, each copy at the
+        // bed centre after the belt has moved the previous one forward.
+        if (print.flat_belt_mode() == FlatBeltMode::Sequential && print.config().flat_belt_copies.value > 1) {
+            std::vector<const PrintInstance*> copies;
+            for (const PrintInstance *instance : print_object_instances_ordering)
+                copies.insert(copies.end(), size_t(print.config().flat_belt_copies.value), instance);
+            print_object_instances_ordering = std::move(copies);
+        }
         // Find the 1st printing object, find its tool ordering and the initial extruder ID.
         print_object_instance_sequential_active = print_object_instances_ordering.begin();
         first_has_extrude_print_object          = print_object_instance_sequential_active;
@@ -4638,6 +4646,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         // Do all objects for each layer.
         if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower) {
+            // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts the pieces.
+            if (print.flat_belt_mode() == FlatBeltMode::Sequential)
+                file.write_format("FLAT_BELT_INFO ENDLESS=0 ADVANCE=0 SEGMENTS=%d UNIT=piece\n", int(print_object_instances_ordering.size()));
             size_t finished_objects = 0;
             print_object_instance_sequential_active = first_has_extrude_print_object;
             const PrintObject *prev_object = (*print_object_instance_sequential_active)->print_object;
@@ -4828,6 +4839,22 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 const std::string advance_gcode = this->placeholder_parser_process("flat_belt_advance_gcode",
                     print.config().flat_belt_advance_gcode.value, initial_extruder_id, &belt_config);
                 file.write(FlatBelt::segment_long_parts(layers_gcode, plan, print.config(), height, advance_gcode));
+            } else if (print.flat_belt_mode() == FlatBeltMode::Plates) {
+                // Generate the plate once, then replay it flat_belt_copies times with a belt advance between.
+                double height = 0.;
+                for (const PrintObject *object : print.objects())
+                    if (!object->layers().empty())
+                        height = std::max(height, double(object->layers().back()->print_z));
+                std::string layers_gcode;
+                file.capture = &layers_gcode;
+                this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
+                file.capture = nullptr;
+                file.write(FlatBelt::repeat_plates(layers_gcode, print.config(), height, [&](double advance) {
+                    DynamicConfig belt_config;
+                    belt_config.set_key_value("belt_advance", new ConfigOptionFloat(advance));
+                    return this->placeholder_parser_process("flat_belt_advance_gcode", print.config().flat_belt_advance_gcode.value,
+                                                            initial_extruder_id, &belt_config);
+                }));
             } else
             this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
             {
