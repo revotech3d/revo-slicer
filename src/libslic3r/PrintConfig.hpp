@@ -338,6 +338,15 @@ enum class SlicingMode
 // `belt_slice_rotation` is set.  None disables the rotation stage.  This is the
 // single "belt tilt" axis: it drives both the pre-slice mesh rotation and the
 // post-slice machine-frame transform (shear + scale derived from the tilt angle).
+// Revo: flat (horizontal) conveyor belt with a Z-moving gantry, see FlatBelt.hpp.
+enum class FlatBeltMode
+{
+    FixedBed,      // belt stands still, classic print inside the build volume
+    Sequential,    // objects printed one by one at the bed centre, belt advances between them
+    LongParts,     // parts longer than the bed, printed in segments joined by a sloped seam
+    Count,
+};
+
 enum class BeltRotationAxis
 {
     None = 0,
@@ -806,6 +815,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BeltRotationAxis)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FlatBeltMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(RemapAxis)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
@@ -1984,6 +1994,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // Belt-printer-only "type" of purge tower: enables the auto-generated belt
     // purge prism (the belt replacement for the classic wipe/prime tower).
     ((ConfigOptionBool,                           enable_belt_purge_tower))
+    // Revo flat belt (experimental).
+    ((ConfigOptionEnum<FlatBeltMode>,             flat_belt_mode))
+    ((ConfigOptionFloat,                          flat_belt_object_gap))
+    ((ConfigOptionFloat,                          flat_belt_lift))
+    ((ConfigOptionString,                         flat_belt_advance_gcode))
     //BBS
     ((ConfigOptionInts,               additional_cooling_fan_speed))
     ((ConfigOptionInts,               close_additional_fan_first_x_layers))

@@ -4661,9 +4661,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     assert(final_extruder_id != (unsigned int)-1);
                 }
                 print.throw_if_canceled();
-                this->set_origin(unscale((*print_object_instance_sequential_active)->shift));
-                this->on_set_origin((*print_object_instance_sequential_active)->print_object,
-                                    (*print_object_instance_sequential_active)->shift);
+                // Flat belt sequential: every object goes to the bed centre, the belt has moved the
+                // previous ones forward (see the belt advance below).
+                const bool  flat_belt_seq = print.flat_belt_mode() == FlatBeltMode::Sequential;
+                const Point instance_shift = flat_belt_seq ?
+                    Point::new_scale(BoundingBoxf(print.config().printable_area.values).center()) :
+                    (*print_object_instance_sequential_active)->shift;
+                this->set_origin(unscale(instance_shift));
+                this->on_set_origin((*print_object_instance_sequential_active)->print_object, instance_shift);
 
                 // BBS: prime extruder if extruder change happens before this object instance
                 bool prime_extruder = false;
@@ -4685,6 +4690,18 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         prime_extruder = true;
                     } else {
                         file.write(this->retract());
+                    }
+                    if (flat_belt_seq && ! m_printed_objects.empty()) {
+                        // Lift clear of the finished object, then let the belt carry it forward by its
+                        // depth (brim and skirt included) plus the gap, so the bed centre is free again.
+                        const double skirt_offset = std::get<0>(print.object_skirt_offset());
+                        const double advance = unscale<double>(m_printed_objects.back()->size().y()) + 2. * skirt_offset +
+                                               print.config().flat_belt_object_gap.value;
+                        file.write(m_writer.travel_to_z(m_max_layer_z + print.config().flat_belt_lift.value, "lift before belt advance"));
+                        DynamicConfig belt_config;
+                        belt_config.set_key_value("belt_advance", new ConfigOptionFloat(advance));
+                        file.writeln(this->placeholder_parser_process("flat_belt_advance_gcode", print.config().flat_belt_advance_gcode.value,
+                                                                      initial_extruder_id, &belt_config));
                     }
                     file.write(m_writer.travel_to_z(m_max_layer_z + m_writer.config.z_hop.get_at(get_filament_config_index((int)initial_extruder_id))));
                     file.write(this->travel_to(Point(0, 0), erNone, "move to origin position for next object"));

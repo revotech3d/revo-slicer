@@ -5566,6 +5566,17 @@ void TabPrinter::build_fff()
         belt_og->append_single_option_line("belt_slice_rotation", "printer_basic_information_belt_printer#tilt-axis");
         belt_og->append_single_option_line("belt_support_floor_offset", "printer_basic_information_belt_printer#support-floor-z-offset");
 
+        {
+            auto fb = page->new_optgroup(L("Flat belt (experimental)"), L"param_advanced");
+            fb->append_single_option_line("flat_belt_mode");
+            fb->append_single_option_line("flat_belt_object_gap");
+            fb->append_single_option_line("flat_belt_lift");
+            Option option = fb->get_option("flat_belt_advance_gcode");
+            option.opt.full_width = true;
+            option.opt.height = 5;
+            fb->append_single_option_line(option);
+        }
+
         // Machine-frame transform: the shear (cot) + scale (1/sin) that map
         // Cartesian G-code into the printer's physical machine frame are derived
         // from the belt tilt angle.  Only the post-slice axis remap and the expert
@@ -6759,6 +6770,13 @@ void TabPrinter::toggle_options()
         bool expert_or_above = (m_mode >= comExpert);
         const wxString belt_printer_reason = _L("Enable belt printer mode to use this setting.");
         toggle_line("belt_printer_infinite_y", is_belt, -1, belt_printer_reason);
+        {
+            toggle_line("flat_belt_mode", is_belt, -1, belt_printer_reason);
+            const bool flat_belt = is_belt && m_config->opt_enum<FlatBeltMode>("flat_belt_mode") != FlatBeltMode::FixedBed;
+            const wxString flat_belt_reason = _L("Select a flat belt mode other than Fixed bed to use this setting.");
+            for (const char *key : {"flat_belt_object_gap", "flat_belt_lift", "flat_belt_advance_gcode"})
+                toggle_line(key, flat_belt, -1, flat_belt_reason);
+        }
         // Belt tilt: the sole mesh-side belt transform (visible by default in belt mode).
         toggle_line("belt_slice_rotation_angle", is_belt, -1, belt_printer_reason);
         toggle_line("belt_slice_rotation", is_belt, -1, belt_printer_reason);

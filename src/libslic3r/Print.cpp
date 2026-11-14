@@ -507,6 +507,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "print_sequence"
+            || opt_key == "flat_belt_mode"
+            || opt_key == "flat_belt_object_gap"
+            || opt_key == "flat_belt_lift"
+            || opt_key == "flat_belt_advance_gcode"
             || opt_key == "filament_type"
             || opt_key == "chamber_temperature"
             || opt_key == "nozzle_temperature_initial_layer"
@@ -2235,6 +2239,14 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         }
     }
 
+    if (this->flat_belt_mode() != FlatBeltMode::FixedBed) {
+        if (std::abs(m_config.belt_slice_rotation_angle.value) > EPSILON)
+            return {L("Flat belt modes need a belt tilt angle of 0 degrees."), nullptr, "flat_belt_mode"};
+        if (this->flat_belt_mode() == FlatBeltMode::Sequential && m_config.print_sequence != PrintSequence::ByObject)
+            return {L("Sequential flat belt mode needs the \"By object\" print sequence."), nullptr, "print_sequence"};
+        if (this->flat_belt_mode() == FlatBeltMode::LongParts)
+            return {L("Long parts flat belt mode is not available yet."), nullptr, "flat_belt_mode"};
+    }
     if (m_config.print_sequence == PrintSequence::ByObject && (m_objects.size() > 1 || m_objects[0]->instances().size() > 1)) {
         if (m_config.timelapse_type == TimelapseType::tlSmooth)
             return {L("Smooth mode of timelapse is not supported when \"by object\" sequence is enabled.")};
@@ -2247,7 +2259,10 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         }
 
         //BBS: refine seq-print validation logic
-        auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
+        // Flat belt sequential: every object is printed at the bed centre after the belt carried
+        // the previous ones away, so the objects never share the bed and cannot collide.
+        auto ret = this->flat_belt_mode() == FlatBeltMode::Sequential ? StringObjectException{} :
+            sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
         if (!ret.string.empty()) {
             ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT;
             return ret;

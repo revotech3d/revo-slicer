@@ -433,6 +433,13 @@ static t_config_enum_values s_keys_map_BeltRotationAxis {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BeltRotationAxis)
 
+static t_config_enum_values s_keys_map_FlatBeltMode {
+    { "fixed_bed",  int(FlatBeltMode::FixedBed) },
+    { "sequential", int(FlatBeltMode::Sequential) },
+    { "long_parts", int(FlatBeltMode::LongParts) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FlatBeltMode)
+
 static t_config_enum_values s_keys_map_RemapAxis {
     { "pos_x", int(RemapAxis::PosX) },
     { "pos_y", int(RemapAxis::PosY) },
@@ -7705,6 +7712,49 @@ void PrintConfigDef::init_fff_params()
                      "and transform G-code coordinates for the tilted build surface.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("flat_belt_mode", coEnum);
+    def->label = L("Flat belt mode");
+    def->category = L("Printable space");
+    def->tooltip = L("Experimental. Printers with a flat conveyor belt and a gantry moving in Z.\n"
+                     "Fixed bed: the belt stands still, a classic print inside the build volume.\n"
+                     "Sequential: objects are printed one by one at the bed centre and the belt advances "
+                     "by the object depth plus the gap between objects.\n"
+                     "Long parts: parts longer than the bed are printed in segments joined by a sloped seam.");
+    def->enum_keys_map = &ConfigOptionEnum<FlatBeltMode>::get_enum_values();
+    def->enum_values  = {"fixed_bed", "sequential", "long_parts"};
+    def->enum_labels  = {L("Fixed bed"), L("Sequential"), L("Long parts")};
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode::FixedBed));
+
+    def = this->add("flat_belt_object_gap", coFloat);
+    def->label = L("Gap between objects");
+    def->category = L("Printable space");
+    def->tooltip = L("Sequential flat belt mode. Distance left on the belt between two printed objects. "
+                     "It must keep the toolhead clear of the previous object.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(50.));
+
+    def = this->add("flat_belt_lift", coFloat);
+    def->label = L("Lift before belt advance");
+    def->category = L("Printable space");
+    def->tooltip = L("Height the gantry is raised above the finished object before the belt moves.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(5.));
+
+    def = this->add("flat_belt_advance_gcode", coString);
+    def->label = L("Belt advance G-code");
+    def->category = L("Printable space");
+    def->tooltip = L("G-code that moves the belt forward. The placeholder belt_advance holds the distance in mm.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 5;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString("BELT_ADVANCE DIST={belt_advance}"));
 
     def = this->add("belt_printer_infinite_y", coBool);
     def->label = L("Infinite Y axis");
