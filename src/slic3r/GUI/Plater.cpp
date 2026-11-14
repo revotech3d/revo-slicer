@@ -11625,7 +11625,7 @@ void Plater::priv::update_print_volume_state()
 {
     //BBS: use the plate's bounding box instead of the bed's
     PartPlate* pp = partplate_list.get_curr_plate();
-    BuildVolume build_volume(pp->get_shape(), this->bed.build_volume().printable_height(), this->bed.build_volume().extruder_areas(), this->bed.build_volume().extruder_heights());
+    BuildVolume build_volume(pp->get_print_volume_shape(), this->bed.build_volume().printable_height(), this->bed.build_volume().extruder_areas(), this->bed.build_volume().extruder_heights());
     this->model.update_print_volume_state(build_volume);
 }
 
@@ -22055,6 +22055,13 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         else if (opt_key == "print_sequence") {
             update_scheduled = true;
             //print_sequence_changed = true;
+        }
+        else if (opt_key == "flat_belt_mode" || opt_key == "flat_belt") {
+            // Long parts opens the plate along Y: the objects' in/out state changes with it.
+            p->config->set_key_value(opt_key, config.option(opt_key)->clone());
+            p->update_print_volume_state();
+            get_current_canvas3D()->requires_check_outside_state();
+            update_scheduled = true;
         }
         else if (opt_key == "printer_model") {
             p->reset_gcode_toolpaths();

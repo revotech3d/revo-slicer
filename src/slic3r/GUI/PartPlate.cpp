@@ -5296,6 +5296,16 @@ bool PartPlate::belt_open_y() const
 	return flat != nullptr && flat->value && mode != nullptr && mode->value == FlatBeltMode::LongParts;
 }
 
+Pointfs PartPlate::get_print_volume_shape() const
+{
+	Pointfs shape = this->get_shape();
+	if (this->belt_open_y()) {
+		const BoundingBoxf bed(shape);
+		shape = { Vec2d(bed.min.x(), -1e5), Vec2d(bed.max.x(), -1e5), Vec2d(bed.max.x(), 1e5), Vec2d(bed.min.x(), 1e5) };
+	}
+	return shape;
+}
+
 bool PartPlate::contains(const Vec3d& point) const
 {
 	return m_bounding_box.contains(point);
