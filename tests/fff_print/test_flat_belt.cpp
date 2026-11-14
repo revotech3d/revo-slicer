@@ -40,6 +40,8 @@ DynamicPrintConfig belt_config(const char *mode, bool endless)
         { "layer_height", 0.2 },
         { "initial_layer_print_height", 0.2 },
         { "use_relative_e_distances", 1 },
+        { "gcode_flavor", "klipper" }, // Revo OS
+        { "layer_change_gcode", "G92 E0" },
         { "enable_arc_fitting", "disabled" },
         { "enable_prime_tower", 0 },
         { "print_sequence", "by layer" },

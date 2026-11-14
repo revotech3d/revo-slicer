@@ -13756,6 +13756,7 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"printing_by_object_gcode",    {}},
     {"machine_pause_gcode",         {}},
     {"template_custom_gcode",       {}},
+    {"flat_belt_advance_gcode",     {"belt_advance"}},
     // Filament G-code
     {"filament_start_gcode",        {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id",
                                       "current_filament_id", "current_extruder_id", "current_nozzle_id",
@@ -13906,6 +13907,11 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     def->tooltip = L("The previously used extrusion role/type\nPossible values:\n[\"Perimeter\", \"ExternalPerimeter\", "
                      "\"OverhangPerimeter\", \"InternalInfill\", \"SolidInfill\", \"TopSolidInfill\", \"BottomSurface\", \"BridgeInfill\", \"GapFill\", \"Ironing\", "
                      "\"Skirt\", \"Brim\", \"SupportMaterial\", \"SupportMaterialInterface\", \"SupportTransition\", \"WipeTower\", \"Mixed\"]");
+
+// flat_belt_advance_gcode
+    def = this->add("belt_advance", coFloat);
+    def->label = L("Belt advance");
+    def->tooltip = L("Distance in mm the belt moves forward: between objects in Sequential mode, between segments in Long parts mode.");
 }
 
 const CustomGcodeSpecificConfigDef custom_gcode_specific_config_def;
