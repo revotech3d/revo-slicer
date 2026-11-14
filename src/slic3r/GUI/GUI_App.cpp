@@ -5657,7 +5657,48 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 CallAfter([this] { open_mall_page_dialog(); });
             }
             else if (command_str.compare("homepage_newproject") == 0) {
-                this->request_open_project("<new>");
+                // [r]evo: on a belt printer a new mission starts with the mission type picker
+                const auto* belt = preset_bundle ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("belt_printer") : nullptr;
+                const auto& pc   = preset_bundle->prints.get_edited_preset().config;
+                const auto* mode = belt ? pc.option<ConfigOptionEnum<FlatBeltMode>>("flat_belt_mode") : nullptr;
+                const auto* seam = belt ? pc.option<ConfigOptionEnum<FlatBeltSeam>>("flat_belt_seam") : nullptr;
+                if (belt && belt->value && mode && seam && WebViewPanel::if_built()) {
+                    const DynamicPrintConfig& fc = preset_bundle->filaments.get_edited_preset().config;
+                    const auto* nd = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
+                    std::string vehicle = "VEHICLE · " + preset_bundle->printers.get_edited_preset().name;
+                    if (const auto* ft = fc.option<ConfigOptionStrings>("filament_type"); ft && !ft->values.empty())
+                        vehicle += " · " + ft->values.front();
+                    if (nd && !nd->values.empty())
+                        vehicle += (boost::format(" · %g MM") % nd->values.front()).str();
+                    const char* seams[] = {"auto", "slope", "steps"};
+                    nlohmann::json msg = {{"command", "revo_mission_picker"},
+                                          {"data", {{"vehicle", vehicle}, {"mode", int(mode->value)},
+                                                    {"gap", pc.opt_float("flat_belt_object_gap")},
+                                                    {"seam", seams[int(seam->value)]},
+                                                    {"step", pc.opt_float("flat_belt_step_length")}}}};
+                    WebViewPanel::if_built()->RunScript(wxString::Format("window.postMessage(%s)", from_u8(msg.dump())));
+                } else
+                    this->request_open_project("<new>");
+            }
+            else if (command_str.compare("homepage_newmission") == 0) {   // [r]evo: start a belt mission of the chosen type
+                const int         mode = std::clamp(root.get<int>("data.mode", 0), 0, 2);
+                const double      gap  = root.get<double>("data.gap", 50.);
+                const std::string seam = root.get<std::string>("data.seam", "auto");
+                const double      step = root.get<double>("data.step", 20.);
+                CallAfter([this, mode, gap, seam, step] {
+                    this->request_open_project("<new>");
+                    if (Tab* tab = get_tab(Preset::TYPE_PRINT)) {
+                        DynamicPrintConfig cfg = preset_bundle->prints.get_edited_preset().config;
+                        cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode(mode)));
+                        if (FlatBeltMode(mode) == FlatBeltMode::Sequential)
+                            cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByObject));
+                        if (gap > 0.) cfg.set_key_value("flat_belt_object_gap", new ConfigOptionFloat(gap));
+                        if (step > 0.) cfg.set_key_value("flat_belt_step_length", new ConfigOptionFloat(step));
+                        cfg.set_key_value("flat_belt_seam", new ConfigOptionEnum<FlatBeltSeam>(
+                            seam == "steps" ? FlatBeltSeam::Steps : seam == "slope" ? FlatBeltSeam::Slope : FlatBeltSeam::Auto));
+                        tab->load_config(cfg);
+                    }
+                });
             }
             else if (command_str.compare("homepage_findprinters") == 0) {   // [r]evo: radar – drukarki Revon w sieci lokalnej
                 CallAfter([this] { Revo::show_connect_wizard(mainframe); });

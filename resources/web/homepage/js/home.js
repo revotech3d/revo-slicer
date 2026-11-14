@@ -160,6 +160,8 @@ function HandleStudio( pVal )
 
     m_HotModelList = pVal["hits"];
     ShowStaffPick(m_HotModelList);
+  } else if (strCmd == "revo_mission_picker") {
+    ShowMissionPicker(pVal["data"]);
   } else if (strCmd == "revo_printers") {
     ShowMyPrinters(pVal["printers"]);
   } else if (strCmd == "SetLoginPanelVisibility") {
@@ -733,3 +735,50 @@ function RevoCalib(kind)
 
 window.postMessage = HandleStudio;
 
+
+/*---- [r]evo: New mission picker (belt printers) ----*/
+var m_Mission = { mode: 0, gap: 50, seam: "auto", step: 20 };
+
+function MsChips(key, items, current, unit)
+{
+	let html="";
+	let custom=true;
+	for(let i=0;i<items.length;i++){
+		let on=String(items[i][0])==String(current);
+		if(on) custom=false;
+		html+='<div class="MsChip'+(on?' PbSel':'')+'" data-v="'+items[i][0]+'">'+items[i][1]+'</div>';
+	}
+	if(unit) html+='<label class="MsCustom'+(custom?' PbSel':'')+'"><input aria-label="Custom value" value="'+(custom?current:'')+'" placeholder="..."><span>'+unit+'</span></label>';
+	let box=$('.MsChips[data-key="'+key+'"]').html(html);
+	box.find('.MsChip').click(function(){ m_Mission[key]=$(this).attr('data-v'); RenderMission(); });
+	box.find('input').on('change',function(){ let v=parseFloat($(this).val()); if(v>0){ m_Mission[key]=v; RenderMission(); } });
+}
+
+function RenderMission()
+{
+	$('.PbMode').removeClass('PbSel');
+	$('.PbMode[data-mode="'+m_Mission.mode+'"]').addClass('PbSel');
+	$('#MsGap').toggle(m_Mission.mode==1);
+	$('#MsSeam').toggle(m_Mission.mode==2);
+	MsChips('gap', [[30,'30'],[50,'50'],[80,'80'],[100,'100']], m_Mission.gap, 'MM');
+	MsChips('seam', [['auto','AUTO'],['slope','SLOPE'],['steps','STEPS']], m_Mission.seam, null);
+	$('#MsStep').toggle(m_Mission.seam=='steps');
+	MsChips('step', [[10,'10'],[20,'20'],[30,'30']], m_Mission.step, 'MM');
+}
+
+function ShowMissionPicker(d)
+{
+	m_Mission = { mode: d.mode*1, gap: d.gap*1, seam: d.seam, step: d.step*1 };
+	$('#MsVehicle').text(d.vehicle||'');
+	$('.PbMode').off('click').click(function(){ m_Mission.mode=$(this).attr('data-mode')*1; RenderMission(); });
+	RenderMission();
+	$("div[board]").hide();
+	$("#MissionBoard").show();
+}
+
+function StartMission()
+{
+	SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_newmission",data:{
+		mode:m_Mission.mode*1, gap:m_Mission.gap*1, seam:String(m_Mission.seam), step:m_Mission.step*1}}));
+	GotoMenu('printers');
+}

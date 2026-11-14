@@ -106,6 +106,24 @@
 </div>
 
 <div id="RightBoard">
+<div id="MissionBoard" class="thin-scroll PbBoard" board="mission" style="display:none">
+	<div class="PbCap">[R]EVO SLICER · MISSION CONTROL</div>
+	<div class="PbHead">
+		<div class="PbTitle">NEW MISSION</div>
+		<div class="PbActs"><div class="PbBtn PbBtnDim" onClick="GotoMenu('printers')">‹ BACK</div></div>
+	</div>
+	<div class="PbSub" id="MsVehicle"></div>
+	<div class="PbCap">MISSION TYPE</div>
+	<div class="PbGrid">
+		<div class="PbTile PbGuide PbMode" data-mode="0"><svg viewBox="0 0 48 48"><path d="M8 34h32M12 34V22h24v12"/><path d="M18 22v-6h12v6"/></svg><b>FIXED BED</b><span>Belt stands still. Classic print inside the build volume</span></div>
+		<div class="PbTile PbGuide PbMode" data-mode="1"><svg viewBox="0 0 48 48"><path d="M4 36h40"/><rect x="30" y="26" width="8" height="10"/><rect x="16" y="26" width="8" height="10"/><path d="M26 16H10M14 12l-4 4 4 4"/></svg><b>SEQUENTIAL</b><span>Object by object at the bed centre, belt advances between them</span></div>
+		<div class="PbTile PbGuide PbMode" data-mode="2"><svg viewBox="0 0 48 48"><path d="M4 36h40"/><path d="M4 30h18l6-4h16"/><path d="M26 16H10M14 12l-4 4 4 4"/></svg><b>LONG PARTS</b><span>Longer than the bed. Printed in segments joined by a seam</span></div>
+	</div>
+	<div class="MsOpts" id="MsGap"><div class="PbCap">GAP BETWEEN OBJECTS</div><div class="MsChips" data-key="gap"></div></div>
+	<div class="MsOpts" id="MsSeam"><div class="PbCap">SEAM</div><div class="MsChips" data-key="seam"></div>
+		<div id="MsStep"><div class="PbCap">STEP LENGTH</div><div class="MsChips" data-key="step"></div></div></div>
+	<div class="MsFoot"><div class="PbBtn PbBtnMain" onClick="StartMission()">START MISSION ▸</div></div>
+</div>
 <div id="PrintersBoard" class="thin-scroll PbBoard" board="printers">
 	<div class="PbCap">[R]EVO SLICER · MISSION CONTROL</div>
 	<div class="PbHead">

@@ -95,3 +95,18 @@ body, #RightBoard { background: #000 !important; }
 #FileList.PbFiles .ButtonTypeWindow { border-radius: 0; }
 #BtnArea .RevoLogo img { height: 22px; width: auto; }
 #BtnArea .BtnItem { letter-spacing: 2px; white-space: nowrap; }
+
+/* ---- [r]evo: New mission (belt printers) ---- */
+.PbBoard .PbMode.PbSel { border-color: #5aa0ff; background: linear-gradient(135deg, rgba(90,160,255,.15), transparent); }
+.PbBoard .PbMode.PbSel svg { opacity: 1; }
+.PbBoard .MsOpts { margin-top: 26px; display: none; }
+.PbBoard .MsChips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; align-items: center; }
+.PbBoard .MsChip { border: 1px solid #2a2f36; color: #9aa4b2; padding: 7px 14px; font-size: 13px; letter-spacing: 3px; cursor: pointer; }
+.PbBoard .MsChip:hover { border-color: #fff; color: #fff; }
+.PbBoard .MsChip.PbSel { border-color: #5aa0ff; color: #fff; background: rgba(90,160,255,.16); }
+.PbBoard .MsCustom { display: flex; align-items: center; border: 1px solid #2a2f36; height: 33px; }
+.PbBoard .MsCustom.PbSel { border-color: #5aa0ff; }
+.PbBoard .MsCustom input { width: 64px; background: transparent; border: 0; color: #fff; font: inherit; font-size: 15px; letter-spacing: 2px; padding: 0 10px; outline: none; }
+.PbBoard .MsCustom span { padding-right: 10px; color: #9aa4b2; font-size: 12px; letter-spacing: 2px; }
+.PbBoard .MsFoot { margin-top: 30px; padding-top: 18px; border-top: 1px solid #2a2f36; display: flex; justify-content: flex-end; }
+.PbBoard .MsFoot .PbBtn { background: #fff; color: #000; padding: 12px 28px; }
