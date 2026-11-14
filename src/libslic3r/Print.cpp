@@ -3983,7 +3983,9 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             break;
         }
     }
-    if(!m_no_check /*&& !has_adaptive_layer_height*/)
+    // Belt sequential: each object is printed alone at the bed centre, so where the objects
+    // stand on the plate (even on top of each other) never makes their paths meet.
+    if(!m_no_check && this->flat_belt_mode() != FlatBeltMode::Sequential /*&& !has_adaptive_layer_height*/)
     {
         using Clock                 = std::chrono::high_resolution_clock;
         auto            startTime   = Clock::now();
