@@ -1298,7 +1298,7 @@ static std::vector<std::string> s_Preset_print_options{
     "dont_filter_internal_bridges",
     "enable_extra_bridge_layer",
     "max_bridge_length",
-    "print_sequence", "flat_belt_mode", "flat_belt_object_gap", "flat_belt_seam", "flat_belt_step_length", "flat_belt_endless", "flat_belt_endless_count",
+    "print_sequence", "flat_belt_mode", "flat_belt_object_gap", "flat_belt_seam", "flat_belt_step_length", "flat_belt_slope_angle", "flat_belt_endless", "flat_belt_endless_count",
     "print_order",
     "support_remove_small_overhang",
     "filename_format",

@@ -5,6 +5,7 @@
 #include "I18N.hpp"
 #include "PrintConfig.hpp"
 #include "format.hpp"
+#include "libslic3r.h"
 
 #include <algorithm>
 #include <cmath>
@@ -29,7 +30,9 @@ LongPartsPlan plan_long_parts(const PrintConfig &config, double part_height, siz
     plan.bed_y_min = bed.min.y() + BED_MARGIN;
     const double window = bed.size().y() - 2. * BED_MARGIN;
 
-    plan.tan_alpha = CLEARANCE_SAFETY * config.flat_belt_head_clearance_z.value / config.flat_belt_head_clearance_y.value;
+    plan.tan_alpha = config.flat_belt_slope_angle.value > 0. ?
+        std::tan(config.flat_belt_slope_angle.value * PI / 180.) :
+        CLEARANCE_SAFETY * config.flat_belt_head_clearance_z.value / config.flat_belt_head_clearance_y.value;
     plan.step      = config.flat_belt_step_length.value;
     const double slope_seam = part_height / plan.tan_alpha;
     const double steps_seam = double(layer_count) * plan.step;
@@ -187,7 +190,7 @@ std::string segment_long_parts(const std::string   &layers_gcode,
             Layer &layer = layers.back();
             const bool g0 = line.rfind("G0 ", 0) == 0, g1 = line.rfind("G1 ", 0) == 0;
             if (line.rfind("G2 ", 0) == 0 || line.rfind("G3 ", 0) == 0)
-                throw SlicingError(_u8L("Long parts flat belt mode needs Arc fitting disabled."));
+                throw SlicingError(_u8L("Long parts Belt mode needs Arc fitting disabled."));
             if (line.rfind(";Z:", 0) == 0 && layers.size() > 1)
                 layer.z = std::atof(line.c_str() + 3);
             if (!g0 && !g1) {

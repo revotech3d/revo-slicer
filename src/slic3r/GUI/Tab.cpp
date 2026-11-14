@@ -3466,6 +3466,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("flat_belt_object_gap");
         optgroup->append_single_option_line("flat_belt_seam");
         optgroup->append_single_option_line("flat_belt_step_length");
+        optgroup->append_single_option_line("flat_belt_slope_angle");
         optgroup->append_single_option_line("flat_belt_endless");
         optgroup->append_single_option_line("flat_belt_endless_count");
         optgroup->append_single_option_line("print_order", "others_settings_special_mode#intra-layer-order");
@@ -5574,7 +5575,7 @@ void TabPrinter::build_fff()
         belt_og->append_single_option_line("belt_support_floor_offset", "printer_basic_information_belt_printer#support-floor-z-offset");
 
         {
-            auto fb = page->new_optgroup(L("Flat belt (experimental)"), L"param_advanced");
+            auto fb = page->new_optgroup(L("Belt (experimental)"), L"param_advanced");
             fb->append_single_option_line("flat_belt_head_clearance_z");
             fb->append_single_option_line("flat_belt_head_clearance_y");
             fb->append_single_option_line("flat_belt_lift");

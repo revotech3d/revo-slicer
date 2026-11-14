@@ -512,6 +512,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "flat_belt_lift"
             || opt_key == "flat_belt_seam"
             || opt_key == "flat_belt_step_length"
+            || opt_key == "flat_belt_slope_angle"
             || opt_key == "flat_belt_endless"
             || opt_key == "flat_belt_endless_count"
             || opt_key == "flat_belt_head_clearance_z"
@@ -2247,22 +2248,22 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
 
     if (this->flat_belt_mode() != FlatBeltMode::FixedBed) {
         if (std::abs(m_config.belt_slice_rotation_angle.value) > EPSILON)
-            return {L("Flat belt modes need a belt tilt angle of 0 degrees."), nullptr, "flat_belt_mode"};
+            return {L("Belt modes need a belt tilt angle of 0 degrees."), nullptr, "flat_belt_mode"};
         if (this->flat_belt_mode() == FlatBeltMode::Sequential && m_config.print_sequence != PrintSequence::ByObject)
-            return {L("Sequential flat belt mode needs the \"By object\" print sequence."), nullptr, "print_sequence"};
+            return {L("Sequential Belt mode needs the \"By object\" print sequence."), nullptr, "print_sequence"};
         if (this->flat_belt_mode() == FlatBeltMode::LongParts) {
             if (m_objects.size() != 1 || m_objects.front()->instances().size() != 1)
-                return {L("Long parts flat belt mode prints a single object."), nullptr, "flat_belt_mode"};
+                return {L("Long parts Belt mode prints a single object."), nullptr, "flat_belt_mode"};
             if (m_config.print_sequence != PrintSequence::ByLayer)
-                return {L("Long parts flat belt mode needs the \"By layer\" print sequence."), nullptr, "print_sequence"};
+                return {L("Long parts Belt mode needs the \"By layer\" print sequence."), nullptr, "print_sequence"};
             if (!m_config.use_relative_e_distances.value)
-                return {L("Long parts flat belt mode needs relative E distances."), nullptr, "use_relative_e_distances"};
+                return {L("Long parts Belt mode needs relative E distances."), nullptr, "use_relative_e_distances"};
             if (m_config.enable_arc_fitting.value != ArcFittingMode::Disabled)
-                return {L("Long parts flat belt mode needs Arc fitting disabled."), nullptr, "enable_arc_fitting"};
+                return {L("Long parts Belt mode needs Arc fitting disabled."), nullptr, "enable_arc_fitting"};
             if (m_config.enable_prime_tower.value)
-                return {L("Long parts flat belt mode does not support a prime tower."), nullptr, "enable_prime_tower"};
+                return {L("Long parts Belt mode does not support a prime tower."), nullptr, "enable_prime_tower"};
             if (this->extruders().size() > 1)
-                return {L("Long parts flat belt mode prints with a single filament."), nullptr, "flat_belt_mode"};
+                return {L("Long parts Belt mode prints with a single filament."), nullptr, "flat_belt_mode"};
             warn(m_config.flat_belt_endless.value ?
                      L("Endless: the preview, print time and filament cover the first segment and one repeat. "
                        "The printer shows the segments and the belt length printed.") :

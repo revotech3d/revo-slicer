@@ -7721,7 +7721,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("flat_belt_mode", coEnum);
-    def->label = L("Flat belt mode");
+    def->label = L("Belt mode");
     def->category = L("Others");
     def->tooltip = L("Experimental. Printers with a flat conveyor belt and a gantry moving in Z.\n"
                      "Fixed bed: the belt stands still, a classic print inside the build volume.\n"
@@ -7737,7 +7737,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("flat_belt_object_gap", coFloat);
     def->label = L("Gap between objects");
     def->category = L("Others");
-    def->tooltip = L("Sequential flat belt mode. Distance left on the belt between two printed objects. "
+    def->tooltip = L("Sequential Belt mode. Distance left on the belt between two printed objects. "
                      "It must keep the toolhead clear of the previous object.");
     def->sidetext = L("mm");
     def->min = 0;
@@ -7756,7 +7756,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("flat_belt_seam", coEnum);
     def->label = L("Seam");
     def->category = L("Others");
-    def->tooltip = L("Long parts flat belt mode. How two segments are joined.\n"
+    def->tooltip = L("Long parts Belt mode. How two segments are joined.\n"
                      "Steps: each layer overlaps the previous segment by the step length, the strongest joint for low parts.\n"
                      "Slope: one sloped face, its angle set by the toolhead clearance.\n"
                      "Auto: steps when the seam fits the build area, otherwise a slope.");
@@ -7769,17 +7769,28 @@ void PrintConfigDef::init_fff_params()
     def = this->add("flat_belt_step_length", coFloat);
     def->label = L("Step length");
     def->category = L("Others");
-    def->tooltip = L("Long parts flat belt mode. Overlap of each layer onto the previous segment. "
+    def->tooltip = L("Long parts Belt mode. Overlap of each layer onto the previous segment. "
                      "It must be longer than the toolhead front clearance.");
     def->sidetext = L("mm");
     def->min = 1;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(20.));
 
+    def = this->add("flat_belt_slope_angle", coFloat);
+    def->label = L("Slope angle");
+    def->category = L("Others");
+    def->tooltip = L("Long parts Belt mode, slope seam. Angle of the seam face to the belt. 0 takes it from the toolhead "
+                     "clearance, the steepest angle the toolhead clears. A steeper angle can hit the previous segment.");
+    def->sidetext = u8"°";
+    def->min = 0;
+    def->max = 80;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("flat_belt_endless", coBool);
     def->label = L("Endless");
     def->category = L("Others");
-    def->tooltip = L("Long parts flat belt mode. After the first segment a middle segment of the part repeats until "
+    def->tooltip = L("Long parts Belt mode. After the first segment a middle segment of the part repeats until "
                      "the print is stopped, for strips and profiles of any length. Needs [sdcard_loop] in the Klipper "
                      "configuration; SDCARD_LOOP_DESIST ends the print after the current segment.");
     def->mode = comSimple;
