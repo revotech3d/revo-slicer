@@ -7776,6 +7776,23 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(20.));
 
+    def = this->add("flat_belt_endless", coBool);
+    def->label = L("Endless");
+    def->category = L("Others");
+    def->tooltip = L("Long parts flat belt mode. After the first segment a middle segment of the part repeats until "
+                     "the print is stopped, for strips and profiles of any length. Needs [sdcard_loop] in the Klipper "
+                     "configuration; SDCARD_LOOP_DESIST ends the print after the current segment.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("flat_belt_endless_count", coInt);
+    def->label = L("Endless repeats");
+    def->category = L("Others");
+    def->tooltip = L("How many times the middle segment repeats. 0 repeats it until the print is stopped.");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
     def = this->add("flat_belt_head_clearance_z", coFloat);
     def->label = L("Nozzle below toolhead");
     def->category = L("Printable space");

@@ -239,14 +239,18 @@ std::string segment_long_parts(const std::string   &layers_gcode,
     const double travel_v  = config.travel_speed.get_at(0);
     const double travel_f  = 60. * (std::isfinite(travel_v) && travel_v > 0. ? travel_v : 150.);
 
+    const bool endless = config.flat_belt_endless.value;
+    if (endless && n_seg < 3)
+        throw SlicingError(format(_u8L("Endless printing repeats a middle segment of the part, so the model must be at least %1% mm long."),
+                                  std::lround(2. * plan.advance + plan.seam + 1.)));
+
     std::ostringstream out;
     Emitter em(out, retract, retract_f, travel_f);
     for (const Item &it : layers.front().items)
         if (!it.is_move)
             out << it.raw << "\n";
 
-    for (size_t k = 0; k < n_seg; ++k) {
-        out << "; FLAT_BELT_SEGMENT " << (k + 1) << "/" << n_seg << "\n";
+    auto emit_segment = [&](size_t k) {
         // Segment k sits on the bed after k advances: front of the part at the front of the print zone.
         em.set_shift(plan.bed_y_min - y_front - double(k) * plan.advance);
         for (size_t li = 1; li < layers.size(); ++li) {
@@ -269,12 +273,35 @@ std::string segment_long_parts(const std::string   &layers_gcode,
                            m.x0 + t1 * (m.x1 - m.x0), m.y0 + t1 * (m.y1 - m.y0), m.e * (t1 - t0), m.f);
             }
         }
-        if (k + 1 < n_seg) {
-            const double safe_z = part_height + config.flat_belt_lift.value;
-            out << "; FLAT_BELT_ADVANCE\n";
-            em.lift_to(safe_z);
-            out << advance_gcode << (advance_gcode.empty() || advance_gcode.back() == '\n' ? "" : "\n");
-            em.approach_from_above(safe_z);
+    };
+    auto emit_advance = [&]() {
+        const double safe_z = part_height + config.flat_belt_lift.value;
+        out << "; FLAT_BELT_ADVANCE\n";
+        em.lift_to(safe_z);
+        out << advance_gcode << (advance_gcode.empty() || advance_gcode.back() == '\n' ? "" : "\n");
+        em.approach_from_above(safe_z);
+    };
+
+    if (endless) {
+        // The first segment has the part's front end. Every later one is the same middle
+        // segment at the same place on the bed (the belt has carried the rest forward), so it is
+        // written once and repeated by Klipper's [sdcard_loop] until the print is stopped, or
+        // flat_belt_endless_count times. SDCARD_LOOP_DESIST ends it after the current segment.
+        out << "; FLAT_BELT_SEGMENT 1\n";
+        emit_segment(0);
+        em.retract(); // the loop body starts and ends retracted, so every pass sees the same state
+        out << "SDCARD_LOOP_BEGIN COUNT=" << std::max(0, config.flat_belt_endless_count.value) << "\n";
+        emit_advance();
+        out << "; FLAT_BELT_SEGMENT REPEAT\n";
+        emit_segment(1);
+        em.retract();
+        out << "SDCARD_LOOP_END\n";
+    } else {
+        for (size_t k = 0; k < n_seg; ++k) {
+            out << "; FLAT_BELT_SEGMENT " << (k + 1) << "/" << n_seg << "\n";
+            emit_segment(k);
+            if (k + 1 < n_seg)
+                emit_advance();
         }
     }
     em.retract();

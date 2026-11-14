@@ -3466,6 +3466,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("flat_belt_object_gap");
         optgroup->append_single_option_line("flat_belt_seam");
         optgroup->append_single_option_line("flat_belt_step_length");
+        optgroup->append_single_option_line("flat_belt_endless");
+        optgroup->append_single_option_line("flat_belt_endless_count");
         optgroup->append_single_option_line("print_order", "others_settings_special_mode#intra-layer-order");
         optgroup->append_single_option_line("spiral_mode", "others_settings_special_mode#spiral-vase");
         optgroup->append_single_option_line("spiral_mode_smooth", "others_settings_special_mode#smooth-spiral");

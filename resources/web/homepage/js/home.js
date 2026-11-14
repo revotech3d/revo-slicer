@@ -737,7 +737,7 @@ window.postMessage = HandleStudio;
 
 
 /*---- [r]evo: New mission picker (belt printers) ----*/
-var m_Mission = { mode: 0, gap: 50, seam: "auto", step: 20 };
+var m_Mission = { mode: 0, gap: 50, seam: "auto", step: 20, endless: "0" };
 
 function MsChips(key, items, current, unit)
 {
@@ -764,11 +764,12 @@ function RenderMission()
 	MsChips('seam', [['auto','AUTO'],['slope','SLOPE'],['steps','STEPS']], m_Mission.seam, null);
 	$('#MsStep').toggle(m_Mission.seam=='steps');
 	MsChips('step', [[10,'10'],[20,'20'],[30,'30']], m_Mission.step, 'MM');
+	MsChips('endless', [['0','MODEL'],['1','ENDLESS · UNTIL STOPPED']], m_Mission.endless, null);
 }
 
 function ShowMissionPicker(d)
 {
-	m_Mission = { mode: d.mode*1, gap: d.gap*1, seam: d.seam, step: d.step*1 };
+	m_Mission = { mode: d.mode*1, gap: d.gap*1, seam: d.seam, step: d.step*1, endless: d.endless ? "1" : "0" };
 	$('#MsVehicle').text(d.vehicle||'');
 	$('.PbMode').off('click').click(function(){ m_Mission.mode=$(this).attr('data-mode')*1; RenderMission(); });
 	RenderMission();
@@ -779,6 +780,6 @@ function ShowMissionPicker(d)
 function StartMission()
 {
 	SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_newmission",data:{
-		mode:m_Mission.mode*1, gap:m_Mission.gap*1, seam:String(m_Mission.seam), step:m_Mission.step*1}}));
+		mode:m_Mission.mode*1, gap:m_Mission.gap*1, seam:String(m_Mission.seam), step:m_Mission.step*1, endless:m_Mission.endless=="1"}}));
 	GotoMenu('printers');
 }

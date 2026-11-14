@@ -5675,7 +5675,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                                           {"data", {{"vehicle", vehicle}, {"mode", int(mode->value)},
                                                     {"gap", pc.opt_float("flat_belt_object_gap")},
                                                     {"seam", seams[int(seam->value)]},
-                                                    {"step", pc.opt_float("flat_belt_step_length")}}}};
+                                                    {"step", pc.opt_float("flat_belt_step_length")},
+                                                    {"endless", pc.opt_bool("flat_belt_endless")}}}};
                     WebViewPanel::if_built()->RunScript(wxString::Format("window.postMessage(%s)", from_u8(msg.dump())));
                 } else
                     this->request_open_project("<new>");
@@ -5685,7 +5686,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 const double      gap  = root.get<double>("data.gap", 50.);
                 const std::string seam = root.get<std::string>("data.seam", "auto");
                 const double      step = root.get<double>("data.step", 20.);
-                CallAfter([this, mode, gap, seam, step] {
+                const bool        endless = root.get<bool>("data.endless", false);
+                CallAfter([this, mode, gap, seam, step, endless] {
                     this->request_open_project("<new>");
                     if (Tab* tab = get_tab(Preset::TYPE_PRINT)) {
                         DynamicPrintConfig cfg = preset_bundle->prints.get_edited_preset().config;
@@ -5694,6 +5696,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                             cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByObject));
                         if (gap > 0.) cfg.set_key_value("flat_belt_object_gap", new ConfigOptionFloat(gap));
                         if (step > 0.) cfg.set_key_value("flat_belt_step_length", new ConfigOptionFloat(step));
+                        cfg.set_key_value("flat_belt_endless", new ConfigOptionBool(endless));
                         cfg.set_key_value("flat_belt_seam", new ConfigOptionEnum<FlatBeltSeam>(
                             seam == "steps" ? FlatBeltSeam::Steps : seam == "slope" ? FlatBeltSeam::Slope : FlatBeltSeam::Auto));
                         tab->load_config(cfg);

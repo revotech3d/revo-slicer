@@ -2009,6 +2009,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,                          flat_belt_lift))
     ((ConfigOptionEnum<FlatBeltSeam>,             flat_belt_seam))
     ((ConfigOptionFloat,                          flat_belt_step_length))
+    ((ConfigOptionBool,                           flat_belt_endless))
+    ((ConfigOptionInt,                            flat_belt_endless_count))
     ((ConfigOptionFloat,                          flat_belt_head_clearance_z))
     ((ConfigOptionFloat,                          flat_belt_head_clearance_y))
     ((ConfigOptionString,                         flat_belt_advance_gcode))

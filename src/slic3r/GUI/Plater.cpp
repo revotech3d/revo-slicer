@@ -3743,6 +3743,15 @@ Sidebar::Sidebar(Plater *parent)
                             }
                         });
                         r.push_back(std::move(m));
+
+                        const bool endless = c.opt_bool("flat_belt_endless");
+                        // TRN Flight plan, flat belt Long parts: print the model as it is, or repeat it until stopped
+                        Row len{_L("Length"), endless ? _L("Endless") : _L("Model")};
+                        len.current = endless ? 1 : 0;
+                        len.labels  = {_L("Model"), _L("Endless")};
+                        for (bool v : {false, true})
+                            len.apply.push_back([v](DynamicPrintConfig& cfg) { cfg.set_key_value("flat_belt_endless", new ConfigOptionBool(v)); });
+                        r.push_back(std::move(len));
                     }
                 }
                 return r;
