@@ -286,6 +286,10 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
     auto http = Http::post(std::move(url));
     set_auth(http);
     http.form_add("root", root);
+    // [r]evo: a folder typed in the send dialog ("test/part.gcode") goes in Moonraker's `path` field,
+    // otherwise the file lands in the root of the storage.
+    if (!upload_parent_path.empty())
+        http.form_add("path", upload_parent_path.generic_string());
     if (!plateindex.empty())
         http.form_add("plateindex", plateindex);
     http.form_add("print", want_start ? "true" : "false");
