@@ -5677,7 +5677,10 @@ std::string GUI_App::handle_web_request(std::string cmd)
                                                     {"seam", seams[int(seam->value)]},
                                                     {"step", pc.opt_float("flat_belt_step_length")},
                                                     {"endless", pc.opt_bool("flat_belt_endless")},
-                                                    {"copies", pc.opt_int("flat_belt_copies")}}}};
+                                                    {"copies", pc.opt_int("flat_belt_copies")},
+                                                    {"eject", pc.opt_serialize("flat_belt_eject")},
+                                                    {"eject_time", pc.opt_int("flat_belt_eject_time")},
+                                                    {"eject_bed_temp", pc.opt_int("flat_belt_eject_bed_temp")}}}};
                     WebViewPanel::if_built()->RunScript(wxString::Format("window.postMessage(%s)", from_u8(msg.dump())));
                 } else
                     this->request_open_project("<new>");
@@ -5689,10 +5692,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 const double      step = root.get<double>("data.step", 20.);
                 const bool        endless = root.get<bool>("data.endless", false);
                 const int         copies  = std::max(0, root.get<int>("data.copies", 1));
-                CallAfter([this, mode, gap, seam, step, endless, copies] {
+                const std::string eject   = root.get<std::string>("data.eject", "off");
+                const int         eject_time = std::max(0, root.get<int>("data.eject_time", 10));
+                CallAfter([this, mode, gap, seam, step, endless, copies, eject, eject_time] {
                     this->request_open_project("<new>");
-                    if (Tab* tab = get_tab(Preset::TYPE_PRINT)) {
-                        DynamicPrintConfig cfg = preset_bundle->prints.get_edited_preset().config;
+                    plater()->apply_print_config([=](DynamicPrintConfig &cfg) {
                         cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode(mode)));
                         if (FlatBeltMode(mode) == FlatBeltMode::Sequential)
                             cfg.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByObject));
@@ -5705,8 +5709,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         cfg.set_key_value("flat_belt_endless", new ConfigOptionBool(endless));
                         cfg.set_key_value("flat_belt_seam", new ConfigOptionEnum<FlatBeltSeam>(
                             seam == "steps" ? FlatBeltSeam::Steps : seam == "slope" ? FlatBeltSeam::Slope : FlatBeltSeam::Auto));
-                        tab->load_config(cfg);
-                    }
+                        cfg.set_key_value("flat_belt_eject", new ConfigOptionEnum<FlatBeltEject>(
+                            eject == "time" ? FlatBeltEject::AfterTime : eject == "bed_temp" ? FlatBeltEject::AfterBedTemp : FlatBeltEject::Off));
+                        if (eject == "time")
+                            cfg.set_key_value("flat_belt_eject_time", new ConfigOptionInt(eject_time));
+                    });
                 });
             }
             else if (command_str.compare("homepage_findprinters") == 0) {   // [r]evo: radar – drukarki Revon w sieci lokalnej

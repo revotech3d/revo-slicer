@@ -737,7 +737,7 @@ window.postMessage = HandleStudio;
 
 
 /*---- [r]evo: New mission picker (belt printers) ----*/
-var m_Mission = { mode: 0, gap: 50, seam: "auto", step: 20, endless: "0", copies: 1 };
+var m_Mission = { mode: 0, gap: 50, seam: "auto", step: 20, endless: "0", copies: 1, eject: "off", bed_temp: 35 };
 
 function MsChips(key, items, current, unit)
 {
@@ -770,11 +770,15 @@ function RenderMission()
 	$('#MsStep').toggle(m_Mission.seam=='steps');
 	MsChips('step', [[10,'10'],[20,'20'],[30,'30']], m_Mission.step, 'MM');
 	MsChips('endless', [['0','MODEL'],['1','ENDLESS · UNTIL STOPPED']], m_Mission.endless, null);
+	// Fixed bed: eject = "off", minutes (number) or "bed_temp"
+	$('#MsEject').toggle(m_Mission.mode==0);
+	MsChips('eject', [['off','OFF'],[5,'5 MIN'],[10,'10 MIN'],[20,'20 MIN'],['bed_temp','BED ≤ '+m_Mission.bed_temp+' °C']], m_Mission.eject, 'MIN');
 }
 
 function ShowMissionPicker(d)
 {
-	m_Mission = { mode: d.mode*1, gap: d.gap*1, seam: d.seam, step: d.step*1, endless: d.endless ? "1" : "0", copies: (d.copies==null ? 1 : d.copies*1) };
+	m_Mission = { mode: d.mode*1, gap: d.gap*1, seam: d.seam, step: d.step*1, endless: d.endless ? "1" : "0", copies: (d.copies==null ? 1 : d.copies*1),
+		eject: d.eject=="time" ? d.eject_time*1 : (d.eject=="bed_temp" ? "bed_temp" : "off"), bed_temp: (d.eject_bed_temp==null ? 35 : d.eject_bed_temp*1) };
 	$('#MsVehicle').text(d.vehicle||'');
 	$('.PbMode').off('click').click(function(){ m_Mission.mode=$(this).attr('data-mode')*1; RenderMission(); });
 	RenderMission();
@@ -786,6 +790,8 @@ function StartMission()
 {
 	SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_newmission",data:{
 		mode:m_Mission.mode*1, gap:m_Mission.gap*1, seam:String(m_Mission.seam), step:m_Mission.step*1, endless:m_Mission.endless=="1",
-		copies:Math.max(0, Math.round(m_Mission.copies*1))}}));
+		copies:Math.max(0, Math.round(m_Mission.copies*1)),
+		eject:(m_Mission.eject=="off" || m_Mission.eject=="bed_temp") ? m_Mission.eject : "time",
+		eject_time:(m_Mission.eject=="off" || m_Mission.eject=="bed_temp") ? 10 : Math.max(0, Math.round(m_Mission.eject*1))}}));
 	GotoMenu('printers');
 }
