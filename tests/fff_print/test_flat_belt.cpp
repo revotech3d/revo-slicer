@@ -238,3 +238,29 @@ TEST_CASE("Sequential prints each object the number of copies in a row", "[FlatB
     CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO ENDLESS=0 ADVANCE=0 SEGMENTS=5 UNIT=piece") == 1);
     CHECK(count_lines_starting(gcode, "BELT_ADVANCE DIST=") == 4);
 }
+
+TEST_CASE("Sequential clears the path conflict found by the previous slice", "[FlatBelt]")
+{
+    // Two overlapping cubes conflict when printed layer by layer. Sequential skips the
+    // check, and must not report the stale conflict, whose instances are gone.
+    Model model;
+    for (int i = 0; i < 2; ++i) {
+        ModelObject *object = model.add_object();
+        object->name = "cube.stl";
+        object->add_volume(make_cube(20., 20., HEIGHT));
+        object->add_instance();
+        object->center_around_origin();
+        object->instances.front()->set_offset(Vec3d(BED / 2. + 10. * i, BED / 2., HEIGHT / 2.));
+        object->ensure_on_bed();
+    }
+    Print print;
+    print.apply(model, belt_config("plates", false));
+    Test::gcode(print);
+    REQUIRE(print.get_conflict_result().has_value());
+
+    DynamicPrintConfig config = belt_config("sequential", false);
+    config.set_deserialize_strict({ { "print_sequence", "by object" } });
+    print.apply(model, config);
+    Test::gcode(print);
+    CHECK_FALSE(print.get_conflict_result().has_value());
+}

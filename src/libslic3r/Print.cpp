@@ -4001,6 +4001,9 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
     }
     // Belt sequential: each object is printed alone at the bed centre, so where the objects
     // stand on the plate (even on top of each other) never makes their paths meet.
+    // A skipped check must not leave the previous slice's result: it points at print
+    // instances that may no longer exist.
+    m_conflict_result.reset();
     if(!m_no_check && this->flat_belt_mode() != FlatBeltMode::Sequential /*&& !has_adaptive_layer_height*/)
     {
         using Clock                 = std::chrono::high_resolution_clock;
