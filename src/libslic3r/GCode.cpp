@@ -4943,6 +4943,18 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }
         }
         file.writeln(this->placeholder_parser_process("machine_end_gcode", print.config().machine_end_gcode, m_writer.filament()->id(), &config));
+
+        // Fixed bed Belt mode: once the part has cooled, one belt turn drops it off the front.
+        const PrintConfig &pc = print.config();
+        if (pc.flat_belt.value && pc.flat_belt_mode.value == FlatBeltMode::FixedBed && pc.flat_belt_eject.value != FlatBeltEject::Off) {
+            const bool by_temp = pc.flat_belt_eject.value == FlatBeltEject::AfterBedTemp;
+            DynamicConfig eject_config;
+            eject_config.set_key_value("eject_wait", new ConfigOptionInt(by_temp ? 0 : pc.flat_belt_eject_time.value * 60));
+            eject_config.set_key_value("eject_bed_temp", new ConfigOptionInt(by_temp ? pc.flat_belt_eject_bed_temp.value : 0));
+            file.writeln("; FLAT_BELT_EJECT");
+            file.writeln(this->placeholder_parser_process("flat_belt_eject_gcode", pc.flat_belt_eject_gcode.value,
+                                                          m_writer.filament()->id(), &eject_config));
+        }
     }
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());

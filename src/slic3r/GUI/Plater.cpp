@@ -3699,7 +3699,48 @@ Sidebar::Sidebar(Plater *parent)
                     }
                     r.push_back(std::move(b));
 
-                    if (mode == FlatBeltMode::Sequential || mode == FlatBeltMode::Plates) {
+                    if (mode == FlatBeltMode::FixedBed) {
+                        // Eject after the print: wait N minutes or until the bed is cool, then one belt turn
+                        const auto eject = c.opt_enum<FlatBeltEject>("flat_belt_eject");
+                        const int  mins  = c.opt_int("flat_belt_eject_time");
+                        const int  temp  = c.opt_int("flat_belt_eject_bed_temp");
+                        // TRN Flight plan, flat belt Fixed bed: eject once the bed has cooled to %d °C
+                        const wxString bed_label = wxString::Format(_L("Bed %s %d °C"), wxString::FromUTF8("\xE2\x89\xA4"), temp);
+                        const wxString value = eject == FlatBeltEject::Off ? _L("Off") :
+                                               eject == FlatBeltEject::AfterBedTemp ? bed_label :
+                                               // TRN Flight plan, flat belt Fixed bed: eject %d minutes after the print
+                                               wxString::Format(_L("After %d min"), mins);
+                        Row e{_L("Eject"), value};
+                        e.labels.push_back(_L("Off"));
+                        e.apply.push_back([](DynamicPrintConfig& cfg) {
+                            cfg.set_key_value("flat_belt_eject", new ConfigOptionEnum<FlatBeltEject>(FlatBeltEject::Off));
+                        });
+                        if (eject == FlatBeltEject::Off) e.current = 0;
+                        for (int v : {5, 10, 20}) {
+                            if (eject == FlatBeltEject::AfterTime && v == mins) e.current = int(e.labels.size());
+                            e.labels.push_back(wxString::Format(_L("%d min"), v));
+                            e.apply.push_back([v](DynamicPrintConfig& cfg) {
+                                cfg.set_key_value("flat_belt_eject", new ConfigOptionEnum<FlatBeltEject>(FlatBeltEject::AfterTime));
+                                cfg.set_key_value("flat_belt_eject_time", new ConfigOptionInt(v));
+                            });
+                        }
+                        if (eject == FlatBeltEject::AfterBedTemp) e.current = int(e.labels.size());
+                        e.labels.push_back(bed_label);
+                        e.apply.push_back([](DynamicPrintConfig& cfg) {
+                            cfg.set_key_value("flat_belt_eject", new ConfigOptionEnum<FlatBeltEject>(FlatBeltEject::AfterBedTemp));
+                        });
+                        if (e.current < 0) e.current = int(e.labels.size());
+                        e.labels.push_back(_L("Custom"));
+                        e.apply.push_back([mins](DynamicPrintConfig& cfg) {
+                            wxTextEntryDialog dlg(nullptr, _L("Minutes after the print"), _L("Eject"), wxString::Format("%d", mins));
+                            long v = 0;
+                            if (dlg.ShowModal() == wxID_OK && dlg.GetValue().ToLong(&v) && v >= 0) {
+                                cfg.set_key_value("flat_belt_eject", new ConfigOptionEnum<FlatBeltEject>(FlatBeltEject::AfterTime));
+                                cfg.set_key_value("flat_belt_eject_time", new ConfigOptionInt(int(v)));
+                            }
+                        });
+                        r.push_back(std::move(e));
+                    } else if (mode == FlatBeltMode::Sequential || mode == FlatBeltMode::Plates) {
                         const double gap = c.opt_float("flat_belt_object_gap");
                         Row g{_L("Gap"), wxString::Format("%g mm", gap)};
                         for (double v : {30., 50., 80., 100.}) {

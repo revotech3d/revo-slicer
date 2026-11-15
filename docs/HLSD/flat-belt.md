@@ -9,8 +9,12 @@ and prime tower as usual. Only in Long parts does the plate open along Y
 
 `flat_belt_mode` (process) chooses how the belt is used:
 
-- **Fixed bed** – the belt stands still; a normal print.
-- **Sequential** – objects print one by one (`By object`) at the bed centre. Between them the
+- **Fixed bed** – the belt stands still; a normal print. With `flat_belt_eject` on, the end of the
+  file runs `flat_belt_eject_gcode` after the machine end G-code: the printer waits
+  `flat_belt_eject_time` minutes or until the bed is at `flat_belt_eject_bed_temp`, then turns the
+  belt once to drop the part off the front (Revo OS `FLAT_BELT_EJECT`, belt length in `_REVO_CFG`).
+- **Sequential** – objects print one by one (`By object`) at the bed centre: `GCode::object_origin()`
+  replaces the instance's plate position wherever an origin is set, brim and object skirt included. Between them the
   gantry lifts by `flat_belt_lift` and `flat_belt_advance_gcode` advances the belt by the
   previous object's depth (skirt and brim included) plus `flat_belt_object_gap`. Objects
   never share the bed, so the sequential clearance check is skipped. `flat_belt_copies` repeats
@@ -57,3 +61,13 @@ replays the same way and has the same needs, except that it takes any number of 
 
 Every mode that moves the belt writes `FLAT_BELT_INFO ENDLESS= ADVANCE= SEGMENTS= UNIT=` at the
 start of the print, so Revo OS can count segments, plates or pieces on the screen.
+
+## 3D view
+
+`FlatBeltPreview`, drawn by both canvases (3D view and print preview) right after the plates,
+shows how the selected mode uses the belt around the current plate: the belt strip under the bed
+and in front of it, fading out; the copies still to come in Sequential and Plates as grey
+see-through boxes the size of each object, spaced as the belt will carry them; the infinity sign
+behind the belt for Endless; the eject arrow for Fixed bed with Eject. The mode is named along the
+left side of the plate. It reads the edited presets and the model at render time, so it follows
+every change without its own invalidation.

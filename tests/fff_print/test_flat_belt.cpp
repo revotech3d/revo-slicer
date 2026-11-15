@@ -297,3 +297,27 @@ TEST_CASE("Sequential prints every copy with its brim at the bed centre", "[Flat
         CHECK(b.x_max - b.x_min > 24.); // 20 mm cube and its 3 mm brim
     }
 }
+
+TEST_CASE("Fixed bed ejects the part after the print when Eject is on", "[FlatBelt]")
+{
+    DynamicPrintConfig config = belt_config("fixed_bed", false);
+    SECTION("off by default") {
+        CHECK(slice_cubes(config, 1).find("FLAT_BELT_EJECT") == std::string::npos);
+    }
+    SECTION("after a set time, at the end of the file") {
+        config.set_deserialize_strict({ { "flat_belt_eject", "time" }, { "flat_belt_eject_time", 10 } });
+        const std::string gcode = slice_cubes(config, 1);
+        const size_t      at    = gcode.find("FLAT_BELT_EJECT WAIT=600 BED_TEMP=0");
+        REQUIRE(at != std::string::npos);
+        CHECK(gcode.rfind(";LAYER_CHANGE") < at); // after the last layer
+    }
+    SECTION("once the bed has cooled") {
+        config.set_deserialize_strict({ { "flat_belt_eject", "bed_temp" }, { "flat_belt_eject_bed_temp", 35 } });
+        CHECK(slice_cubes(config, 1).find("FLAT_BELT_EJECT WAIT=0 BED_TEMP=35") != std::string::npos);
+    }
+    SECTION("only in Fixed bed mode") {
+        config = belt_config("plates", false);
+        config.set_deserialize_strict({ { "flat_belt_eject", "time" } });
+        CHECK(slice_cubes(config, 1).find("FLAT_BELT_EJECT") == std::string::npos);
+    }
+}

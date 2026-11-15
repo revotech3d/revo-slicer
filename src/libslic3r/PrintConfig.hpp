@@ -348,6 +348,15 @@ enum class FlatBeltMode
     Count,
 };
 
+// Fixed bed Belt mode: clear the bed with one belt turn once the print has cooled.
+enum class FlatBeltEject
+{
+    Off,
+    AfterTime,    // flat_belt_eject_time minutes after the print
+    AfterBedTemp, // once the bed is at or below flat_belt_eject_bed_temp
+    Count,
+};
+
 enum class FlatBeltSeam
 {
     Auto,     // steps when they fit the build area, otherwise a slope
@@ -826,6 +835,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BeltRotationAxis)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FlatBeltMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FlatBeltSeam)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FlatBeltEject)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(RemapAxis)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
@@ -2016,9 +2026,13 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,                           flat_belt_endless))
     ((ConfigOptionInt,                            flat_belt_endless_count))
     ((ConfigOptionInt,                            flat_belt_copies))
+    ((ConfigOptionEnum<FlatBeltEject>,            flat_belt_eject))
+    ((ConfigOptionInt,                            flat_belt_eject_time))
+    ((ConfigOptionInt,                            flat_belt_eject_bed_temp))
     ((ConfigOptionFloat,                          flat_belt_head_clearance_z))
     ((ConfigOptionFloat,                          flat_belt_head_clearance_y))
     ((ConfigOptionString,                         flat_belt_advance_gcode))
+    ((ConfigOptionString,                         flat_belt_eject_gcode))
     //BBS
     ((ConfigOptionInts,               additional_cooling_fan_speed))
     ((ConfigOptionInts,               close_additional_fan_first_x_layers))

@@ -448,6 +448,13 @@ static t_config_enum_values s_keys_map_FlatBeltSeam {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FlatBeltSeam)
 
+static t_config_enum_values s_keys_map_FlatBeltEject {
+    { "off",      int(FlatBeltEject::Off) },
+    { "time",     int(FlatBeltEject::AfterTime) },
+    { "bed_temp", int(FlatBeltEject::AfterBedTemp) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FlatBeltEject)
+
 static t_config_enum_values s_keys_map_RemapAxis {
     { "pos_x", int(RemapAxis::PosX) },
     { "pos_y", int(RemapAxis::PosY) },
@@ -7825,6 +7832,37 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
+    def = this->add("flat_belt_eject", coEnum);
+    def->label = L("Eject");
+    def->category = L("Others");
+    def->tooltip = L("Fixed bed Belt mode. After the print the bed cools, then the belt makes one full turn and drops "
+                     "the part off the front.\n"
+                     "After time: waits the set number of minutes.\n"
+                     "Bed temperature: waits until the bed has cooled to the set temperature.");
+    def->enum_keys_map = &ConfigOptionEnum<FlatBeltEject>::get_enum_values();
+    def->enum_values  = {"off", "time", "bed_temp"};
+    def->enum_labels  = {L("Off"), L("After time"), L("Bed temperature")};
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<FlatBeltEject>(FlatBeltEject::Off));
+
+    def = this->add("flat_belt_eject_time", coInt);
+    def->label = L("Eject after");
+    def->category = L("Others");
+    def->tooltip = L("Fixed bed Belt mode: how long the part cools before the belt ejects it.");
+    def->sidetext = L("min");
+    def->min = 0;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInt(10));
+
+    def = this->add("flat_belt_eject_bed_temp", coInt);
+    def->label = L("Eject at bed temperature");
+    def->category = L("Others");
+    def->tooltip = L("Fixed bed Belt mode: the belt ejects the part once the bed has cooled to this temperature.");
+    def->sidetext = u8"°C";
+    def->min = 0;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInt(35));
+
     def = this->add("flat_belt_head_clearance_z", coFloat);
     def->label = L("Nozzle below toolhead");
     def->category = L("Printable space");
@@ -7852,6 +7890,18 @@ void PrintConfigDef::init_fff_params()
     def->height = 5;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString("BELT_ADVANCE DIST={belt_advance}"));
+
+    def = this->add("flat_belt_eject_gcode", coString);
+    def->label = L("Belt eject G-code");
+    def->category = L("Printable space");
+    def->tooltip = L("G-code at the end of a Fixed bed print with Eject on: waits for the part to cool, then turns the "
+                     "belt once. eject_wait holds the wait in seconds, eject_bed_temp the bed temperature to wait for "
+                     "(0 when not used).");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 5;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString("FLAT_BELT_EJECT WAIT={eject_wait} BED_TEMP={eject_bed_temp}"));
 
     def = this->add("belt_printer_infinite_y", coBool);
     def->label = L("Infinite Y axis");
@@ -13770,6 +13820,7 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"machine_pause_gcode",         {}},
     {"template_custom_gcode",       {}},
     {"flat_belt_advance_gcode",     {"belt_advance"}},
+    {"flat_belt_eject_gcode",       {"eject_wait", "eject_bed_temp"}},
     // Filament G-code
     {"filament_start_gcode",        {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id",
                                       "current_filament_id", "current_extruder_id", "current_nozzle_id",
@@ -13925,6 +13976,15 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     def = this->add("belt_advance", coFloat);
     def->label = L("Belt advance");
     def->tooltip = L("Distance in mm the belt moves forward: between objects in Sequential mode, between segments in Long parts mode.");
+
+// flat_belt_eject_gcode
+    def = this->add("eject_wait", coInt);
+    def->label = L("Eject wait");
+    def->tooltip = L("Seconds to wait before the belt ejects the part, 0 when it waits for the bed temperature.");
+
+    def = this->add("eject_bed_temp", coInt);
+    def->label = L("Eject bed temperature");
+    def->tooltip = L("Bed temperature in °C to wait for before the belt ejects the part, 0 when it waits a set time.");
 }
 
 const CustomGcodeSpecificConfigDef custom_gcode_specific_config_def;

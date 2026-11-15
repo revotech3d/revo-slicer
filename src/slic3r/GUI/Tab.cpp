@@ -3470,6 +3470,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("flat_belt_slope_angle");
         optgroup->append_single_option_line("flat_belt_endless");
         optgroup->append_single_option_line("flat_belt_endless_count");
+        optgroup->append_single_option_line("flat_belt_eject");
+        optgroup->append_single_option_line("flat_belt_eject_time");
+        optgroup->append_single_option_line("flat_belt_eject_bed_temp");
         optgroup->append_single_option_line("print_order", "others_settings_special_mode#intra-layer-order");
         optgroup->append_single_option_line("spiral_mode", "others_settings_special_mode#spiral-vase");
         optgroup->append_single_option_line("spiral_mode_smooth", "others_settings_special_mode#smooth-spiral");
@@ -3600,7 +3603,8 @@ void TabPrint::toggle_options()
         const auto *flat = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("flat_belt");
         const bool  on   = flat != nullptr && flat->value;
         for (const char *key : {"flat_belt_mode", "flat_belt_object_gap", "flat_belt_seam", "flat_belt_step_length",
-                                "flat_belt_slope_angle", "flat_belt_endless", "flat_belt_endless_count", "flat_belt_copies"})
+                                "flat_belt_slope_angle", "flat_belt_endless", "flat_belt_endless_count", "flat_belt_copies",
+                                "flat_belt_eject", "flat_belt_eject_time", "flat_belt_eject_bed_temp"})
             toggle_line(key, on);
     }
 
@@ -5590,10 +5594,12 @@ void TabPrinter::build_fff()
             fb->append_single_option_line("flat_belt_head_clearance_z");
             fb->append_single_option_line("flat_belt_head_clearance_y");
             fb->append_single_option_line("flat_belt_lift");
-            Option option = fb->get_option("flat_belt_advance_gcode");
-            option.opt.full_width = true;
-            option.opt.height = 5;
-            fb->append_single_option_line(option);
+            for (const char *key : {"flat_belt_advance_gcode", "flat_belt_eject_gcode"}) {
+                Option option = fb->get_option(key);
+                option.opt.full_width = true;
+                option.opt.height = 5;
+                fb->append_single_option_line(option);
+            }
         }
 
         // Machine-frame transform: the shear (cot) + scale (1/sin) that map
@@ -6792,7 +6798,7 @@ void TabPrinter::toggle_options()
         {
             const bool flat_belt = m_config->opt_bool("flat_belt");
             const wxString flat_belt_reason = _L("Enable Flat belt printer to use this setting.");
-            for (const char *key : {"flat_belt_head_clearance_z", "flat_belt_head_clearance_y", "flat_belt_lift", "flat_belt_advance_gcode"})
+            for (const char *key : {"flat_belt_head_clearance_z", "flat_belt_head_clearance_y", "flat_belt_lift", "flat_belt_advance_gcode", "flat_belt_eject_gcode"})
                 toggle_line(key, flat_belt, -1, flat_belt_reason);
         }
         // Belt tilt: the sole mesh-side belt transform (visible by default in belt mode).

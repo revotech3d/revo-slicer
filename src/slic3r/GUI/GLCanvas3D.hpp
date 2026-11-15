@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <optional>
 
+#include "FlatBeltPreview.hpp"
 #include "GLToolbar.hpp"
 #include "Event.hpp"
 #include "Selection.hpp"
@@ -660,6 +661,8 @@ private:
     // Orca: Gesture pans have their own lifecycle and stable world-space anchor.
     std::optional<Vec3d> m_gesture_pan_anchor;
     GLGizmosManager m_gizmos;
+    // [r]evo flat belt: the belt and the Belt mode around the current plate (3D view and preview)
+    FlatBeltPreview m_flat_belt_preview;
     //BBS: GUI refactor: GLToolbar
     mutable GLToolbar m_main_toolbar;
     mutable GLToolbar m_separator_toolbar;
