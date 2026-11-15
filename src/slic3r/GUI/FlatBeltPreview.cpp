@@ -270,7 +270,9 @@ void FlatBeltPreview::render(const Transform3d &view_matrix, const Transform3d &
     }
 
     if (mode == FlatBeltMode::LongParts && print.opt_bool("flat_belt_endless"))
-        draw(m_infinity, Geometry::translation_transform(Vec3d(center.x(), bed.max.y() + 60., 0.2)) * Geometry::scale_transform(70.),
+        // Standing on the back edge of the belt: lying flat behind it, it would be past the camera's far plane.
+        draw(m_infinity, Geometry::translation_transform(Vec3d(center.x(), bed.max.y(), 40.)) *
+                             Geometry::rotation_transform(Vec3d(0.5 * PI, 0., 0.)) * Geometry::scale_transform(70.),
              with_alpha(ACCENT_COLOR, 0.9f));
     if (mode == FlatBeltMode::FixedBed && eject != FlatBeltEject::Off)
         draw(m_arrow, Geometry::translation_transform(Vec3d(center.x(), bed.min.y() - 8., 0.2)) * Geometry::scale_transform(70.),
