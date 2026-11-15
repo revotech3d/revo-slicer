@@ -368,7 +368,7 @@ wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_THUMBNAIL_SIZE (wxSize(40, 40)) // ORCA
-#define REVO_HERO_MIN_SIDEBAR_HEIGHT 1000 // [r]evo: below this the printer silhouette gives its room to the settings tabs
+#define REVO_SETTINGS_MIN_HEIGHT 450 // [r]evo: the room the settings tabs keep below the sidebar sections before the printer silhouette gives way
 #define PRINTER_PANEL_SIZE (    wxSize(70, 60)) // ORCA
 #define PRINTER_PANEL_RADIUS (0) // [r]evo: square boxes, launch style
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
@@ -988,6 +988,7 @@ struct Sidebar::priv
     std::string     m_revo_hero_model;
     bool            m_revo_hero_ok      = false;   // [r]evo: the model has a silhouette
     wxPanel*        m_revo_plan         = nullptr; // [r]evo: flight plan rows, folded by a click on its title
+    wxWindow*       m_revo_params       = nullptr; // [r]evo: the settings tabs below the sections
     wxPanel*        m_revo_actions      = nullptr; // [r]evo: SLICE / PRINT w karcie drukarki
     // Filament Track Switch status overlay: an icon floated over the left/single extruder AMS area,
     // shown only when the switch is installed (green when ready, red when not calibrated).
@@ -3927,6 +3928,7 @@ Sidebar::Sidebar(Plater *parent)
                     return;
                 p->m_revo_plan->Show(!p->m_revo_plan->IsShown());
                 m_scrolled_sizer->Layout();
+                update_revo_hero_visibility();
                 Layout();
             };
             params_panel->get_top_panel()->Bind(wxEVT_LEFT_DOWN, toggle_plan);
@@ -4004,6 +4006,7 @@ Sidebar::Sidebar(Plater *parent)
     if (params_panel) {
         params_panel->Reparent(p->scrolled);
         scrolled_sizer->Add(params_panel, 3, wxEXPAND);
+        p->m_revo_params = params_panel;
     }
 #endif
     }
@@ -4388,13 +4391,19 @@ void Sidebar::update_revo_printer_card()
     update_revo_hero_visibility();
 }
 
-// [r]evo: the silhouette shows only while the printer section is open and the sidebar is tall enough
-// to leave the settings tabs below it room to work in.
+// [r]evo: the silhouette shows only while the printer section is open and the settings tabs below
+// the sections still keep REVO_SETTINGS_MIN_HEIGHT with it shown.
 void Sidebar::update_revo_hero_visibility()
 {
-    if (!p->m_revo_hero_panel || !p->m_panel_printer_content)
+    // the tabs are hidden in Objects mode with nothing selected: keep the silhouette as it is
+    if (!p->m_revo_hero_panel || !p->m_panel_printer_content || !p->m_revo_params || !p->m_revo_params->IsShown() || !m_scrolled_sizer)
         return;
-    const bool show = p->m_revo_hero_ok && p->m_panel_printer_content->IsShown() && GetClientSize().y >= FromDIP(REVO_HERO_MIN_SIDEBAR_HEIGHT);
+    m_scrolled_sizer->Layout();
+    const int hero     = p->m_revo_hero_panel->GetBestSize().y;
+    // the settings tabs' height without the silhouette, then what is left once it is shown
+    const int settings = p->m_revo_params->GetSize().y + (p->m_revo_hero_panel->IsShown() ? hero : 0);
+    const bool show    = p->m_revo_hero_ok && p->m_panel_printer_content->IsShown() &&
+                         settings - hero >= FromDIP(REVO_SETTINGS_MIN_HEIGHT);
     if (show == p->m_revo_hero_panel->IsShown())
         return;
     p->m_revo_hero_panel->Show(show);
