@@ -17,15 +17,18 @@ and prime tower as usual. Only in Long parts does the plate open along Y
   replaces the instance's plate position wherever an origin is set, brim and object skirt included. Between them the
   gantry lifts by `flat_belt_lift` and `flat_belt_advance_gcode` advances the belt by the
   previous object's depth (skirt and brim included) plus `flat_belt_object_gap`. Objects
-  never share the bed, so the sequential clearance check is skipped. `flat_belt_copies` repeats
-  each object that many times in a row: the instance ordering simply lists it again.
+  never share the bed, so the sequential clearance check is skipped. A single object is written once
+  as the body of an `[sdcard_loop]` (see Printer target below), `flat_belt_copies` being the starting
+  target; the body starts and ends retracted and lifted above the piece, and ends with its own belt
+  advance. With several objects `flat_belt_copies` repeats each one that many times in a row (the
+  instance ordering simply lists it again) and the pieces are written out.
 - **Plates** – the whole plate is printed by layer like a fixed bed, then the belt moves it forward
   by its depth along Y (the extent of its extrusions) plus `flat_belt_object_gap`, and the plate is
   printed again, `flat_belt_copies` times. GCode generates the plate's layers once into a buffer and
   `FlatBelt::repeat_plates()` replays them with its own travels and retractions, so every plate is
-  the same text that starts and ends retracted above the plate. A known number of plates is written
-  out one after another (file progress and time left stay right); 0 copies loops one plate in
-  `[sdcard_loop]` until stopped.
+  the same text that starts and ends retracted above the plate. The plate is written once as the body
+  of an `[sdcard_loop]`, followed by its belt advance; `flat_belt_copies` is the starting target,
+  0 = until stopped.
 - **Long parts** – a part longer than the bed is printed in segments. GCode generates the
   part's layers whole into a buffer; `FlatBelt::segment_long_parts()` replays them once per
   segment, clipping each extrusion to the segment's band along Y, shifting it back onto the
@@ -54,10 +57,9 @@ The belt advance is the print zone length minus the seam.
 ## Endless
 
 With `flat_belt_endless` the first segment is written once, then one middle segment inside a
-Klipper `[sdcard_loop]` (`SDCARD_LOOP_BEGIN COUNT=flat_belt_endless_count`, 0 = until stopped).
-Every middle segment sits at the same place on the bed, so the loop body is identical on each
-pass; it starts and ends retracted. Revo OS ends the loop with `FLAT_BELT_FINISH`
-(`SDCARD_LOOP_DESIST`).
+Klipper `[sdcard_loop]`. Every middle segment sits at the same place on the bed, so the loop body
+is identical on each pass; it starts and ends retracted. The target is the first segment plus
+`flat_belt_endless_count` repeats, 0 = until stopped.
 
 ## Constraints
 
@@ -65,8 +67,22 @@ Long parts needs one object, `By layer`, relative E, no arc fitting, no prime to
 single filament, because the segmenter replays straight `G1` moves with relative extrusion. Plates
 replays the same way and has the same needs, except that it takes any number of objects.
 
-Every mode that moves the belt writes `FLAT_BELT_INFO ENDLESS= ADVANCE= SEGMENTS= UNIT=` at the
-start of the print, so Revo OS can count segments, plates or pieces on the screen.
+## Printer target
+
+Every mode writes `FLAT_BELT_INFO MODE= TARGET= LOOP= FILE_UNITS= ADVANCE= START= UNIT=` at the start
+of the print, and `FLAT_BELT_UNIT_DONE` after each piece, plate or segment, so the Revo OS screen
+shows the mode, the units done of the target, the time per unit and the time left (Endless: the
+belt length printed, `START + (done - 1) · ADVANCE`). `FILE_UNITS` is how many units the file's time
+estimate covers, until the printer has measured one.
+
+Where the unit is repeated in a loop (`LOOP=1`: Plates, Endless, Sequential with one object), the
+loop runs until stopped (`COUNT=0`) and the target lives on the printer: `FLAT_BELT_SET_TARGET`
+changes it while printing, and `FLAT_BELT_UNIT_DONE` ends the loop once it is reached. Klipper only
+accepts `SDCARD_LOOP_DESIST` from outside the file, so the macro schedules it on a timer, which
+runs between two lines of the file before the loop's end. The preview, time and filament the slicer
+shows are therefore for one unit. Long parts and Sequential with several objects write every unit
+out and keep a fixed target. The older `ENDLESS=` and `SEGMENTS=` parameters are still written for
+Revo OS versions that predate the target.
 
 ## 3D view
 

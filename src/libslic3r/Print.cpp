@@ -2258,6 +2258,10 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
             return {L("Belt modes are for flat belt printers; turn off tilted belt printing."), nullptr, "belt_printer"};
         if (this->flat_belt_mode() == FlatBeltMode::Sequential && m_config.print_sequence != PrintSequence::ByObject)
             return {L("Sequential Belt mode needs the \"By object\" print sequence."), nullptr, "print_sequence"};
+        if (this->flat_belt_mode() == FlatBeltMode::Sequential && m_objects.size() == 1 && m_objects.front()->instances().size() == 1)
+            warn(L("Sequential: the preview, print time and filament are for one piece. The printer repeats it, shows the pieces "
+                   "done and the time left, and the number of pieces can be changed on the printer while printing."),
+                 "flat_belt_copies");
         if (this->flat_belt_mode() == FlatBeltMode::LongParts) {
             if (m_objects.size() != 1 || m_objects.front()->instances().size() != 1)
                 return {L("Long parts Belt mode prints a single object."), nullptr, "flat_belt_mode"};
@@ -2297,7 +2301,7 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                 return {L("Long parts Belt mode prints with a single filament."), nullptr, "flat_belt_mode"};
             warn(m_config.flat_belt_endless.value ?
                      L("Endless: the preview, print time and filament cover the first segment and one repeat. "
-                       "The printer shows the segments and the belt length printed.") :
+                       "The printer shows the belt length printed, and the target length can be changed on the printer while printing.") :
                      L("Long parts: the preview shows every segment on the bed at once; the print time and filament are for the whole part."),
                  "flat_belt_mode");
         }
@@ -2313,8 +2317,9 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                 return {L("Plates Belt mode does not support a prime tower."), nullptr, "enable_prime_tower"};
             if (this->extruders().size() > 1)
                 return {L("Plates Belt mode prints with a single filament."), nullptr, "flat_belt_mode"};
-            if (m_config.flat_belt_copies.value == 0)
-                warn(L("Plates until stopped: the preview, print time and filament are for one plate."), "flat_belt_copies");
+            warn(L("Plates: the preview, print time and filament are for one plate. The printer repeats it, shows the plates "
+                   "done and the time left, and the number of plates can be changed on the printer while printing."),
+                 "flat_belt_copies");
         }
     }
     if (m_config.print_sequence == PrintSequence::ByObject && (m_objects.size() > 1 || m_objects[0]->instances().size() > 1)) {

@@ -161,8 +161,9 @@ TEST_CASE("Long parts prints a part longer than the bed in segments on the bed",
     // 340 - 200 = 140 mm. Segments n with n * 140 + 200 >= 600: three.
     const double window  = BED - 2. * MARGIN;
     const double advance = window - LAYERS * STEP;
-    REQUIRE(count_lines_starting(gcode, "FLAT_BELT_INFO ENDLESS=0") == 1);
+    REQUIRE(count_lines_starting(gcode, "FLAT_BELT_INFO MODE=long TARGET=3 LOOP=0") == 1);
     CHECK(count_lines_starting(gcode, "; FLAT_BELT_SEGMENT ") == 3);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_UNIT_DONE") == 3);
 
     const int advances = count_lines_starting(gcode, "BELT_ADVANCE DIST=");
     CHECK(advances == 2);
@@ -188,34 +189,48 @@ TEST_CASE("Long parts extrudes the same filament as the unsegmented part", "[Fla
 TEST_CASE("Endless repeats one middle segment in an sdcard loop", "[FlatBelt]")
 {
     const std::string gcode = slice_long_bar(belt_config("long_parts", true));
-    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO ENDLESS=1") == 1);
-    CHECK(count_lines_starting(gcode, "SDCARD_LOOP_BEGIN") == 1);
+    // Until stopped (flat_belt_endless_count 0): the printer ends the loop at the target length.
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO MODE=endless TARGET=0 LOOP=1 FILE_UNITS=2") == 1);
+    CHECK(count_lines_starting(gcode, "SDCARD_LOOP_BEGIN COUNT=0") == 1);
     CHECK(count_lines_starting(gcode, "SDCARD_LOOP_END") == 1);
     CHECK(count_lines_starting(gcode, "BELT_ADVANCE DIST=") == 1);
+    // the first segment and the repeated one each report when they are done
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_UNIT_DONE") == 2);
 }
 
-TEST_CASE("Plates prints the whole plate again after each belt advance", "[FlatBelt]")
+TEST_CASE("Endless passes the number of repeats to the printer as the target", "[FlatBelt]")
 {
-    // Three cubes in a row, the plate printed 3 times: two belt advances of the plate depth (20 mm of
-    // cubes) plus the gap (50 mm) between three plates.
+    // 4 repeats after the first segment: 5 segments, still one loop the printer can extend or cut short.
+    DynamicPrintConfig config = belt_config("long_parts", true);
+    config.set_deserialize_strict({ { "flat_belt_endless_count", 4 } });
+    const std::string gcode = slice_long_bar(config);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO MODE=endless TARGET=5 LOOP=1") == 1);
+    CHECK(count_lines_starting(gcode, "SDCARD_LOOP_BEGIN COUNT=0") == 1);
+}
+
+TEST_CASE("Plates repeats the plate in a loop with the copies as the printer's target", "[FlatBelt]")
+{
+    // Three cubes in a row, 3 copies: one plate in the loop, the printer stops after three. Each pass
+    // ends with a belt advance of the plate depth (20 mm of cubes) plus the gap (50 mm).
     DynamicPrintConfig config = belt_config("plates", false);
     config.set_deserialize_strict({ { "flat_belt_copies", 3 }, { "flat_belt_object_gap", 50 } });
     const std::string gcode = slice_cubes(config, 3);
 
-    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO ENDLESS=0") == 1);
-    CHECK(count_lines_starting(gcode, "; FLAT_BELT_PLATE ") == 3);
-    CHECK(count_lines_starting(gcode, "SDCARD_LOOP_BEGIN") == 0);
-    CHECK(count_lines_starting(gcode, "BELT_ADVANCE DIST=") == 2);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO MODE=plates TARGET=3 LOOP=1 FILE_UNITS=1") == 1);
+    CHECK(count_lines_starting(gcode, "SDCARD_LOOP_BEGIN COUNT=0") == 1);
+    CHECK(count_lines_starting(gcode, "SDCARD_LOOP_END") == 1);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_UNIT_DONE") == 1);
+    CHECK(count_lines_starting(gcode, "BELT_ADVANCE DIST=") == 1);
     std::istringstream in(gcode);
     for (std::string line; std::getline(in, line);)
         if (line.rfind("BELT_ADVANCE DIST=", 0) == 0)
             CHECK_THAT(std::atof(line.c_str() + 18), WithinAbs(20. + 50., 1.));
 
-    // Three plates take three times the filament of one.
+    // The loop body is one plate.
     const Extrusions one    = extrusions(slice_cubes(belt_config("fixed_bed", false), 3), "");
     const Extrusions plates = extrusions(gcode, "FLAT_BELT_INFO");
     REQUIRE(one.e > 0.);
-    CHECK_THAT(plates.e, WithinRel(3. * one.e, 0.01));
+    CHECK_THAT(plates.e, WithinRel(one.e, 0.01));
 }
 
 TEST_CASE("Plates until stopped repeats one plate in an sdcard loop", "[FlatBelt]")
@@ -223,20 +238,40 @@ TEST_CASE("Plates until stopped repeats one plate in an sdcard loop", "[FlatBelt
     DynamicPrintConfig config = belt_config("plates", false);
     config.set_deserialize_strict({ { "flat_belt_copies", 0 } });
     const std::string gcode = slice_cubes(config, 3);
-    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO ENDLESS=1") == 1);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO MODE=plates TARGET=0 LOOP=1") == 1);
     CHECK(count_lines_starting(gcode, "SDCARD_LOOP_BEGIN COUNT=0") == 1);
     CHECK(count_lines_starting(gcode, "SDCARD_LOOP_END") == 1);
     CHECK(count_lines_starting(gcode, "BELT_ADVANCE DIST=") == 1);
 }
 
-TEST_CASE("Sequential prints each object the number of copies in a row", "[FlatBelt]")
+TEST_CASE("Sequential repeats one object in a loop with the copies as the printer's target", "[FlatBelt]")
 {
-    // One cube, 5 copies: four belt advances between five pieces.
+    // One 20 mm cube, 5 copies, 50 mm gap: one piece in the loop, then a belt advance of its depth plus
+    // the gap; the printer stops after five.
     DynamicPrintConfig config = belt_config("sequential", false);
-    config.set_deserialize_strict({ { "print_sequence", "by object" }, { "flat_belt_copies", 5 } });
+    config.set_deserialize_strict({ { "print_sequence", "by object" }, { "flat_belt_copies", 5 }, { "flat_belt_object_gap", 50 } });
     const std::string gcode = slice_cubes(config, 1);
-    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO ENDLESS=0 ADVANCE=0 SEGMENTS=5 UNIT=piece") == 1);
-    CHECK(count_lines_starting(gcode, "BELT_ADVANCE DIST=") == 4);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO MODE=sequential TARGET=5 LOOP=1 FILE_UNITS=1") == 1);
+    CHECK(count_lines_starting(gcode, "SDCARD_LOOP_BEGIN COUNT=0") == 1);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_UNIT_DONE") == 1);
+    REQUIRE(count_lines_starting(gcode, "BELT_ADVANCE DIST=") == 1);
+    const size_t at = gcode.find("\nBELT_ADVANCE DIST=");
+    CHECK_THAT(std::atof(gcode.c_str() + at + 19), WithinAbs(20. + 50., 1.));
+    // The loop body starts and ends lifted above the piece: the advance and the next piece's start
+    // happen clear of it.
+    CHECK(gcode.find("SDCARD_LOOP_END") > at);
+}
+
+TEST_CASE("Sequential with several objects prints each piece once and reports it", "[FlatBelt]")
+{
+    // Two cubes, 2 copies each: four pieces written out, no loop, three advances between them.
+    DynamicPrintConfig config = belt_config("sequential", false);
+    config.set_deserialize_strict({ { "print_sequence", "by object" }, { "flat_belt_copies", 2 } });
+    const std::string gcode = slice_cubes(config, 2);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_INFO MODE=sequential TARGET=4 LOOP=0") == 1);
+    CHECK(count_lines_starting(gcode, "SDCARD_LOOP_BEGIN") == 0);
+    CHECK(count_lines_starting(gcode, "FLAT_BELT_UNIT_DONE") == 4);
+    CHECK(count_lines_starting(gcode, "BELT_ADVANCE DIST=") == 3);
 }
 
 TEST_CASE("Sequential clears the path conflict found by the previous slice", "[FlatBelt]")

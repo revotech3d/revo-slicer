@@ -3612,13 +3612,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // the fresh per-object construction (byte-identical output).
     const auto &seq_dynamic_orderings   = print.sequential_dynamic_orderings();
     const bool  use_seq_dynamic_cache   = print.is_dynamic_group_reorder() && !seq_dynamic_orderings.empty();
+    bool flat_belt_seq_loop = false;
     if (print.config().print_sequence == PrintSequence::ByObject) {
         // Order object instances for sequential print.
         print_object_instances_ordering = sort_object_instances_by_model_order(print);
 //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
         // Flat belt sequential: every object is printed flat_belt_copies times in a row, each copy at the
         // bed centre after the belt has moved the previous one forward.
-        if (print.flat_belt_mode() == FlatBeltMode::Sequential && print.config().flat_belt_copies.value > 1) {
+        // A single object is written once and repeated by Klipper's [sdcard_loop] instead (flat_belt_seq_loop
+        // below), so the printer can change the number of pieces while printing.
+        flat_belt_seq_loop = print.flat_belt_mode() == FlatBeltMode::Sequential && print_object_instances_ordering.size() == 1;
+        if (print.flat_belt_mode() == FlatBeltMode::Sequential && print.config().flat_belt_copies.value > 1 && !flat_belt_seq_loop) {
             std::vector<const PrintInstance*> copies;
             for (const PrintInstance *instance : print_object_instances_ordering)
                 copies.insert(copies.end(), size_t(print.config().flat_belt_copies.value), instance);
@@ -4644,11 +4648,27 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             file.write("M981 S1 P20000 ;open spaghetti detector\n");
         }
 
+        // Revo OS (FLAT_BELT_INFO in revo.cfg): the printer screen names the Belt mode.
+        if (print.config().flat_belt.value && print.flat_belt_mode() == FlatBeltMode::FixedBed)
+            file.write("FLAT_BELT_INFO MODE=fixed TARGET=0 LOOP=0 FILE_UNITS=0 UNIT=piece\n");
         // Do all objects for each layer.
         if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower) {
-            // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts the pieces.
-            if (print.flat_belt_mode() == FlatBeltMode::Sequential)
-                file.write_format("FLAT_BELT_INFO ENDLESS=0 ADVANCE=0 SEGMENTS=%d UNIT=piece\n", int(print_object_instances_ordering.size()));
+            // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts the pieces; with one object the printer can
+            // change their number while printing (flat_belt_copies is the starting target).
+            // The belt advance after a piece: its depth, brim and skirt included, plus the gap.
+            auto flat_belt_piece_advance = [&print](const PrintObject &object) {
+                return unscale<double>(object.size().y()) + 2. * std::get<0>(print.object_skirt_offset()) +
+                       print.config().flat_belt_object_gap.value;
+            };
+            if (flat_belt_seq_loop) {
+                const int copies = std::max(1, print.config().flat_belt_copies.value);
+                file.write_format("FLAT_BELT_INFO MODE=sequential TARGET=%d LOOP=1 FILE_UNITS=1 ADVANCE=%.3f UNIT=piece ENDLESS=0 SEGMENTS=%d\n",
+                                  copies, flat_belt_piece_advance(*print_object_instances_ordering.front()->print_object), copies);
+            } else if (print.flat_belt_mode() == FlatBeltMode::Sequential) {
+                const int pieces = int(print_object_instances_ordering.size());
+                file.write_format("FLAT_BELT_INFO MODE=sequential TARGET=%d LOOP=0 FILE_UNITS=%d UNIT=piece ENDLESS=0 SEGMENTS=%d\n",
+                                  pieces, pieces, pieces);
+            }
             size_t finished_objects = 0;
             print_object_instance_sequential_active = first_has_extrude_print_object;
             const PrintObject *prev_object = (*print_object_instance_sequential_active)->print_object;
@@ -4707,9 +4727,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     if (flat_belt_seq && ! m_printed_objects.empty()) {
                         // Lift clear of the finished object, then let the belt carry it forward by its
                         // depth (brim and skirt included) plus the gap, so the bed centre is free again.
-                        const double skirt_offset = std::get<0>(print.object_skirt_offset());
-                        const double advance = unscale<double>(m_printed_objects.back()->size().y()) + 2. * skirt_offset +
-                                               print.config().flat_belt_object_gap.value;
+                        const double advance = flat_belt_piece_advance(*m_printed_objects.back());
                         file.write(m_writer.travel_to_z(m_max_layer_z + print.config().flat_belt_lift.value, "lift before belt advance"));
                         DynamicConfig belt_config;
                         belt_config.set_key_value("belt_advance", new ConfigOptionFloat(advance));
@@ -4741,6 +4759,24 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
                 tool_ordering.cal_most_used_extruder(print.config());
+                // One object repeated by the printer: the piece is the loop body. It starts retracted and lifted
+                // above the previous piece, which the belt has just carried forward, and ends the same way after
+                // its own advance, so every pass sees the same state.
+                double flat_belt_piece_top = 0.;
+                if (flat_belt_seq_loop) {
+                    if (!object.layers().empty())
+                        flat_belt_piece_top = object.layers().back()->print_z;
+                    if (!object.support_layers().empty())
+                        flat_belt_piece_top = std::max(flat_belt_piece_top, object.support_layers().back()->print_z);
+                    flat_belt_piece_top += print.config().flat_belt_lift.value;
+                    file.write(this->retract());
+                    file.write("SDCARD_LOOP_BEGIN COUNT=0\n; FLAT_BELT_PIECE REPEAT\n");
+                    file.write(m_writer.travel_to_z(flat_belt_piece_top, "above the previous piece"));
+                    // The previous piece left the fan and temperatures of its top layers.
+                    file.write("M107\n");
+                    this->_print_first_layer_bed_temperature(file, print, "", initial_extruder_id, false);
+                    this->_print_first_layer_extruder_temperatures(file, print, "", initial_extruder_id, false);
+                }
                 // Another copy of the same instance (flat_belt_copies): it gets its brim and skirt again.
                 if (flat_belt_seq && finished_objects > 0 &&
                     *print_object_instance_sequential_active == *std::prev(print_object_instance_sequential_active))
@@ -4748,6 +4784,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 m_printed_objects.emplace_back(&object);
                 this->process_layers(print, tool_ordering, collect_layers_to_print(object, print.config().belt_printer.value), instance_id, file,
                                      prime_extruder);
+                if (flat_belt_seq_loop) {
+                    file.write(this->retract());
+                    file.write(m_writer.travel_to_z(flat_belt_piece_top, "lift before belt advance"));
+                    file.write("FLAT_BELT_UNIT_DONE\n");
+                    DynamicConfig belt_config;
+                    belt_config.set_key_value("belt_advance", new ConfigOptionFloat(flat_belt_piece_advance(object)));
+                    file.writeln(this->placeholder_parser_process("flat_belt_advance_gcode", print.config().flat_belt_advance_gcode.value,
+                                                                  initial_extruder_id, &belt_config));
+                    file.write("SDCARD_LOOP_END\n");
+                } else if (flat_belt_seq)
+                    file.write("FLAT_BELT_UNIT_DONE\n");
                 {
                     // save the flush statitics stored in tool ordering by object
                     print.m_statistics_by_extruder_count.stats_by_single_extruder += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);

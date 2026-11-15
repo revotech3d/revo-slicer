@@ -266,11 +266,15 @@ std::string segment_long_parts(const std::string   &layers_gcode,
     for (const Item &it : layers.front().items)
         if (!it.is_move)
             out << it.raw << "\n";
-    // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts segments instead of a file percentage.
+    // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts segments instead of a file percentage, and
+    // shows the belt length printed for Endless (START: the part's length on the belt after the first segment).
     {
-        char info[128];
-        std::snprintf(info, sizeof(info), "FLAT_BELT_INFO ENDLESS=%d ADVANCE=%.3f SEGMENTS=%d UNIT=segment\n",
-                      endless ? 1 : 0, plan.advance, endless ? 0 : int(n_seg));
+        const int target = endless ? (config.flat_belt_endless_count.value > 0 ? 1 + config.flat_belt_endless_count.value : 0) : int(n_seg);
+        char info[256];
+        std::snprintf(info, sizeof(info),
+                      "FLAT_BELT_INFO MODE=%s TARGET=%d LOOP=%d FILE_UNITS=%d ADVANCE=%.3f START=%.1f UNIT=segment ENDLESS=%d SEGMENTS=%d\n",
+                      endless ? "endless" : "long", target, endless ? 1 : 0, endless ? 2 : int(n_seg), plan.advance,
+                      plan.advance + plan.seam, endless ? 1 : 0, endless ? 0 : int(n_seg));
         out << info;
     }
 
@@ -311,19 +315,23 @@ std::string segment_long_parts(const std::string   &layers_gcode,
         // segment at the same place on the bed (the belt has carried the rest forward), so it is
         // written once and repeated by Klipper's [sdcard_loop] until the print is stopped, or
         // flat_belt_endless_count times. SDCARD_LOOP_DESIST ends it after the current segment.
+        // The loop runs until stopped: FLAT_BELT_UNIT_DONE ends it at the target, which the printer can change.
         out << "; FLAT_BELT_SEGMENT 1\n";
         emit_segment(0);
         em.retract(); // the loop body starts and ends retracted, so every pass sees the same state
-        out << "SDCARD_LOOP_BEGIN COUNT=" << std::max(0, config.flat_belt_endless_count.value) << "\n";
+        out << "FLAT_BELT_UNIT_DONE\n";
+        out << "SDCARD_LOOP_BEGIN COUNT=0\n";
         emit_advance();
         out << "; FLAT_BELT_SEGMENT REPEAT\n";
         emit_segment(1);
         em.retract();
+        out << "FLAT_BELT_UNIT_DONE\n";
         out << "SDCARD_LOOP_END\n";
     } else {
         for (size_t k = 0; k < n_seg; ++k) {
             out << "; FLAT_BELT_SEGMENT " << (k + 1) << "/" << n_seg << "\n";
             emit_segment(k);
+            out << "FLAT_BELT_UNIT_DONE\n";
             if (k + 1 < n_seg)
                 emit_advance();
         }
@@ -355,11 +363,12 @@ std::string repeat_plates(const std::string                         &layers_gcod
     for (const Item &it : layers.front().items)
         if (!it.is_move)
             out << it.raw << "\n";
-    // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts plates.
+    // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts plates, and the printer can change how many.
     {
-        char info[160];
-        std::snprintf(info, sizeof(info), "FLAT_BELT_INFO ENDLESS=%d ADVANCE=%.3f SEGMENTS=%d UNIT=plate\n",
-                      copies == 0 ? 1 : 0, advance, copies);
+        char info[256];
+        std::snprintf(info, sizeof(info),
+                      "FLAT_BELT_INFO MODE=plates TARGET=%d LOOP=1 FILE_UNITS=1 ADVANCE=%.3f UNIT=plate ENDLESS=%d SEGMENTS=%d\n",
+                      copies, advance, copies == 0 ? 1 : 0, copies);
         out << info;
     }
     // Every plate is the same text: it starts and ends retracted, lifted to safe_z.
@@ -384,22 +393,15 @@ std::string repeat_plates(const std::string                         &layers_gcod
         }
         em.lift_to(safe_z);
     }
-    const std::string plate = plate_out.str();
     std::string advance_block = "; FLAT_BELT_ADVANCE\n" + advance_gcode(advance);
     if (!advance_block.empty() && advance_block.back() != '\n')
         advance_block += '\n';
 
-    if (copies == 0) {
-        // Until stopped: Klipper's [sdcard_loop] repeats one plate; SDCARD_LOOP_DESIST ends it after the current one.
-        out << "SDCARD_LOOP_BEGIN COUNT=0\n; FLAT_BELT_PLATE REPEAT\n" << plate << advance_block << "SDCARD_LOOP_END\n";
-    } else {
-        // A known number is written out plate by plate, so the file progress and time left stay right.
-        for (int k = 0; k < copies; ++k) {
-            out << "; FLAT_BELT_PLATE " << (k + 1) << "/" << copies << "\n" << plate;
-            if (k + 1 < copies)
-                out << advance_block;
-        }
-    }
+    // One plate repeated by Klipper's [sdcard_loop] until stopped; FLAT_BELT_UNIT_DONE ends the loop when
+    // the printer's target (flat_belt_copies, 0 = until stopped, changeable while printing) is reached. The
+    // belt carries every plate forward when it is done, the last one included.
+    out << "SDCARD_LOOP_BEGIN COUNT=0\n; FLAT_BELT_PLATE REPEAT\n" << plate_out.str() << "FLAT_BELT_UNIT_DONE\n"
+        << advance_block << "SDCARD_LOOP_END\n";
     return out.str();
 }
 

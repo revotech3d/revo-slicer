@@ -45,8 +45,10 @@ std::string segment_long_parts(const std::string   &layers_gcode,
                                double               part_height,
                                const std::string   &advance_gcode);
 
-// Plates mode: the whole plate (relative E, no arcs) printed flat_belt_copies times, the belt moving each
-// printed plate forward by its depth plus flat_belt_object_gap; 0 copies loops it until stopped.
+// Plates mode: the whole plate (relative E, no arcs) written once and repeated by Klipper's [sdcard_loop],
+// the belt moving each printed plate forward by its depth plus flat_belt_object_gap. FLAT_BELT_INFO passes
+// flat_belt_copies (0 = until stopped) to the printer as the target, which can be changed while printing;
+// FLAT_BELT_UNIT_DONE after each plate ends the loop when the target is reached.
 // advance_gcode returns the processed belt advance G-code for a distance in mm.
 std::string repeat_plates(const std::string                         &layers_gcode,
                           const PrintConfig                         &config,
