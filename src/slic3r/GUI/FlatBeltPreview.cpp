@@ -16,7 +16,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/PrintConfig.hpp"
 
-#include <GL/glew.h>
+#include <glad/gl.h>
 #include <wx/font.h>
 #include <wx/string.h>
 
