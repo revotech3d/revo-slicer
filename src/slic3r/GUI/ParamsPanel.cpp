@@ -281,7 +281,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
         m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "process");
 
-        m_title_label = new Label(m_top_panel, ::Label::Spaced(_L("Flight plan · Process")));
+        m_title_label = new Label(m_top_panel, ::Label::Spaced(_L("Flight plan · Process")), LB_PROPAGATE_MOUSE_EVENT); // [r]evo: a click folds the flight plan (Sidebar)
 
         //int width, height;
         // BBS: new layout

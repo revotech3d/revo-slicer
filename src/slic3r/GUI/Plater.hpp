@@ -200,6 +200,7 @@ public:
     void dock_print_actions(wxWindow* slice_panel, wxWindow* print_panel);
     // [r]evo: sylwetka aktywnej drukarki w karcie PRINTER
     void update_revo_printer_card();
+    void update_revo_hero_visibility();
     //BBS
     const std::vector<BedType>& get_cur_combox_bed_types() { return m_cur_combox_bed_types; }
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);

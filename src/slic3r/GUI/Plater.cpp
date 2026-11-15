@@ -368,6 +368,7 @@ wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_THUMBNAIL_SIZE (wxSize(40, 40)) // ORCA
+#define REVO_HERO_MIN_SIDEBAR_HEIGHT 1000 // [r]evo: below this the printer silhouette gives its room to the settings tabs
 #define PRINTER_PANEL_SIZE (    wxSize(70, 60)) // ORCA
 #define PRINTER_PANEL_RADIUS (0) // [r]evo: square boxes, launch style
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
@@ -985,6 +986,8 @@ struct Sidebar::priv
     wxPanel*        m_revo_hero_panel   = nullptr; // [r]evo: sylwetka drukarki na całą szerokość
     wxStaticBitmap* m_revo_hero         = nullptr;
     std::string     m_revo_hero_model;
+    bool            m_revo_hero_ok      = false;   // [r]evo: the model has a silhouette
+    wxPanel*        m_revo_plan         = nullptr; // [r]evo: flight plan rows, folded by a click on its title
     wxPanel*        m_revo_actions      = nullptr; // [r]evo: SLICE / PRINT w karcie drukarki
     // Filament Track Switch status overlay: an icon floated over the left/single extruder AMS area,
     // shown only when the switch is installed (green when ready, red when not calibrated).
@@ -2794,6 +2797,10 @@ Sidebar::Sidebar(Plater *parent)
     Choice::register_dynamic_list("wipe_tower_filament", &dynamic_physical_filament_list);
 
     p->scrolled = new wxPanel(this);
+    Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
+        e.Skip();
+        CallAfter([this] { update_revo_hero_visibility(); });
+    });
     //    p->scrolled->SetScrollbars(0, 100, 1, 2); // ys_DELETE_after_testing. pixelsPerUnitY = 100
     // but this cause the bad layout of the sidebar, when all infoboxes appear.
     // As a result we can see the empty block at the bottom of the sidebar
@@ -2899,6 +2906,7 @@ Sidebar::Sidebar(Plater *parent)
             p->m_text_printer_settings->SetLabel(title);
             p->m_panel_printer_content->Show(!isShown);
             p->m_panel_printer_separator->Show(isShown);
+            update_revo_hero_visibility(); // [r]evo: the silhouette folds with the section
             m_scrolled_sizer->Layout();
         });
         p->m_panel_printer_title->Bind(wxEVT_LEFT_DOWN  , toggle_printer_section);
@@ -3912,6 +3920,17 @@ Sidebar::Sidebar(Plater *parent)
                 if (sig != last) { last = sig; plan->Refresh(); }
             });
             scrolled_sizer->Add(plan, 0, wxEXPAND);
+            p->m_revo_plan = plan;
+            // [r]evo: a click on the title bar folds the flight plan, so a short screen keeps room for the settings tabs
+            auto toggle_plan = [this](wxMouseEvent&) {
+                if (!p->m_revo_plan || !m_scrolled_sizer)
+                    return;
+                p->m_revo_plan->Show(!p->m_revo_plan->IsShown());
+                m_scrolled_sizer->Layout();
+                Layout();
+            };
+            params_panel->get_top_panel()->Bind(wxEVT_LEFT_DOWN, toggle_plan);
+            params_panel->get_top_panel()->Bind(wxEVT_LEFT_DCLICK, toggle_plan);
         }
         auto spliter_2 = new ::StaticLine(p->scrolled);
         spliter_2->SetLineColour("#CECECE");
@@ -4355,9 +4374,9 @@ void Sidebar::update_revo_printer_card()
     p->m_revo_hero_model = file;
     wxImage img;
     const auto path = boost::filesystem::path(resources_dir()) / "profiles" / "Revotech" / (file + "_cover.png");
-    if (file.empty() || !img.LoadFile(from_u8(path.string()), wxBITMAP_TYPE_PNG)) {
-        p->m_revo_hero_panel->Hide();
-        Layout();
+    p->m_revo_hero_ok = !file.empty() && img.LoadFile(from_u8(path.string()), wxBITMAP_TYPE_PNG);
+    if (!p->m_revo_hero_ok) {
+        update_revo_hero_visibility();
         return;
     }
     // grafika Revon tak jak w materiałach (ciemna maszyna z jasnymi liniami, przezroczyste tło) – bez podpisu z dołu
@@ -4365,8 +4384,20 @@ void Sidebar::update_revo_printer_card()
     const int w = std::min(FromDIP(240), std::max(FromDIP(160), p->scrolled->GetClientSize().x - FromDIP(80)));
     img.Rescale(w, w * img.GetHeight() / std::max(1, img.GetWidth()), wxIMAGE_QUALITY_HIGH);
     p->m_revo_hero->SetBitmap(wxBitmap(img));
-    p->m_revo_hero_panel->Show();
     p->m_revo_hero_panel->Layout();
+    update_revo_hero_visibility();
+}
+
+// [r]evo: the silhouette shows only while the printer section is open and the sidebar is tall enough
+// to leave the settings tabs below it room to work in.
+void Sidebar::update_revo_hero_visibility()
+{
+    if (!p->m_revo_hero_panel || !p->m_panel_printer_content)
+        return;
+    const bool show = p->m_revo_hero_ok && p->m_panel_printer_content->IsShown() && GetClientSize().y >= FromDIP(REVO_HERO_MIN_SIDEBAR_HEIGHT);
+    if (show == p->m_revo_hero_panel->IsShown())
+        return;
+    p->m_revo_hero_panel->Show(show);
     Layout();
 }
 
