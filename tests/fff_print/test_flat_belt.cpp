@@ -321,3 +321,21 @@ TEST_CASE("Fixed bed ejects the part after the print when Eject is on", "[FlatBe
         CHECK(slice_cubes(config, 1).find("\n; FLAT_BELT_EJECT\n") == std::string::npos); // the config dump names it too
     }
 }
+
+TEST_CASE("Long parts offers Fixed bed for a part that fits on the bed", "[FlatBelt]")
+{
+    Model        model;
+    ModelObject *object = model.add_object();
+    object->add_volume(make_cube(20., 20., HEIGHT));
+    object->add_instance();
+    object->center_around_origin();
+    object->instances.front()->set_offset(Vec3d(BED / 2., BED / 2., HEIGHT / 2.));
+    object->ensure_on_bed();
+    for (bool endless : { false, true }) {
+        Print print;
+        print.apply(model, belt_config("long_parts", endless));
+        const StringObjectException err = print.validate();
+        CHECK(err.type == STRING_EXCEPT_FLAT_BELT_FITS_BED);
+        CHECK(err.string.find("Fixed bed is enough") != std::string::npos);
+    }
+}

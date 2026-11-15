@@ -3892,14 +3892,7 @@ Sidebar::Sidebar(Plater *parent)
                 pop->Bind(wxEVT_LEFT_UP, [pop, chips, r, k](wxMouseEvent& ev) {
                     for (int c = 0; c < int(chips->size()); ++c)
                         if ((*chips)[c].Contains(ev.GetPosition())) {
-                            if (Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
-                                DynamicPrintConfig cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-                                r[k].apply[c](cfg);
-                                tab->load_config(cfg);
-                                // load_config() does not notify the plater; the Belt mode decides
-                                // whether a part may lie past the bed, so refresh that state now.
-                                wxGetApp().plater()->on_config_change(*tab->get_config());
-                            }
+                            wxGetApp().plater()->apply_print_config(r[k].apply[c]);
                             pop->Dismiss();
                             return;
                         }
@@ -22027,6 +22020,19 @@ void Plater::config_change_notification(const DynamicPrintConfig &config, const 
         }
     }
     // notification for more options
+}
+
+void Plater::apply_print_config(const std::function<void(DynamicPrintConfig&)> &change)
+{
+    Tab *tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+    if (tab == nullptr)
+        return;
+    DynamicPrintConfig cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    change(cfg);
+    tab->load_config(cfg);
+    // load_config() does not notify the plater; the Belt mode decides whether a part may lie past
+    // the bed, so refresh that state now.
+    this->on_config_change(*tab->get_config());
 }
 
 void Plater::on_config_change(const DynamicPrintConfig &config)

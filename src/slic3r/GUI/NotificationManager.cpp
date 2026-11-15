@@ -9,9 +9,11 @@
 #include "GUI_ObjectList.hpp"
 #include "ParamsPanel.hpp"
 #include "MainFrame.hpp"
+#include "Plater.hpp"
 #include "Tab.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PrintBase.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "format.hpp"
 
@@ -1928,6 +1930,20 @@ void NotificationManager::push_delayed_notification(const NotificationType type,
 
 void NotificationManager::push_validate_error_notification(StringObjectException const &error)
 {
+    if (error.type == STRING_EXCEPT_FLAT_BELT_FITS_BED) {
+        // [r]evo flat belt: the fix is one click away, so offer it instead of a jump to the setting.
+        auto callback = [](wxEvtHandler *) {
+            wxGetApp().plater()->apply_print_config([](DynamicPrintConfig &cfg) {
+                cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode::FixedBed));
+            });
+            return true;
+        };
+        // TRN Link in the error notification: switches the Belt mode to Fixed bed
+        push_notification_data({NotificationType::ValidateError, NotificationLevel::ErrorNotificationLevel, 0,
+                                _u8L("Error:") + "\n" + error.string, _u8L("Switch to Fixed bed"), callback}, 0);
+        set_slicing_progress_hidden();
+        return;
+    }
     auto po = dynamic_cast<PrintObjectBase const *>(error.object);
     auto mo = po ? po->model_object() : dynamic_cast<ModelObject const *>(error.object);
     //ORCA: Update to handle ModelInstance selection for validation errors with fallback

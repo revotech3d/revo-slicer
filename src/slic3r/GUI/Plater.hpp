@@ -671,6 +671,8 @@ public:
     bool update_filament_colors_in_full_config();
     void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);
+    // Changes the edited print preset as if the user set the options in the process tab.
+    void apply_print_config(const std::function<void(DynamicPrintConfig&)> &change);
     void force_filament_colors_update();
     void force_print_bed_update();
     // On activating the parent window.

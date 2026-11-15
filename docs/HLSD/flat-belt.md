@@ -30,6 +30,8 @@ and prime tower as usual. Only in Long parts does the plate open along Y
   part's layers whole into a buffer; `FlatBelt::segment_long_parts()` replays them once per
   segment, clipping each extrusion to the segment's band along Y, shifting it back onto the
   bed and making its own travels and retractions. Between segments the belt advances.
+  A part that fits on the bed is refused with `STRING_EXCEPT_FLAT_BELT_FITS_BED`; the error
+  notification offers a one-click switch to Fixed bed instead of a jump to the setting.
 
 ## Seam
 

@@ -2260,6 +2260,23 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         if (this->flat_belt_mode() == FlatBeltMode::LongParts) {
             if (m_objects.size() != 1 || m_objects.front()->instances().size() != 1)
                 return {L("Long parts Belt mode prints a single object."), nullptr, "flat_belt_mode"};
+            // A part that fits on the bed needs no segments: say so and offer Fixed bed instead of
+            // failing later on the segment length.
+            {
+                const PrintInstance &inst = m_objects.front()->instances().front();
+                const double length = inst.model_instance->get_object()->instance_bounding_box(*inst.model_instance).size().y();
+                const double depth  = BoundingBoxf(m_config.printable_area.values).size().y();
+                if (length <= depth + EPSILON) {
+                    StringObjectException fits;
+                    fits.string = m_config.flat_belt_endless.value ?
+                        L("This part fits on the bed, so Long parts is not needed: Fixed bed is enough. "
+                          "To print it again and again until stopped, choose Plates with copies set to until stopped.") :
+                        L("This part fits on the bed, so Long parts is not needed: Fixed bed is enough.");
+                    fits.opt_key = "flat_belt_mode";
+                    fits.type    = STRING_EXCEPT_FLAT_BELT_FITS_BED;
+                    return fits;
+                }
+            }
             if (m_config.print_sequence != PrintSequence::ByLayer)
                 return {L("Long parts Belt mode needs the \"By layer\" print sequence."), nullptr, "print_sequence"};
             if (!m_config.use_relative_e_distances.value)
