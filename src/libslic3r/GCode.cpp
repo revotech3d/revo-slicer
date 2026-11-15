@@ -4649,8 +4649,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
 
         // Revo OS (FLAT_BELT_INFO in revo.cfg): the printer screen names the Belt mode.
-        if (print.config().flat_belt.value && print.flat_belt_mode() == FlatBeltMode::FixedBed)
-            file.write("FLAT_BELT_INFO MODE=fixed TARGET=0 LOOP=0 FILE_UNITS=0 UNIT=piece\n");
+        // EJECT lets the printer offer a series of the print, each part ejected once it has cooled.
+        if (print.config().flat_belt.value && print.flat_belt_mode() == FlatBeltMode::FixedBed) {
+            const FlatBeltEject eject = print.config().flat_belt_eject.value;
+            file.write_format("FLAT_BELT_INFO MODE=fixed TARGET=0 LOOP=0 FILE_UNITS=0 UNIT=piece EJECT=%s\n",
+                              eject == FlatBeltEject::AfterTime ? "time" : eject == FlatBeltEject::AfterBedTemp ? "bed_temp" : "off");
+        }
         // Do all objects for each layer.
         if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower) {
             // Revo OS (FLAT_BELT_INFO in revo.cfg): the screen counts the pieces; with one object the printer can

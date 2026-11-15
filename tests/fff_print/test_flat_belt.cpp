@@ -342,6 +342,7 @@ TEST_CASE("Fixed bed ejects the part after the print when Eject is on", "[FlatBe
     SECTION("after a set time, at the end of the file") {
         config.set_deserialize_strict({ { "flat_belt_eject", "time" }, { "flat_belt_eject_time", 10 } });
         const std::string gcode = slice_cubes(config, 1);
+        CHECK(gcode.find("\nFLAT_BELT_INFO MODE=fixed TARGET=0 LOOP=0 FILE_UNITS=0 UNIT=piece EJECT=time\n") != std::string::npos);
         const size_t      at    = gcode.find("FLAT_BELT_EJECT WAIT=600 BED_TEMP=0");
         REQUIRE(at != std::string::npos);
         CHECK(gcode.rfind(";LAYER_CHANGE") < at); // after the last layer

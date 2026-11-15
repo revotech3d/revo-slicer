@@ -84,6 +84,11 @@ shows are therefore for one unit. Long parts and Sequential with several objects
 out and keep a fixed target. The older `ENDLESS=` and `SEGMENTS=` parameters are still written for
 Revo OS versions that predate the target.
 
+The line sits near the start of the file, so the printer's file list (Revo Panel, the machine
+screen) reads the mode and quantity from it before a print, and lets the quantity or length be
+chosen at the start (`FLAT_BELT_NEXT`, taken by `FLAT_BELT_INFO` in place of the file's target).
+Fixed bed adds `EJECT=` so a series of the print can drop each part once it has cooled.
+
 ## 3D view
 
 `FlatBeltPreview`, drawn by both canvases (3D view and print preview) right after the plates,
