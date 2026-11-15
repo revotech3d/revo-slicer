@@ -185,6 +185,15 @@ bool Moonraker::get_storage(wxArrayString &storage_path, wxArrayString &storage_
 #endif
     .perform_sync();
 
+    // [r]evo: Moonraker lists "config" before "gcodes"; the send dialog preselects the first root, and a
+    // print uploaded to "config" cannot be started. Offer "gcodes" first.
+    const int gcodes = storage_path.Index("gcodes");
+    if (gcodes > 0) {
+        storage_path.RemoveAt(size_t(gcodes));
+        storage_name.RemoveAt(size_t(gcodes));
+        storage_path.Insert("gcodes", 0);
+        storage_name.Insert("gcodes", 0);
+    }
     return got_any;
 }
 
