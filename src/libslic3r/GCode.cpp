@@ -4675,10 +4675,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 print.throw_if_canceled();
                 // Flat belt sequential: every object goes to the bed centre, the belt has moved the
                 // previous ones forward (see the belt advance below).
-                const bool  flat_belt_seq = print.flat_belt_mode() == FlatBeltMode::Sequential;
-                const Point instance_shift = flat_belt_seq ?
-                    Point::new_scale(BoundingBoxf(print.config().printable_area.values).center()) :
-                    (*print_object_instance_sequential_active)->shift;
+                const bool   flat_belt_seq = print.flat_belt_mode() == FlatBeltMode::Sequential;
+                const size_t instance_id   = *print_object_instance_sequential_active - object.instances().data();
+                if (flat_belt_seq)
+                    m_flat_belt_origin = Point::new_scale(BoundingBoxf(print.config().printable_area.values).center());
+                const Point instance_shift = this->object_origin(object, instance_id);
                 this->set_origin(unscale(instance_shift));
                 this->on_set_origin((*print_object_instance_sequential_active)->print_object, instance_shift);
 
@@ -4740,8 +4741,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
                 tool_ordering.cal_most_used_extruder(print.config());
+                // Another copy of the same instance (flat_belt_copies): it gets its brim and skirt again.
+                if (flat_belt_seq && finished_objects > 0 &&
+                    *print_object_instance_sequential_active == *std::prev(print_object_instance_sequential_active))
+                    this->rearm_skirt_brim(print, object, instance_id);
                 m_printed_objects.emplace_back(&object);
-                this->process_layers(print, tool_ordering, collect_layers_to_print(object, print.config().belt_printer.value), *print_object_instance_sequential_active - object.instances().data(), file,
+                this->process_layers(print, tool_ordering, collect_layers_to_print(object, print.config().belt_printer.value), instance_id, file,
                                      prime_extruder);
                 {
                     // save the flush statitics stored in tool ordering by object
@@ -4767,6 +4772,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 m_second_layer_things_done = false;
                 prev_object = &object;
             }
+            m_flat_belt_origin.reset();
         } else {
             // Sort layers by Z.
             // All extrusion moves with the same top layer height are extruded uninterrupted.
@@ -6073,8 +6079,22 @@ std::string GCode::generate_object_skirt_group(const Print &print,
     object_skirt_tools.extruders  = { extruder_id };
     object_skirt_tools.has_skirt  = true;
 
-    return generate_skirt(print, print.skirt_brim_groups()[group_idx].skirt, Point(0, 0), object.config().skirt_start_angle,
+    // Skirt and brim are in plate coordinates: move them with the object copy.
+    return generate_skirt(print, print.skirt_brim_groups()[group_idx].skirt,
+                          this->object_origin(object, instance_id) - object.instances()[instance_id].shift, object.config().skirt_start_angle,
                           object_skirt_tools, layer, extruder_id, m_skirt_group_done[group_idx]);
+}
+
+void GCode::rearm_skirt_brim(const Print &print, const PrintObject &object, size_t instance_id)
+{
+    const size_t group_idx = find_skirt_brim_group_idx(print, object.id(), instance_id);
+    if (group_idx == size_t(-1))
+        return;
+    for (const Print::SkirtBrimGroup::Brim &brim : print.skirt_brim_groups()[group_idx].brims)
+        if (!brim.brim.empty())
+            m_objsWithBrim.insert(brim.instances.begin(), brim.instances.end());
+    if (group_idx < m_skirt_group_done.size())
+        m_skirt_group_done[group_idx].clear();
 }
 
 std::string GCode::generate_object_brim(
@@ -6124,7 +6144,8 @@ std::string GCode::generate_object_brim(
 
     const bool wait_for_owner_filament = has_bed_exclude_volumes(m_config) &&
         active_bed_exclude_volume_mode(m_config) != BedExcludeVolumeMode::Shared;
-    auto emit_brim = [this, extruder_id, wait_for_owner_filament](const ExtrusionEntityCollection& brim,
+    const Point brim_origin = this->object_origin(object, instance_id) - object.instances()[instance_id].shift;
+    auto emit_brim = [this, extruder_id, wait_for_owner_filament, brim_origin](const ExtrusionEntityCollection& brim,
                                          const std::vector<ObjectInstanceID>& instances,
                                          const unsigned int brim_filament_id) {
         std::string gcode;
@@ -6139,7 +6160,7 @@ std::string GCode::generate_object_brim(
         if (already_emitted || brim.empty())
             return gcode;
 
-        this->set_origin(0., 0.);
+        this->set_origin(unscale(brim_origin));
         m_avoid_crossing_perimeters.use_external_mp();
         for (const ExtrusionEntity* ee : brim.entities)
             if (ee != nullptr)
@@ -7724,7 +7745,7 @@ LayerResult GCode::process_layer(
                 m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
 
                 // When starting a new object, use the external motion planner for the first travel move.
-                const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
+                const Point offset = this->object_origin(instance_to_print.print_object, instance_to_print.instance_id);
                 std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
                 if (m_last_obj_copy != this_object_copy)
                     m_avoid_crossing_perimeters.use_external_mp_once();
@@ -7736,7 +7757,7 @@ LayerResult GCode::process_layer(
                     m_object_layer_over_raft = false;
 
                     // When starting a new object, use the external motion planner for the first travel move.
-                    const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
+                    const Point offset = this->object_origin(instance_to_print.print_object, instance_to_print.instance_id);
                     std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
                     if (m_last_obj_copy != this_object_copy)
                         m_avoid_crossing_perimeters.use_external_mp_once();
@@ -7810,7 +7831,7 @@ LayerResult GCode::process_layer(
                     ObjectByExtruder::Island &island = islands[island_idx];
                     const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, static_cast<unsigned int>(instance_to_print.instance_id), extruder_id, print_wipe_extrusions != 0) : island.by_region;
                     // When starting a new object, use the external motion planner for the first travel move.
-                    const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
+                    const Point offset = this->object_origin(instance_to_print.print_object, instance_to_print.instance_id);
                     std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
                     if (m_last_obj_copy != this_object_copy)
                         m_avoid_crossing_perimeters.use_external_mp_once();
@@ -7950,7 +7971,7 @@ LayerResult GCode::process_layer(
 
                 m_extrusion_quality_estimator.set_current_object(&instance_to_print.print_object);
 
-                const Point &offset = inst.shift;
+                const Point offset = this->object_origin(instance_to_print.print_object, instance_to_print.instance_id);
                 std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
                 if (m_last_obj_copy != this_object_copy)
                     m_avoid_crossing_perimeters.use_external_mp_once();

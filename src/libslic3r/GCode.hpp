@@ -464,6 +464,8 @@ protected:
         const Layer& layer,
         unsigned int extruder_id,
         std::vector<coordf_t> &skirt_done);
+    // Flat belt sequential copies: print the instance's brim and skirt again.
+    void        rearm_skirt_brim(const Print &print, const PrintObject &object, size_t instance_id);
     std::string generate_object_skirt_group(const Print &print,
         const PrintObject &object,
         size_t instance_id,
@@ -918,6 +920,12 @@ protected:
     Print *m_print{nullptr};
 
     std::vector<const PrintObject*> m_printed_objects;
+    // Flat belt sequential: every object copy prints at this origin (the bed centre), not
+    // where it stands on the plate.
+    std::optional<Point> m_flat_belt_origin;
+    // Where the extrusions of an object copy are placed.
+    Point object_origin(const PrintObject &object, size_t instance_id) const
+    { return m_flat_belt_origin ? *m_flat_belt_origin : object.instances()[instance_id].shift; }
 
     // Processor
     GCodeProcessor m_processor;

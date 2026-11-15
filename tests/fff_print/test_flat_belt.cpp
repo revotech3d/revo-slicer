@@ -264,3 +264,36 @@ TEST_CASE("Sequential clears the path conflict found by the previous slice", "[F
     Test::gcode(print);
     CHECK_FALSE(print.get_conflict_result().has_value());
 }
+
+TEST_CASE("Sequential prints every copy with its brim at the bed centre", "[FlatBelt]")
+{
+    // Two cubes 40 mm apart on the plate, 2 copies each, with a brim: all four pieces print
+    // at the bed centre, each with its own brim.
+    DynamicPrintConfig config = belt_config("sequential", false);
+    config.set_deserialize_strict({ { "print_sequence", "by object" }, { "flat_belt_copies", 2 },
+                                    { "brim_type", "outer_only" }, { "brim_width", 3 } });
+    const std::string gcode = slice_cubes(config, 2);
+
+    struct Box { double x_min, x_max, y_min, y_max; };
+    std::vector<Box> pieces(1, Box{ 1e9, -1e9, 1e9, -1e9 });
+    std::istringstream in(gcode);
+    for (std::string line; std::getline(in, line);) {
+        if (line.rfind("BELT_ADVANCE", 0) == 0)
+            pieces.push_back(Box{ 1e9, -1e9, 1e9, -1e9 });
+        if (line.rfind("G1 ", 0) != 0)
+            continue;
+        const std::string cmd = line.substr(0, line.find(';'));
+        const double e = param(cmd, 'E'), x = param(cmd, 'X'), y = param(cmd, 'Y');
+        if (!(e > 0.) || x != x || y != y)
+            continue;
+        Box &b = pieces.back();
+        b.x_min = std::min(b.x_min, x); b.x_max = std::max(b.x_max, x);
+        b.y_min = std::min(b.y_min, y); b.y_max = std::max(b.y_max, y);
+    }
+    REQUIRE(pieces.size() == 4);
+    for (const Box &b : pieces) {
+        CHECK_THAT((b.x_min + b.x_max) / 2., Catch::Matchers::WithinAbs(BED / 2., 1.));
+        CHECK_THAT((b.y_min + b.y_max) / 2., Catch::Matchers::WithinAbs(BED / 2., 1.));
+        CHECK(b.x_max - b.x_min > 24.); // 20 mm cube and its 3 mm brim
+    }
+}
