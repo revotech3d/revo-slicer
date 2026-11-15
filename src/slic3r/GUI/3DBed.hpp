@@ -125,6 +125,7 @@ private:
     std::vector<Vec2d>  m_bed_shape;
     std::vector<std::vector<Vec2d>> m_extruder_shapes;
     std::vector<double> m_extruder_heights;
+    double m_scaling_factor{ 0. }; // SCALING_FACTOR the build volume was made with
     bool m_is_dark = false;
 
 public:

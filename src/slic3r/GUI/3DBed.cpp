@@ -305,9 +305,12 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     }
 
     //BBS: add position related logic
-    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_model_filename == model_filename && position == m_position && m_extruder_shapes == extruder_areas  && m_extruder_heights == extruder_heights)
+    if (m_bed_shape == printable_area && m_build_volume.printable_height() == printable_height && m_type == type && m_model_filename == model_filename && position == m_position && m_extruder_shapes == extruder_areas  && m_extruder_heights == extruder_heights
+        && m_scaling_factor == SCALING_FACTOR)
         // No change, no need to update the UI.
         return false;
+    // The build volume holds scaled coordinates: rebuild it when the resolution changed, even on the same bed.
+    m_scaling_factor = SCALING_FACTOR;
 
     //BBS: add part plate logic, apply position to bed shape
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":current position {%1%,%2%}, new position {%3%, %4%}") % m_position.x() % m_position.y() % position.x() % position.y();
