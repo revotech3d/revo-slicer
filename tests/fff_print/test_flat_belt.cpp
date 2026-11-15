@@ -302,7 +302,7 @@ TEST_CASE("Fixed bed ejects the part after the print when Eject is on", "[FlatBe
 {
     DynamicPrintConfig config = belt_config("fixed_bed", false);
     SECTION("off by default") {
-        CHECK(slice_cubes(config, 1).find("FLAT_BELT_EJECT") == std::string::npos);
+        CHECK(slice_cubes(config, 1).find("\n; FLAT_BELT_EJECT\n") == std::string::npos); // the config dump names it too
     }
     SECTION("after a set time, at the end of the file") {
         config.set_deserialize_strict({ { "flat_belt_eject", "time" }, { "flat_belt_eject_time", 10 } });
@@ -318,6 +318,6 @@ TEST_CASE("Fixed bed ejects the part after the print when Eject is on", "[FlatBe
     SECTION("only in Fixed bed mode") {
         config = belt_config("plates", false);
         config.set_deserialize_strict({ { "flat_belt_eject", "time" } });
-        CHECK(slice_cubes(config, 1).find("FLAT_BELT_EJECT") == std::string::npos);
+        CHECK(slice_cubes(config, 1).find("\n; FLAT_BELT_EJECT\n") == std::string::npos); // the config dump names it too
     }
 }
