@@ -2850,10 +2850,12 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         m_frame_profiler.mark("bed");
         // Exception: the painting gizmos hide the bed mesh on purpose and draw the plate instead,
         // so there the plate list is the only bed reference in the scene.
+        if (show_bed && !m_design_canvas)
+            m_flat_belt_preview.render(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), FlatBeltPreview::Pass::Belt);
         if (show_bed || _is_below_plate_view_active()) //BBS: add outline logic
             _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
         if (show_bed && !m_design_canvas)
-            m_flat_belt_preview.render(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward());
+            m_flat_belt_preview.render(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), FlatBeltPreview::Pass::Overlay);
         if (m_design_canvas && show_bed)
             // Design tab: replace the plate's corner-origin grid with the origin-centred CAD grid.
             _render_cad_grid(camera.get_view_matrix(), camera.get_projection_matrix());
@@ -2889,8 +2891,9 @@ void GLCanvas3D::_render_scene(const Camera& camera, const Size& cnv_size)
         m_frame_profiler.mark("objects");
         _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), m_show_world_axes);
         m_frame_profiler.mark("bed");
+        m_flat_belt_preview.render(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), FlatBeltPreview::Pass::Belt);
         _render_platelist(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), only_current, true, hover_id);
-        m_flat_belt_preview.render(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward());
+        m_flat_belt_preview.render(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), FlatBeltPreview::Pass::Overlay);
         m_frame_profiler.mark("plates");
         // Realistic view: the print casts a shadow onto the plate here as it does in View3D.
         _render_shadows(camera.get_view_matrix(), camera.get_projection_matrix());

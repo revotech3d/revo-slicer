@@ -20,7 +20,10 @@ namespace GUI {
 class FlatBeltPreview
 {
 public:
-    void render(const Transform3d &view_matrix, const Transform3d &projection_matrix, bool bottom);
+    // Belt: the belt strip, drawn before the plates so the plate name and number stay on top.
+    // Overlay: ghosts, signs and the mode name, drawn after the plates.
+    enum class Pass { Belt, Overlay };
+    void render(const Transform3d &view_matrix, const Transform3d &projection_matrix, bool bottom, Pass pass);
 
 private:
     struct Ghost

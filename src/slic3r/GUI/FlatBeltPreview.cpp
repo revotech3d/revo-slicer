@@ -38,7 +38,7 @@ const ColorRGBA ACCENT_COLOR { 0.353f, 0.627f, 1.0f, 1.0f }; // #5AA0FF
 constexpr int    MAX_GHOSTS     = 8;   // copies drawn along the belt, the rest is in the fog
 constexpr int    MAX_PLATES     = 6;
 constexpr double BELT_MARGIN    = 12.; // belt wider than the bed on each side, mm
-constexpr double LABEL_HEIGHT   = 12.; // mode name along the left side, mm
+constexpr double LABEL_HEIGHT   = 16.; // mode name along the left side, mm
 constexpr double FOG_ALPHA      = 0.5; // ghost opacity next to the bed
 constexpr int    FOG_SLICES     = 10;
 
@@ -102,8 +102,8 @@ void init_infinity(GLModel &model)
         g.add_vertex(Vec3f(p.x() - side.x(), p.y() - side.y(), 0.f));
         if (i > 0) {
             const unsigned int a = 2 * (i - 1);
-            g.add_triangle(a, a + 1, a + 2);
-            g.add_triangle(a + 1, a + 3, a + 2);
+            g.add_triangle(a, a + 2, a + 1);
+            g.add_triangle(a + 1, a + 2, a + 3);
         }
     }
     model.init_from(std::move(g));
@@ -143,7 +143,7 @@ wxString spaced_caps(const wxString &text)
 
 } // namespace
 
-void FlatBeltPreview::render(const Transform3d &view_matrix, const Transform3d &projection_matrix, bool bottom)
+void FlatBeltPreview::render(const Transform3d &view_matrix, const Transform3d &projection_matrix, bool bottom, Pass pass)
 {
     GUI_App &app = wxGetApp();
     if (bottom || app.preset_bundle == nullptr || app.plater() == nullptr)
@@ -231,6 +231,8 @@ void FlatBeltPreview::render(const Transform3d &view_matrix, const Transform3d &
         init_arrow(m_arrow);
     }
 
+    const bool cull = ::glIsEnabled(GL_CULL_FACE) == GL_TRUE;
+    glsafe(::glDisable(GL_CULL_FACE)); // flat shapes seen from either side
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -247,11 +249,19 @@ void FlatBeltPreview::render(const Transform3d &view_matrix, const Transform3d &
     };
 
     // The belt under the bed, and in front of it fading into the fog.
-    const double x0 = bed.min.x() - BELT_MARGIN, x1 = bed.max.x() + BELT_MARGIN, z = -0.6;
-    quad(x0, bed.min.y(), x1, bed.max.y() + BELT_MARGIN, z, BELT_COLOR);
-    for (int i = 0; i < FOG_SLICES && reach > 0.; ++i) {
-        const double y1 = bed.min.y() - reach * i / FOG_SLICES, y0 = bed.min.y() - reach * (i + 1) / FOG_SLICES;
-        quad(x0, y0, x1, y1, z, with_alpha(BELT_COLOR, 1.f - float(i) / FOG_SLICES));
+    if (pass == Pass::Belt) {
+        const double x0 = bed.min.x() - BELT_MARGIN, x1 = bed.max.x() + BELT_MARGIN, z = -0.6;
+        quad(x0, bed.min.y(), x1, bed.max.y() + BELT_MARGIN, z, BELT_COLOR);
+        for (int i = 0; i < FOG_SLICES && reach > 0.; ++i) {
+            const double y1 = bed.min.y() - reach * i / FOG_SLICES, y0 = bed.min.y() - reach * (i + 1) / FOG_SLICES;
+            quad(x0, y0, x1, y1, z, with_alpha(BELT_COLOR, 1.f - float(i) / FOG_SLICES));
+        }
+        shader->stop_using();
+        glsafe(::glDepthMask(GL_TRUE));
+        glsafe(::glDisable(GL_BLEND));
+        if (cull)
+            glsafe(::glEnable(GL_CULL_FACE));
+        return;
     }
 
     for (const Ghost &g : ghosts) {
@@ -263,12 +273,14 @@ void FlatBeltPreview::render(const Transform3d &view_matrix, const Transform3d &
         draw(m_infinity, Geometry::translation_transform(Vec3d(center.x(), bed.max.y() + 60., 0.2)) * Geometry::scale_transform(70.),
              with_alpha(ACCENT_COLOR, 0.9f));
     if (mode == FlatBeltMode::FixedBed && eject != FlatBeltEject::Off)
-        draw(m_arrow, Geometry::translation_transform(Vec3d(center.x(), bed.min.y() - 10., 0.2)) * Geometry::scale_transform(100.),
+        draw(m_arrow, Geometry::translation_transform(Vec3d(center.x(), bed.min.y() - 8., 0.2)) * Geometry::scale_transform(70.),
              with_alpha(ACCENT_COLOR, 0.85f));
 
     shader->stop_using();
     glsafe(::glDepthMask(GL_TRUE));
     glsafe(::glDisable(GL_BLEND));
+    if (cull)
+        glsafe(::glEnable(GL_CULL_FACE));
 
     // The mode name along the left side of the bed.
     wxString text;
