@@ -4785,6 +4785,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 this->process_layers(print, tool_ordering, collect_layers_to_print(object, print.config().belt_printer.value), instance_id, file,
                                      prime_extruder);
                 if (flat_belt_seq_loop) {
+                    std::string object_end; // close the object label inside the loop, every pass opens it again
+                    m_writer.add_object_end_labels(object_end);
+                    file.write(object_end);
                     file.write(this->retract());
                     file.write(m_writer.travel_to_z(flat_belt_piece_top, "lift before belt advance"));
                     file.write("FLAT_BELT_UNIT_DONE\n");
