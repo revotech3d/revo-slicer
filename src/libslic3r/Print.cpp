@@ -20,6 +20,7 @@
 #include "Geometry.hpp"
 #include <map>
 #include <cmath>
+#include <cstdint>
 #include <Eigen/Geometry>
 #include <set>
 #include "Slicing.hpp"
@@ -2266,6 +2267,13 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                 const PrintInstance &inst = m_objects.front()->instances().front();
                 const double length = inst.model_instance->get_object()->instance_bounding_box(*inst.model_instance).size().y();
                 const double depth  = BoundingBoxf(m_config.printable_area.values).size().y();
+                // Arachne and the Voronoi code take 32-bit coordinates, centred on the object.
+                const double max_length = 2. * unscale<double>(coord_t(std::numeric_limits<int32_t>::max())) - 10.;
+                if (length > max_length)
+                    return {format(L("This part is %1% m long; one object can be at most %2% m. "
+                                     "Print longer parts with Endless, which repeats a segment."),
+                                   std::round(length / 100.) / 10., std::floor(max_length / 100.) / 10.),
+                            nullptr, "flat_belt_mode"};
                 if (length <= depth + EPSILON) {
                     StringObjectException fits;
                     fits.string = m_config.flat_belt_endless.value ?

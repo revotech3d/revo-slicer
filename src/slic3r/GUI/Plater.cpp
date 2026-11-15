@@ -15448,8 +15448,11 @@ void Plater::priv::set_bed_shape(const Pointfs       &shape,
                                  bool                 force_as_custom)
 {
     //Orca: reduce resolution for large bed printer
+    // [r]evo flat belt: Long parts run far past the bed, so take the large-printer resolution
+    // (10 um, objects up to ~43 m) instead of 1 nm, which caps an object at ~4.3 m.
     BoundingBoxf bed_size = get_extents(shape);
-    if (bed_size.size().maxCoeff() <= LARGE_BED_THRESHOLD)
+    const auto  *flat_belt = config->option<ConfigOptionBool>("flat_belt");
+    if (bed_size.size().maxCoeff() <= LARGE_BED_THRESHOLD && !(flat_belt && flat_belt->value))
         SCALING_FACTOR = SCALING_FACTOR_INTERNAL;
     else
         SCALING_FACTOR = SCALING_FACTOR_INTERNAL_LARGE_PRINTER;

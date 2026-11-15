@@ -339,3 +339,20 @@ TEST_CASE("Long parts offers Fixed bed for a part that fits on the bed", "[FlatB
         CHECK(err.string.find("Fixed bed is enough") != std::string::npos);
     }
 }
+
+TEST_CASE("Long parts names the length limit of one object", "[FlatBelt]")
+{
+    // Coordinates are 32-bit around the object's centre: at the default 1 nm resolution
+    // an object stops at ~4.29 m. A 5 m part gets a message, not an empty first layer.
+    Model        model;
+    ModelObject *object = model.add_object();
+    object->add_volume(make_cube(20., 5000., 2.));
+    object->add_instance();
+    object->center_around_origin();
+    object->instances.front()->set_offset(Vec3d(BED / 2., BED / 2., 1.));
+    object->ensure_on_bed();
+    Print print;
+    print.apply(model, belt_config("long_parts", false));
+    const StringObjectException err = print.validate();
+    CHECK(err.string.find("at most 4.2 m") != std::string::npos);
+}
