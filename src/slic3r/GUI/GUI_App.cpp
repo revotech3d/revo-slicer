@@ -5660,6 +5660,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 // [r]evo: on a belt printer a new mission starts with the mission type picker
                 const auto* belt = preset_bundle ? preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("flat_belt") : nullptr;
                 const auto& pc   = preset_bundle->prints.get_edited_preset().config;
+                const auto& prc  = preset_bundle->printers.get_edited_preset().config;
                 const auto* mode = belt ? pc.option<ConfigOptionEnum<FlatBeltMode>>("flat_belt_mode") : nullptr;
                 const auto* seam = belt ? pc.option<ConfigOptionEnum<FlatBeltSeam>>("flat_belt_seam") : nullptr;
                 if (belt && belt->value && mode && seam && WebViewPanel::if_built()) {
@@ -5680,7 +5681,15 @@ std::string GUI_App::handle_web_request(std::string cmd)
                                                     {"copies", pc.opt_int("flat_belt_copies")},
                                                     {"eject", pc.opt_serialize("flat_belt_eject")},
                                                     {"eject_time", pc.opt_int("flat_belt_eject_time")},
-                                                    {"eject_bed_temp", pc.opt_int("flat_belt_eject_bed_temp")}}}};
+                                                    {"eject_bed_temp", pc.opt_int("flat_belt_eject_bed_temp")},
+                                                    {"tooth_width", pc.opt_float("flat_belt_tooth_width")},
+                                                    {"tooth_depth", pc.opt_float("flat_belt_tooth_depth")},
+                                                    {"tooth_shift", pc.opt_float("flat_belt_tooth_shift")},
+                                                    {"slope_angle", pc.opt_float("flat_belt_slope_angle")},
+                                                    {"endless_count", pc.opt_int("flat_belt_endless_count")},
+                                                    {"lift", prc.opt_float("flat_belt_lift")},
+                                                    {"clear_z", prc.opt_float("flat_belt_head_clearance_z")},
+                                                    {"clear_y", prc.opt_float("flat_belt_head_clearance_y")}}}};
                     WebViewPanel::if_built()->RunScript(wxString::Format("window.postMessage(%s)", from_u8(msg.dump())));
                 } else
                     this->request_open_project("<new>");
@@ -5694,8 +5703,35 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 const int         copies  = std::max(0, root.get<int>("data.copies", 1));
                 const std::string eject   = root.get<std::string>("data.eject", "off");
                 const int         eject_time = std::max(0, root.get<int>("data.eject_time", 10));
-                CallAfter([this, mode, gap, seam, step, endless, copies, eject, eject_time] {
+                // Long parts details; a value the page did not send stays as the preset has it
+                const double tooth_width   = root.get<double>("data.tooth_width", -1.);
+                const double tooth_depth   = root.get<double>("data.tooth_depth", -1.);
+                const double tooth_shift   = root.get<double>("data.tooth_shift", -1.);
+                const double slope_angle   = root.get<double>("data.slope_angle", -1.);
+                const int    endless_count = root.get<int>("data.endless_count", -1);
+                const double lift          = root.get<double>("data.lift", -1.);
+                const double clear_z       = root.get<double>("data.clear_z", -1.);
+                const double clear_y       = root.get<double>("data.clear_y", -1.);
+                CallAfter([=] {
                     this->request_open_project("<new>");
+                    // Toolhead and lift belong to the printer preset: touch it only when a value changed.
+                    if (Tab *ptab = get_tab(Preset::TYPE_PRINTER)) {
+                        DynamicPrintConfig pcfg = preset_bundle->printers.get_edited_preset().config;
+                        bool changed = false;
+                        auto set_f = [&](const char *key, double v) {
+                            if (v >= 0. && std::abs(pcfg.opt_float(key) - v) > 1e-6) {
+                                pcfg.set_key_value(key, new ConfigOptionFloat(v));
+                                changed = true;
+                            }
+                        };
+                        set_f("flat_belt_lift", lift);
+                        if (clear_z > 0.) set_f("flat_belt_head_clearance_z", clear_z);
+                        if (clear_y > 0.) set_f("flat_belt_head_clearance_y", clear_y);
+                        if (changed) {
+                            ptab->load_config(pcfg);
+                            plater()->on_config_change(*ptab->get_config());
+                        }
+                    }
                     plater()->apply_print_config([=](DynamicPrintConfig &cfg) {
                         cfg.set_key_value("flat_belt_mode", new ConfigOptionEnum<FlatBeltMode>(FlatBeltMode(mode)));
                         if (FlatBeltMode(mode) == FlatBeltMode::Sequential)
@@ -5714,6 +5750,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
                             eject == "time" ? FlatBeltEject::AfterTime : eject == "bed_temp" ? FlatBeltEject::AfterBedTemp : FlatBeltEject::Off));
                         if (eject == "time")
                             cfg.set_key_value("flat_belt_eject_time", new ConfigOptionInt(eject_time));
+                        if (tooth_width >= 2.) cfg.set_key_value("flat_belt_tooth_width", new ConfigOptionFloat(tooth_width));
+                        if (tooth_depth >= 1.) cfg.set_key_value("flat_belt_tooth_depth", new ConfigOptionFloat(tooth_depth));
+                        if (tooth_shift >= 0.) cfg.set_key_value("flat_belt_tooth_shift", new ConfigOptionFloat(std::min(tooth_shift, 1.)));
+                        if (slope_angle >= 0.) cfg.set_key_value("flat_belt_slope_angle", new ConfigOptionFloat(std::min(slope_angle, 80.)));
+                        if (endless_count >= 0) cfg.set_key_value("flat_belt_endless_count", new ConfigOptionInt(endless_count));
                     });
                 });
             }

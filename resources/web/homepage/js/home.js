@@ -751,7 +751,8 @@ function MsChips(key, items, current, unit)
 	if(unit) html+='<label class="MsCustom'+(custom?' PbSel':'')+'"><input aria-label="Custom value" value="'+(custom?current:'')+'" placeholder="..."><span>'+unit+'</span></label>';
 	let box=$('.MsChips[data-key="'+key+'"]').html(html);
 	box.find('.MsChip').click(function(){ m_Mission[key]=$(this).attr('data-v'); RenderMission(); });
-	box.find('input').on('change',function(){ let v=parseFloat($(this).val()); if(v>0){ m_Mission[key]=v; RenderMission(); } });
+	box.find('input').on('keydown',function(e){ if(e.key==='Enter') $(this).blur(); })
+		.on('change',function(){ let v=parseFloat(String($(this).val()).replace(',','.')); if(v>0){ m_Mission[key]=v; RenderMission(); } });
 }
 
 function RenderMission()
@@ -769,7 +770,25 @@ function RenderMission()
 	MsChips('seam', [['auto','AUTO'],['slope','SLOPE'],['steps','STEPS'],['vsteps','V-STEPS']], m_Mission.seam, null);
 	$('#MsStep').toggle(m_Mission.seam=='steps' || m_Mission.seam=='vsteps');
 	MsChips('step', [[10,'10'],[20,'20'],[30,'30']], m_Mission.step, 'MM');
-	MsChips('endless', [['0','MODEL'],['1','ENDLESS · UNTIL STOPPED']], m_Mission.endless, null);
+	MsChips('endless', [['0','MODEL'],['1','ENDLESS']], m_Mission.endless, null);
+	let vs=m_Mission.seam=='vsteps';
+	$('#MsTeeth').toggle(vs);
+	$('#MsSlope').toggle(m_Mission.seam=='slope');
+	$('#MsRepeats').toggle(m_Mission.endless=='1');
+	MsChips('tooth_width', [[4,'4'],[6,'6'],[8,'8'],[10,'10']], m_Mission.tooth_width, 'MM');
+	MsChips('tooth_depth', [[5,'5'],[7,'7'],[9,'9'],[12,'12']], m_Mission.tooth_depth, 'MM');
+	MsChips('tooth_shift', [[0,'0 · ALIGNED'],[0.25,'¼'],[0.33,'⅓'],[0.5,'½ · INTERLOCKED']], m_Mission.tooth_shift, null);
+	MsChips('slope_angle', [[0,'AUTO'],[15,'15'],[20,'20'],[30,'30']], m_Mission.slope_angle, '°');
+	MsChips('endless_count', [[0,'∞ UNTIL STOPPED'],[2,'2'],[5,'5'],[10,'10']], m_Mission.endless_count, '×');
+	MsChips('lift', [[3,'3'],[5,'5'],[10,'10']], m_Mission.lift, 'MM');
+	MsChips('clear_z', [], m_Mission.clear_z, 'MM');
+	MsChips('clear_y', [], m_Mission.clear_y, 'MM');
+	let warn='';
+	if(m_Mission.seam=='steps' || vs){
+		let free=m_Mission.step*1-(vs ? m_Mission.tooth_depth*1 : 0);
+		if(free<m_Mission.clear_y*1) warn=(vs ? 'STEP LENGTH − TOOTH DEPTH' : 'STEP LENGTH')+' MUST BE LONGER THAN THE TOOLHEAD FRONT ('+m_Mission.clear_y+' MM)';
+	}
+	$('#MsWarn').text(warn);
 	// Fixed bed: eject = "off", minutes (number) or "bed_temp"
 	$('#MsEject').toggle(m_Mission.mode==0);
 	MsChips('eject', [['off','OFF'],[5,'5 MIN'],[10,'10 MIN'],[20,'20 MIN'],['bed_temp','BED ≤ '+m_Mission.bed_temp+' °C']], m_Mission.eject, 'MIN');
@@ -778,7 +797,11 @@ function RenderMission()
 function ShowMissionPicker(d)
 {
 	m_Mission = { mode: d.mode*1, gap: d.gap*1, seam: d.seam, step: d.step*1, endless: d.endless ? "1" : "0", copies: (d.copies==null ? 1 : d.copies*1),
-		eject: d.eject=="time" ? d.eject_time*1 : (d.eject=="bed_temp" ? "bed_temp" : "off"), bed_temp: (d.eject_bed_temp==null ? 35 : d.eject_bed_temp*1) };
+		eject: d.eject=="time" ? d.eject_time*1 : (d.eject=="bed_temp" ? "bed_temp" : "off"), bed_temp: (d.eject_bed_temp==null ? 35 : d.eject_bed_temp*1),
+		tooth_width: (d.tooth_width==null ? 8 : d.tooth_width*1), tooth_depth: (d.tooth_depth==null ? 9 : d.tooth_depth*1),
+		tooth_shift: (d.tooth_shift==null ? 0.5 : Math.round(d.tooth_shift*100)/100), slope_angle: (d.slope_angle==null ? 0 : d.slope_angle*1),
+		endless_count: (d.endless_count==null ? 0 : d.endless_count*1), lift: (d.lift==null ? 5 : d.lift*1),
+		clear_z: (d.clear_z==null ? 2.5 : d.clear_z*1), clear_y: (d.clear_y==null ? 11 : d.clear_y*1) };
 	$('#MsVehicle').text(d.vehicle||'');
 	$('.PbMode').off('click').click(function(){ m_Mission.mode=$(this).attr('data-mode')*1; RenderMission(); });
 	RenderMission();
@@ -792,6 +815,9 @@ function StartMission()
 		mode:m_Mission.mode*1, gap:m_Mission.gap*1, seam:String(m_Mission.seam), step:m_Mission.step*1, endless:m_Mission.endless=="1",
 		copies:Math.max(0, Math.round(m_Mission.copies*1)),
 		eject:(m_Mission.eject=="off" || m_Mission.eject=="bed_temp") ? m_Mission.eject : "time",
-		eject_time:(m_Mission.eject=="off" || m_Mission.eject=="bed_temp") ? 10 : Math.max(0, Math.round(m_Mission.eject*1))}}));
+		eject_time:(m_Mission.eject=="off" || m_Mission.eject=="bed_temp") ? 10 : Math.max(0, Math.round(m_Mission.eject*1)),
+		tooth_width:m_Mission.tooth_width*1, tooth_depth:m_Mission.tooth_depth*1, tooth_shift:m_Mission.tooth_shift*1,
+		slope_angle:m_Mission.slope_angle*1, endless_count:Math.max(0, Math.round(m_Mission.endless_count*1)),
+		lift:m_Mission.lift*1, clear_z:m_Mission.clear_z*1, clear_y:m_Mission.clear_y*1}}));
 	GotoMenu('printers');
 }

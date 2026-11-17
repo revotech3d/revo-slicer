@@ -108,6 +108,9 @@ body, #RightBoard { background: #000 !important; }
 .PbBoard .MsCustom.PbSel { border-color: #5aa0ff; }
 .PbBoard .MsCustom input { width: 64px; background: transparent; border: 0; color: #fff; font: inherit; font-size: 15px; letter-spacing: 2px; padding: 0 10px; outline: none; }
 .PbBoard .MsCustom span { padding-right: 10px; color: #9aa4b2; font-size: 12px; letter-spacing: 2px; }
+.PbBoard input { -webkit-user-select: text; user-select: text; }
+.PbBoard .MsCols { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 0 48px; }
+.PbBoard .MsWarn { color: #ff5a5a; font-size: 13px; letter-spacing: 1px; min-height: 18px; }
 .PbBoard .MsFoot { margin-top: 30px; padding-top: 18px; border-top: 1px solid #2a2f36; display: flex; justify-content: flex-end; }
 .PbBoard .MsFoot .PbBtn { background: #fff; color: #000; padding: 12px 28px; }
 /* [r]evo: four Belt mission types in one row */

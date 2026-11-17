@@ -123,9 +123,26 @@
 	<div class="MsOpts" id="MsGap"><div class="PbCap" id="MsGapCap">GAP BETWEEN OBJECTS</div><div class="MsChips" data-key="gap"></div>
 		<div class="PbCap" id="MsCopiesCap">COPIES</div><div class="MsChips" data-key="copies"></div></div>
 	<div class="MsOpts" id="MsEject"><div class="PbCap">EJECT AFTER THE PRINT · ONE BELT TURN</div><div class="MsChips" data-key="eject"></div></div>
-	<div class="MsOpts" id="MsSeam"><div class="PbCap">SEAM</div><div class="MsChips" data-key="seam"></div>
-		<div id="MsStep"><div class="PbCap">STEP LENGTH</div><div class="MsChips" data-key="step"></div></div>
-		<div class="PbCap">LENGTH</div><div class="MsChips" data-key="endless"></div></div>
+	<div class="MsOpts" id="MsSeam"><div class="MsCols">
+		<div>
+			<div class="PbCap">SEAM</div><div class="MsChips" data-key="seam"></div>
+			<div id="MsStep"><div class="PbCap">STEP LENGTH · PER LAYER</div><div class="MsChips" data-key="step"></div></div>
+			<div id="MsTeeth">
+				<div class="PbCap">TOOTH WIDTH · NARROWER IS SHARPER</div><div class="MsChips" data-key="tooth_width"></div>
+				<div class="PbCap">TOOTH DEPTH</div><div class="MsChips" data-key="tooth_depth"></div>
+				<div class="PbCap">TOOTH SHIFT PER LAYER</div><div class="MsChips" data-key="tooth_shift"></div>
+			</div>
+			<div id="MsSlope"><div class="PbCap">SLOPE ANGLE</div><div class="MsChips" data-key="slope_angle"></div></div>
+			<div class="MsWarn" id="MsWarn"></div>
+		</div>
+		<div>
+			<div class="PbCap">LENGTH</div><div class="MsChips" data-key="endless"></div>
+			<div id="MsRepeats"><div class="PbCap">REPEATS OF THE MIDDLE SEGMENT</div><div class="MsChips" data-key="endless_count"></div></div>
+			<div class="PbCap">LIFT BEFORE BELT ADVANCE · PRINTER</div><div class="MsChips" data-key="lift"></div>
+			<div class="PbCap">NOZZLE BELOW TOOLHEAD (P) · PRINTER</div><div class="MsChips" data-key="clear_z"></div>
+			<div class="PbCap">TOOLHEAD FRONT (W) · PRINTER</div><div class="MsChips" data-key="clear_y"></div>
+		</div>
+	</div></div>
 	<div class="MsFoot"><div class="PbBtn PbBtnMain" onClick="StartMission()">START MISSION ▸</div></div>
 </div>
 <div id="PrintersBoard" class="thin-scroll PbBoard" board="printers">
@@ -265,6 +282,10 @@
 	//HandleStudio(TestData);
     document.onkeydown = function (event) {
 		var e = event || window.event || arguments.callee.caller.arguments[0];
+		// [r]evo: let text fields (NEW MISSION custom values) receive their keys
+		var t = e.target;
+		if (t && (t.tagName == 'INPUT' || t.tagName == 'TEXTAREA' || t.isContentEditable))
+			return;
 
 		if (e.ctrlKey && e.metaKey)
 			OutputKey(e.keyCode, true, false, true);
