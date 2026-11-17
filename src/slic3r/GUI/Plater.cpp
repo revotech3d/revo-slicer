@@ -3816,10 +3816,10 @@ Sidebar::Sidebar(Plater *parent)
                         m.apply.push_back([set_seam](DynamicPrintConfig& cfg) { set_seam(cfg, FlatBeltSeam::VSteps); });
                         if (m.current < 0) m.current = int(m.labels.size());
                         m.labels.push_back(_L("Custom"));
-                        m.apply.push_back([ask_mm, set_seam, step](DynamicPrintConfig& cfg) {
+                        m.apply.push_back([ask_mm, set_seam, step, seam](DynamicPrintConfig& cfg) {
                             double v;
                             if (ask_mm(_L("Step length"), step, v)) {
-                                set_seam(cfg, FlatBeltSeam::Steps);
+                                set_seam(cfg, seam == FlatBeltSeam::VSteps ? FlatBeltSeam::VSteps : FlatBeltSeam::Steps);
                                 cfg.set_key_value("flat_belt_step_length", new ConfigOptionFloat(v));
                             }
                         });
@@ -3833,6 +3833,38 @@ Sidebar::Sidebar(Plater *parent)
                         for (bool v : {false, true})
                             len.apply.push_back([v](DynamicPrintConfig& cfg) { cfg.set_key_value("flat_belt_endless", new ConfigOptionBool(v)); });
                         r.push_back(std::move(len));
+
+                        // Number choices plus Custom for one setting; zero_label names the value 0 ("Max", "Auto").
+                        auto num_row = [&c](const wxString& key, const std::string& opt, const std::vector<double>& values,
+                                            const wxString& zero_label, const wxString& unit) {
+                            const double cur = c.opt_float(opt);
+                            Row row{key, cur <= 0. && !zero_label.empty() ? zero_label : wxString::Format("%g %s", cur, unit)};
+                            for (double v : values) {
+                                if (std::abs(v - cur) < 1e-6) row.current = int(row.labels.size());
+                                row.labels.push_back(v <= 0. && !zero_label.empty() ? zero_label : wxString::Format("%g", v));
+                                row.apply.push_back([opt, v](DynamicPrintConfig& cfg) { cfg.set_key_value(opt, new ConfigOptionFloat(v)); });
+                            }
+                            if (row.current < 0) row.current = int(row.labels.size());
+                            row.labels.push_back(_L("Custom"));
+                            row.apply.push_back([opt, key, cur, unit](DynamicPrintConfig& cfg) {
+                                // TRN Flight plan: prompt for a custom value, %1% is the unit (mm, mm/s, °)
+                                wxTextEntryDialog dlg(nullptr, format_wxstr(_L("Value in %1%"), unit), key, wxString::Format("%g", cur));
+                                double v = 0.;
+                                if (dlg.ShowModal() == wxID_OK && dlg.GetValue().ToCDouble(&v) && v >= 0.)
+                                    cfg.set_key_value(opt, new ConfigOptionFloat(v));
+                            });
+                            return row;
+                        };
+                        if (seam == FlatBeltSeam::VSteps) {
+                            r.push_back(num_row(_L("Tooth width"), "flat_belt_tooth_width", {4., 6., 8., 10.}, {}, "mm"));
+                            r.push_back(num_row(_L("Tooth depth"), "flat_belt_tooth_depth", {5., 7., 9., 12.}, {}, "mm"));
+                        }
+                        if (seam == FlatBeltSeam::Slope)
+                            r.push_back(num_row(_L("Slope angle"), "flat_belt_slope_angle", {0., 15., 20., 30.}, _L("Auto"),
+                                                wxString::FromUTF8("\xC2\xB0")));
+                        // TRN Flight plan, flat belt Long parts: how far the belt moves the part out between segments; Max = as far as the bed allows
+                        r.push_back(num_row(_L("Segment"), "flat_belt_segment_length", {0., 50., 100., 150.}, _L("Max"), "mm"));
+                        r.push_back(num_row(_L("Belt speed"), "flat_belt_advance_speed", {3., 5., 10., 30.}, {}, "mm/s"));
                     }
                 }
                 return r;
