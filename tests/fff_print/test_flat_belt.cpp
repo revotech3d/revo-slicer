@@ -229,7 +229,11 @@ TEST_CASE("V-steps prints each segment's piece of a layer with closed walls alon
     const int whole = path_breaks(slice_long_bar(belt_config("fixed_bed", false)), "");
     const int seg   = path_breaks(gcode, "FLAT_BELT_INFO");
     WARN("path breaks: whole part " << whole << ", in segments " << seg);
-    CHECK(seg <= whole + 10 * LAYERS * 2 * 2);
+    CHECK(seg <= 2 * whole);
+    // and the replay found every path inside one segment: it cut none at a boundary
+    const size_t at = gcode.find("; FLAT_BELT_CLIPPED_PATHS ");
+    REQUIRE(at != std::string::npos);
+    CHECK(std::atoi(gcode.c_str() + at + 26) == 0);
 }
 
 TEST_CASE("V-steps joins the segments with teeth", "[FlatBelt]")

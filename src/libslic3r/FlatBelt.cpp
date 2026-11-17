@@ -415,6 +415,8 @@ std::string segment_long_parts(const std::string   &layers_gcode,
         out << info;
     }
 
+    // paths the replay had to cut at a boundary; the layers are cut along the seam while slicing, so none should
+    size_t clipped = 0;
     auto emit_segment = [&](size_t k) {
         // Segment k sits on the bed after k advances, in the print zone at the back of the bed.
         em.set_shift(plan.bed_y_min - y_front - double(k) * plan.advance);
@@ -435,14 +437,17 @@ std::string segment_long_parts(const std::string   &layers_gcode,
                 }
                 const Move &m = it.move;
                 if (plan.vsteps) {
-                    for (const auto &[t0, t1] : clip_teeth(plan, li - 1, m.x0, m.y0, m.x1, m.y1, has_lo, lo, has_hi, hi))
+                    for (const auto &[t0, t1] : clip_teeth(plan, li - 1, m.x0, m.y0, m.x1, m.y1, has_lo, lo, has_hi, hi)) {
+                        if (t1 - t0 < 1. - 1e-6) ++clipped;
                         em.extrude(m.x0 + t0 * (m.x1 - m.x0), m.y0 + t0 * (m.y1 - m.y0),
                                    m.x0 + t1 * (m.x1 - m.x0), m.y0 + t1 * (m.y1 - m.y0), m.e * (t1 - t0), m.f);
+                    }
                     continue;
                 }
                 double t0, t1;
                 if (!clip_y(m.y0, m.y1, lo, hi, t0, t1))
                     continue;
+                if (t1 - t0 < 1. - 1e-6) ++clipped;
                 em.extrude(m.x0 + t0 * (m.x1 - m.x0), m.y0 + t0 * (m.y1 - m.y0),
                            m.x0 + t1 * (m.x1 - m.x0), m.y0 + t1 * (m.y1 - m.y0), m.e * (t1 - t0), m.f);
             }
@@ -483,6 +488,7 @@ std::string segment_long_parts(const std::string   &layers_gcode,
         }
     }
     em.retract();
+    out << "; FLAT_BELT_CLIPPED_PATHS " << clipped << "\n";
     return out.str();
 }
 
