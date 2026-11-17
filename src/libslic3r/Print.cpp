@@ -514,6 +514,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "flat_belt_lift"
             || opt_key == "flat_belt_seam"
             || opt_key == "flat_belt_step_length"
+            || opt_key == "flat_belt_segment_length"
+            || opt_key == "flat_belt_advance_speed"
             || opt_key == "flat_belt_tooth_width"
             || opt_key == "flat_belt_tooth_depth"
             || opt_key == "flat_belt_tooth_shift"

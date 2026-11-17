@@ -216,6 +216,33 @@ TEST_CASE("V-steps joins the segments with teeth and extrudes the same filament"
     CHECK_THAT(seg.e, WithinRel(whole.e, 0.01));
 }
 
+TEST_CASE("Long parts: short segments advance slowly", "[FlatBelt]")
+{
+    DynamicPrintConfig config = belt_config("long_parts", false);
+    config.set_deserialize_strict({
+        { "flat_belt_seam", "steps" },
+        { "flat_belt_segment_length", 100 },
+        { "flat_belt_advance_speed", 8 },
+        { "flat_belt_advance_gcode", "BELT_ADVANCE DIST={belt_advance} SPEED={belt_advance_speed}" },
+    });
+    const std::string gcode = slice_long_bar(config);
+
+    // 100 mm per segment instead of the 140 mm the seam leaves, every advance at 8 mm/s
+    int advances = 0;
+    std::istringstream in(gcode);
+    for (std::string line; std::getline(in, line);)
+        if (line.rfind("BELT_ADVANCE DIST=", 0) == 0) {
+            ++advances;
+            CHECK_THAT(std::atof(line.c_str() + 18), WithinAbs(100., 0.01));
+            CHECK(line.find(" SPEED=8") != std::string::npos);
+        }
+    CHECK(advances >= 3); // 600 mm bar, 200 mm seam: four segments
+    const Extrusions seg = extrusions(gcode, "FLAT_BELT_INFO");
+    CHECK(seg.y_max <= BED - MARGIN + 0.01);
+    const Extrusions whole = extrusions(slice_long_bar(belt_config("fixed_bed", false)), "");
+    CHECK_THAT(seg.e, WithinRel(whole.e, 0.01));
+}
+
 TEST_CASE("V-steps refuses teeth too deep for the toolhead", "[FlatBelt]")
 {
     DynamicPrintConfig config = belt_config("long_parts", false);

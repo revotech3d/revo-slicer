@@ -47,7 +47,7 @@
 	"flat_belt_head_clearance_z": "2.5",
 	"flat_belt_head_clearance_y": "11",
 	"flat_belt_lift": "5",
-	"flat_belt_advance_gcode": "BELT_ADVANCE DIST={belt_advance}",
+	"flat_belt_advance_gcode": "BELT_ADVANCE DIST={belt_advance} SPEED={belt_advance_speed}",
 	"host_type": "moonraker",
 	"max_layer_height": [
 		"0.90"

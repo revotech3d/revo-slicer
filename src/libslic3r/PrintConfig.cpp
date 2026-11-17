@@ -7839,6 +7839,27 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
+    def = this->add("flat_belt_segment_length", coFloat);
+    def->label = L("Segment length");
+    def->category = L("Others");
+    def->tooltip = L("Long parts Belt mode. How far the belt moves the part out between segments. "
+                     "Shorter segments move the warm part off the bed in small, gentle steps. 0 uses as much of the bed as the seam leaves.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("flat_belt_advance_speed", coFloat);
+    def->label = L("Belt advance speed");
+    def->category = L("Others");
+    def->tooltip = L("Speed of the belt when it moves the print forward. A slow advance keeps a warm print from "
+                     "tearing off the belt. The placeholder belt_advance_speed passes it to the belt advance G-code.");
+    def->sidetext = L("mm/s");
+    def->min = 1;
+    def->max = 100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(30.));
+
     def = this->add("flat_belt_endless", coBool);
     def->label = L("Endless");
     def->category = L("Others");
@@ -7923,7 +7944,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 5;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("BELT_ADVANCE DIST={belt_advance}"));
+    def->set_default_value(new ConfigOptionString("BELT_ADVANCE DIST={belt_advance} SPEED={belt_advance_speed}"));
 
     def = this->add("flat_belt_eject_gcode", coString);
     def->label = L("Belt eject G-code");
@@ -13853,7 +13874,7 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"printing_by_object_gcode",    {}},
     {"machine_pause_gcode",         {}},
     {"template_custom_gcode",       {}},
-    {"flat_belt_advance_gcode",     {"belt_advance"}},
+    {"flat_belt_advance_gcode",     {"belt_advance", "belt_advance_speed"}},
     {"flat_belt_eject_gcode",       {"eject_wait", "eject_bed_temp"}},
     // Filament G-code
     {"filament_start_gcode",        {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id",
@@ -14010,6 +14031,10 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     def = this->add("belt_advance", coFloat);
     def->label = L("Belt advance");
     def->tooltip = L("Distance in mm the belt moves forward: between objects in Sequential mode, between segments in Long parts mode.");
+
+    def = this->add("belt_advance_speed", coFloat);
+    def->label = L("Belt advance speed");
+    def->tooltip = L("Speed in mm/s the belt moves forward at, from the Belt advance speed setting.");
 
 // flat_belt_eject_gcode
     def = this->add("eject_wait", coInt);

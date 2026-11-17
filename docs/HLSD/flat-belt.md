@@ -62,7 +62,10 @@ next segment lays its layers onto the previous one:
 - **Auto**: steps when the seam leaves at least half the bed, otherwise a slope. Auto never
   picks V-steps; it is chosen explicitly.
 
-The belt advance is the print zone length minus the seam.
+The belt advance is the print zone length minus the seam. `flat_belt_segment_length` can make it
+shorter: a warm part leaves the bed in small steps and stays stuck to the belt where it is still
+hot. In every mode the belt moves at `flat_belt_advance_speed`, passed to
+`flat_belt_advance_gcode` as `belt_advance_speed`.
 
 ## Endless
 

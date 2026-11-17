@@ -2027,6 +2027,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,                          flat_belt_tooth_depth))
     ((ConfigOptionFloat,                          flat_belt_tooth_shift))
     ((ConfigOptionFloat,                          flat_belt_slope_angle))
+    ((ConfigOptionFloat,                          flat_belt_segment_length))
+    ((ConfigOptionFloat,                          flat_belt_advance_speed))
     ((ConfigOptionBool,                           flat_belt_endless))
     ((ConfigOptionInt,                            flat_belt_endless_count))
     ((ConfigOptionInt,                            flat_belt_copies))

@@ -65,6 +65,9 @@ LongPartsPlan plan_long_parts(const PrintConfig &config, double part_height, siz
         throw SlicingError(format(_u8L("The seam is %1% mm long and leaves too little of the bed for each segment. "
                                        "Use shorter steps, a slope seam or a lower part."),
                                   std::lround(plan.seam)));
+    // A shorter segment, when asked for, moves the warm part out in smaller, gentler steps.
+    if (const double segment = config.flat_belt_segment_length.value; segment > 0.)
+        plan.advance = std::min(plan.advance, std::max(segment, 10.));
     return plan;
 }
 

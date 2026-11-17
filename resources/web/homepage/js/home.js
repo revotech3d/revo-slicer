@@ -780,6 +780,8 @@ function RenderMission()
 	MsChips('tooth_shift', [[0,'0 · ALIGNED'],[0.25,'¼'],[0.33,'⅓'],[0.5,'½ · INTERLOCKED']], m_Mission.tooth_shift, null);
 	MsChips('slope_angle', [[0,'AUTO'],[15,'15'],[20,'20'],[30,'30']], m_Mission.slope_angle, '°');
 	MsChips('endless_count', [[0,'∞ UNTIL STOPPED'],[2,'2'],[5,'5'],[10,'10']], m_Mission.endless_count, '×');
+	MsChips('segment', [[0,'MAX'],[50,'50'],[100,'100'],[150,'150']], m_Mission.segment, 'MM');
+	MsChips('adv_speed', [[3,'3'],[5,'5'],[10,'10'],[30,'30']], m_Mission.adv_speed, 'MM/S');
 	MsChips('lift', [[3,'3'],[5,'5'],[10,'10']], m_Mission.lift, 'MM');
 	MsChips('clear_z', [], m_Mission.clear_z, 'MM');
 	MsChips('clear_y', [], m_Mission.clear_y, 'MM');
@@ -800,7 +802,8 @@ function ShowMissionPicker(d)
 		eject: d.eject=="time" ? d.eject_time*1 : (d.eject=="bed_temp" ? "bed_temp" : "off"), bed_temp: (d.eject_bed_temp==null ? 35 : d.eject_bed_temp*1),
 		tooth_width: (d.tooth_width==null ? 8 : d.tooth_width*1), tooth_depth: (d.tooth_depth==null ? 9 : d.tooth_depth*1),
 		tooth_shift: (d.tooth_shift==null ? 0.5 : Math.round(d.tooth_shift*100)/100), slope_angle: (d.slope_angle==null ? 0 : d.slope_angle*1),
-		endless_count: (d.endless_count==null ? 0 : d.endless_count*1), lift: (d.lift==null ? 5 : d.lift*1),
+		endless_count: (d.endless_count==null ? 0 : d.endless_count*1),
+		segment: (d.segment==null ? 0 : d.segment*1), adv_speed: (d.adv_speed==null ? 30 : d.adv_speed*1), lift: (d.lift==null ? 5 : d.lift*1),
 		clear_z: (d.clear_z==null ? 2.5 : d.clear_z*1), clear_y: (d.clear_y==null ? 11 : d.clear_y*1) };
 	$('#MsVehicle').text(d.vehicle||'');
 	$('.PbMode').off('click').click(function(){ m_Mission.mode=$(this).attr('data-mode')*1; RenderMission(); });
@@ -817,7 +820,7 @@ function StartMission()
 		eject:(m_Mission.eject=="off" || m_Mission.eject=="bed_temp") ? m_Mission.eject : "time",
 		eject_time:(m_Mission.eject=="off" || m_Mission.eject=="bed_temp") ? 10 : Math.max(0, Math.round(m_Mission.eject*1)),
 		tooth_width:m_Mission.tooth_width*1, tooth_depth:m_Mission.tooth_depth*1, tooth_shift:m_Mission.tooth_shift*1,
-		slope_angle:m_Mission.slope_angle*1, endless_count:Math.max(0, Math.round(m_Mission.endless_count*1)),
+		slope_angle:m_Mission.slope_angle*1, segment:Math.max(0, m_Mission.segment*1), adv_speed:m_Mission.adv_speed*1, endless_count:Math.max(0, Math.round(m_Mission.endless_count*1)),
 		lift:m_Mission.lift*1, clear_z:m_Mission.clear_z*1, clear_y:m_Mission.clear_y*1}}));
 	GotoMenu('printers');
 }

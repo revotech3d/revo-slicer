@@ -4735,6 +4735,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         file.write(m_writer.travel_to_z(m_max_layer_z + print.config().flat_belt_lift.value, "lift before belt advance"));
                         DynamicConfig belt_config;
                         belt_config.set_key_value("belt_advance", new ConfigOptionFloat(advance));
+                        belt_config.set_key_value("belt_advance_speed", new ConfigOptionFloat(print.config().flat_belt_advance_speed.value));
                         file.writeln(this->placeholder_parser_process("flat_belt_advance_gcode", print.config().flat_belt_advance_gcode.value,
                                                                       initial_extruder_id, &belt_config));
                     }
@@ -4797,6 +4798,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     file.write("FLAT_BELT_UNIT_DONE\n");
                     DynamicConfig belt_config;
                     belt_config.set_key_value("belt_advance", new ConfigOptionFloat(flat_belt_piece_advance(object)));
+                    belt_config.set_key_value("belt_advance_speed", new ConfigOptionFloat(print.config().flat_belt_advance_speed.value));
                     file.writeln(this->placeholder_parser_process("flat_belt_advance_gcode", print.config().flat_belt_advance_gcode.value,
                                                                   initial_extruder_id, &belt_config));
                     file.write("SDCARD_LOOP_END\n");
@@ -4896,6 +4898,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 file.capture = nullptr;
                 DynamicConfig belt_config;
                 belt_config.set_key_value("belt_advance", new ConfigOptionFloat(plan.advance));
+                belt_config.set_key_value("belt_advance_speed", new ConfigOptionFloat(print.config().flat_belt_advance_speed.value));
                 const std::string advance_gcode = this->placeholder_parser_process("flat_belt_advance_gcode",
                     print.config().flat_belt_advance_gcode.value, initial_extruder_id, &belt_config);
                 file.write(FlatBelt::segment_long_parts(layers_gcode, plan, print.config(), height, advance_gcode));
@@ -4912,6 +4915,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 file.write(FlatBelt::repeat_plates(layers_gcode, print.config(), height, [&](double advance) {
                     DynamicConfig belt_config;
                     belt_config.set_key_value("belt_advance", new ConfigOptionFloat(advance));
+                    belt_config.set_key_value("belt_advance_speed", new ConfigOptionFloat(print.config().flat_belt_advance_speed.value));
                     return this->placeholder_parser_process("flat_belt_advance_gcode", print.config().flat_belt_advance_gcode.value,
                                                             initial_extruder_id, &belt_config);
                 }));

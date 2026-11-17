@@ -5687,6 +5687,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                                                     {"tooth_shift", pc.opt_float("flat_belt_tooth_shift")},
                                                     {"slope_angle", pc.opt_float("flat_belt_slope_angle")},
                                                     {"endless_count", pc.opt_int("flat_belt_endless_count")},
+                                                    {"segment", pc.opt_float("flat_belt_segment_length")},
+                                                    {"adv_speed", pc.opt_float("flat_belt_advance_speed")},
                                                     {"lift", prc.opt_float("flat_belt_lift")},
                                                     {"clear_z", prc.opt_float("flat_belt_head_clearance_z")},
                                                     {"clear_y", prc.opt_float("flat_belt_head_clearance_y")}}}};
@@ -5709,6 +5711,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 const double tooth_shift   = root.get<double>("data.tooth_shift", -1.);
                 const double slope_angle   = root.get<double>("data.slope_angle", -1.);
                 const int    endless_count = root.get<int>("data.endless_count", -1);
+                const double segment       = root.get<double>("data.segment", -1.);
+                const double adv_speed     = root.get<double>("data.adv_speed", -1.);
                 const double lift          = root.get<double>("data.lift", -1.);
                 const double clear_z       = root.get<double>("data.clear_z", -1.);
                 const double clear_y       = root.get<double>("data.clear_y", -1.);
@@ -5755,6 +5759,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         if (tooth_shift >= 0.) cfg.set_key_value("flat_belt_tooth_shift", new ConfigOptionFloat(std::min(tooth_shift, 1.)));
                         if (slope_angle >= 0.) cfg.set_key_value("flat_belt_slope_angle", new ConfigOptionFloat(std::min(slope_angle, 80.)));
                         if (endless_count >= 0) cfg.set_key_value("flat_belt_endless_count", new ConfigOptionInt(endless_count));
+                        if (segment >= 0.) cfg.set_key_value("flat_belt_segment_length", new ConfigOptionFloat(segment));
+                        if (adv_speed >= 1.) cfg.set_key_value("flat_belt_advance_speed", new ConfigOptionFloat(std::min(adv_speed, 100.)));
                     });
                 });
             }
