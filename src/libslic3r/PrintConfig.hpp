@@ -362,6 +362,7 @@ enum class FlatBeltSeam
     Auto,     // steps when they fit the build area, otherwise a slope
     Slope,    // one sloped face, angle from the toolhead clearance
     Steps,    // each layer overlaps the previous segment by the step length
+    VSteps,   // steps whose boundary is a row of V teeth across the part, shifted on every layer
     Count,
 };
 
@@ -2022,6 +2023,9 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,                          flat_belt_lift))
     ((ConfigOptionEnum<FlatBeltSeam>,             flat_belt_seam))
     ((ConfigOptionFloat,                          flat_belt_step_length))
+    ((ConfigOptionFloat,                          flat_belt_tooth_width))
+    ((ConfigOptionFloat,                          flat_belt_tooth_depth))
+    ((ConfigOptionFloat,                          flat_belt_tooth_shift))
     ((ConfigOptionFloat,                          flat_belt_slope_angle))
     ((ConfigOptionBool,                           flat_belt_endless))
     ((ConfigOptionInt,                            flat_belt_endless_count))

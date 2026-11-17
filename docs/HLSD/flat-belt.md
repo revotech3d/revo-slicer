@@ -50,7 +50,17 @@ next segment lays its layers onto the previous one:
   never touches the finished segment.
 - **Steps**: by `flat_belt_step_length` per layer, a lap joint. One step longer than the
   toolhead front means at most one layer of the old segment lies under the toolhead.
-- **Auto**: steps when the seam leaves at least half the bed, otherwise a slope.
+- **V-steps**: steps whose boundary is not a straight line across the part but a row of V
+  teeth, `flat_belt_tooth_width` wide and `flat_belt_tooth_depth` deep, shifted sideways by
+  `flat_belt_tooth_shift` of a tooth on every layer (0.5 alternates them, 0.33 / 0.25 turn
+  them gradually). The segments interlock in X/Y as well as in Z, and the weak points of
+  neighbouring layers never lie on top of each other. The boundary reaches back by up to one
+  tooth depth, so the seam is longer by the depth and a step minus the depth must still be
+  longer than the toolhead front. Each move is cut at the tooth tips and valleys, where the
+  boundary bends, and every piece clipped against two straight lines; the pieces of one move
+  across all segments always add up to the whole move, so no filament is lost or doubled.
+- **Auto**: steps when the seam leaves at least half the bed, otherwise a slope. Auto never
+  picks V-steps; it is chosen explicitly.
 
 The belt advance is the print zone length minus the seam.
 

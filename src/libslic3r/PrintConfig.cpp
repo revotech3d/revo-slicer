@@ -445,6 +445,7 @@ static t_config_enum_values s_keys_map_FlatBeltSeam {
     { "auto",  int(FlatBeltSeam::Auto) },
     { "slope", int(FlatBeltSeam::Slope) },
     { "steps", int(FlatBeltSeam::Steps) },
+    { "vsteps", int(FlatBeltSeam::VSteps) },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FlatBeltSeam)
 
@@ -7777,10 +7778,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Long parts Belt mode. How two segments are joined.\n"
                      "Steps: each layer overlaps the previous segment by the step length, the strongest joint for low parts.\n"
                      "Slope: one sloped face, its angle set by the toolhead clearance.\n"
+                     "V-steps: steps whose boundary is a row of V teeth across the part, shifted on every layer, "
+                     "so the segments interlock sideways too.\n"
                      "Auto: steps when the seam fits the build area, otherwise a slope.");
     def->enum_keys_map = &ConfigOptionEnum<FlatBeltSeam>::get_enum_values();
-    def->enum_values  = {"auto", "slope", "steps"};
-    def->enum_labels  = {L("Auto"), L("Slope"), L("Steps")};
+    def->enum_values  = {"auto", "slope", "steps", "vsteps"};
+    def->enum_labels  = {L("Auto"), L("Slope"), L("Steps"), L("V-steps")};
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<FlatBeltSeam>(FlatBeltSeam::Auto));
 
@@ -7793,6 +7796,36 @@ void PrintConfigDef::init_fff_params()
     def->min = 1;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(20.));
+
+    def = this->add("flat_belt_tooth_width", coFloat);
+    def->label = L("Tooth width");
+    def->category = L("Others");
+    def->tooltip = L("Long parts Belt mode, V-steps seam. Width of one V tooth across the part.");
+    def->sidetext = L("mm");
+    def->min = 5;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(30.));
+
+    def = this->add("flat_belt_tooth_depth", coFloat);
+    def->label = L("Tooth depth");
+    def->category = L("Others");
+    def->tooltip = L("Long parts Belt mode, V-steps seam. How deep the V teeth reach into the previous segment. "
+                     "The step length minus the tooth depth must be longer than the toolhead front.");
+    def->sidetext = L("mm");
+    def->min = 1;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(8.));
+
+    def = this->add("flat_belt_tooth_shift", coFloat);
+    def->label = L("Tooth shift per layer");
+    def->category = L("Others");
+    def->tooltip = L("Long parts Belt mode, V-steps seam. How far the teeth move sideways on every layer, as a part of "
+                     "one tooth: 0.5 alternates the teeth layer by layer, 0.33 or 0.25 turns them gradually, 0 keeps them "
+                     "in line. Shifted teeth keep the weak points of neighbouring layers apart.");
+    def->min = 0;
+    def->max = 1;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloat(0.5));
 
     def = this->add("flat_belt_slope_angle", coFloat);
     def->label = L("Slope angle");

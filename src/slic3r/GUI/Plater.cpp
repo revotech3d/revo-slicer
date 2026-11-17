@@ -3792,6 +3792,7 @@ Sidebar::Sidebar(Plater *parent)
                         const auto   seam = seam_opt->value;
                         const double step = c.opt_float("flat_belt_step_length");
                         const wxString value = seam == FlatBeltSeam::Steps ? wxString::Format(_L("Steps %g mm"), step) :
+                                               seam == FlatBeltSeam::VSteps ? wxString::Format(_L("V-steps %g mm"), step) :
                                                seam == FlatBeltSeam::Slope ? _L("Slope") : _L("Auto");
                         Row m{_L("Seam"), value};
                         auto set_seam = [](DynamicPrintConfig& cfg, FlatBeltSeam s) {
@@ -3800,7 +3801,7 @@ Sidebar::Sidebar(Plater *parent)
                         m.labels = {_L("Auto"), _L("Slope")};
                         m.apply.push_back([set_seam](DynamicPrintConfig& cfg) { set_seam(cfg, FlatBeltSeam::Auto); });
                         m.apply.push_back([set_seam](DynamicPrintConfig& cfg) { set_seam(cfg, FlatBeltSeam::Slope); });
-                        if (seam != FlatBeltSeam::Steps) m.current = int(seam);
+                        if (seam == FlatBeltSeam::Auto || seam == FlatBeltSeam::Slope) m.current = int(seam);
                         for (double v : {10., 20., 30.}) {
                             if (seam == FlatBeltSeam::Steps && std::abs(v - step) < 1e-6) m.current = int(m.labels.size());
                             m.labels.push_back(wxString::Format(_L("Steps %g"), v));
@@ -3809,6 +3810,10 @@ Sidebar::Sidebar(Plater *parent)
                                 cfg.set_key_value("flat_belt_step_length", new ConfigOptionFloat(v));
                             });
                         }
+                        // V-steps: steps with interlocking V teeth (tooth size and shift in the process settings)
+                        if (seam == FlatBeltSeam::VSteps) m.current = int(m.labels.size());
+                        m.labels.push_back(_L("V-steps"));
+                        m.apply.push_back([set_seam](DynamicPrintConfig& cfg) { set_seam(cfg, FlatBeltSeam::VSteps); });
                         if (m.current < 0) m.current = int(m.labels.size());
                         m.labels.push_back(_L("Custom"));
                         m.apply.push_back([ask_mm, set_seam, step](DynamicPrintConfig& cfg) {

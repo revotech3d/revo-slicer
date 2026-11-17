@@ -3468,6 +3468,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("flat_belt_copies");
         optgroup->append_single_option_line("flat_belt_seam");
         optgroup->append_single_option_line("flat_belt_step_length");
+        optgroup->append_single_option_line("flat_belt_tooth_width");
+        optgroup->append_single_option_line("flat_belt_tooth_depth");
+        optgroup->append_single_option_line("flat_belt_tooth_shift");
         optgroup->append_single_option_line("flat_belt_slope_angle");
         optgroup->append_single_option_line("flat_belt_endless");
         optgroup->append_single_option_line("flat_belt_endless_count");
@@ -3604,9 +3607,14 @@ void TabPrint::toggle_options()
         const auto *flat = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("flat_belt");
         const bool  on   = flat != nullptr && flat->value;
         for (const char *key : {"flat_belt_mode", "flat_belt_object_gap", "flat_belt_seam", "flat_belt_step_length",
-                                "flat_belt_slope_angle", "flat_belt_endless", "flat_belt_endless_count", "flat_belt_copies",
+                                "flat_belt_tooth_width", "flat_belt_tooth_depth", "flat_belt_tooth_shift", "flat_belt_slope_angle", "flat_belt_endless", "flat_belt_endless_count", "flat_belt_copies",
                                 "flat_belt_eject", "flat_belt_eject_time", "flat_belt_eject_bed_temp"})
             toggle_line(key, on);
+        // the teeth only shape the V-steps seam
+        const auto *seam  = m_config->option<ConfigOptionEnum<FlatBeltSeam>>("flat_belt_seam");
+        const bool  teeth = on && seam != nullptr && seam->value == FlatBeltSeam::VSteps;
+        for (const char *key : {"flat_belt_tooth_width", "flat_belt_tooth_depth", "flat_belt_tooth_shift"})
+            toggle_line(key, teeth);
     }
 
     if (m_type == Preset::TYPE_PLATE) {

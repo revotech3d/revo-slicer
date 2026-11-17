@@ -21,11 +21,20 @@ class PrintConfig;
 //     forward), so the toolhead never touches the finished segment;
 //   - Steps: by one step length per layer, a lap joint that is strongest for low parts and
 //     always clear of the toolhead once a step is longer than the toolhead front.
+//   - V-steps: steps whose boundary is not a straight line across the part but a row of V
+//     teeth (flat_belt_tooth_width wide, flat_belt_tooth_depth deep), shifted by
+//     flat_belt_tooth_shift of a tooth on every layer, so the segments interlock in X/Y too and
+//     the weak points of neighbouring layers never lie on top of each other. The toolhead clears
+//     the finished segment while a step minus the tooth depth is longer than its front.
 namespace FlatBelt {
 
 struct LongPartsPlan
 {
-    bool   steps     = false; // Steps seam, otherwise Slope
+    bool   steps     = false; // Steps or V-steps seam, otherwise Slope
+    bool   vsteps    = false; // V-steps: the step boundary is a row of V teeth across the part
+    double tooth_width = 0.;  // V-steps, along X, mm
+    double tooth_depth = 0.;  // V-steps, along Y, mm
+    double tooth_shift = 0.;  // V-steps, phase shift per layer, fraction of a tooth
     double tan_alpha = 0.;    // Slope seam
     double step      = 0.;    // Steps seam, per layer
     double seam      = 0.;    // seam length along Y, mm

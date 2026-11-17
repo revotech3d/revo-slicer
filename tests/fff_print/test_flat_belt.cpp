@@ -11,6 +11,8 @@
 
 #include "test_helpers.hpp"
 #include "libslic3r/Config.hpp"
+#include "libslic3r/Exception.hpp"
+#include "libslic3r/FlatBelt.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Print.hpp"
@@ -184,6 +186,44 @@ TEST_CASE("Long parts extrudes the same filament as the unsegmented part", "[Fla
     const Extrusions seg   = extrusions(slice_long_bar(belt_config("long_parts", false)), "FLAT_BELT_INFO");
     REQUIRE(whole.e > 0.);
     CHECK_THAT(seg.e, WithinRel(whole.e, 0.01));
+}
+
+TEST_CASE("V-steps joins the segments with teeth and extrudes the same filament", "[FlatBelt]")
+{
+    DynamicPrintConfig config = belt_config("long_parts", false);
+    config.set_deserialize_strict({
+        { "flat_belt_seam", "vsteps" },
+        { "flat_belt_tooth_width", 10 },
+        { "flat_belt_tooth_depth", 8 },
+        { "flat_belt_tooth_shift", 0.5 },
+    });
+    const std::string gcode = slice_long_bar(config);
+
+    // Seam: 10 layers * 20 mm steps plus the 8 mm teeth = 208 mm; belt advance 340 - 208 = 132 mm.
+    // Segments n with n * 132 + 208 >= 600: three.
+    const double advance = BED - 2. * MARGIN - (LAYERS * STEP + 8.);
+    REQUIRE(count_lines_starting(gcode, "FLAT_BELT_INFO MODE=long TARGET=3 LOOP=0") == 1);
+    std::istringstream in(gcode);
+    for (std::string line; std::getline(in, line);)
+        if (line.rfind("BELT_ADVANCE DIST=", 0) == 0)
+            CHECK_THAT(std::atof(line.c_str() + 18), WithinAbs(advance, 0.01));
+
+    const Extrusions seg = extrusions(gcode, "FLAT_BELT_INFO");
+    CHECK(seg.y_min >= MARGIN - 0.01);
+    CHECK(seg.y_max <= BED - MARGIN + 0.01);
+    // every bit of the part is printed exactly once, the teeth only move where one segment ends
+    const Extrusions whole = extrusions(slice_long_bar(belt_config("fixed_bed", false)), "");
+    CHECK_THAT(seg.e, WithinRel(whole.e, 0.01));
+}
+
+TEST_CASE("V-steps refuses teeth too deep for the toolhead", "[FlatBelt]")
+{
+    DynamicPrintConfig config = belt_config("long_parts", false);
+    // step 20 mm minus a 12 mm tooth leaves 8 mm, less than the 11 mm toolhead front
+    config.set_deserialize_strict({ { "flat_belt_seam", "vsteps" }, { "flat_belt_tooth_depth", 12 } });
+    PrintConfig pc;
+    pc.apply(config, true);
+    CHECK_THROWS_AS(FlatBelt::plan_long_parts(pc, HEIGHT, LAYERS), SlicingError);
 }
 
 TEST_CASE("Endless repeats one middle segment in an sdcard loop", "[FlatBelt]")

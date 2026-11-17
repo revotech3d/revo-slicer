@@ -5670,7 +5670,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         vehicle += " · " + ft->values.front();
                     if (nd && !nd->values.empty())
                         vehicle += (boost::format(" · %g MM") % nd->values.front()).str();
-                    const char* seams[] = {"auto", "slope", "steps"};
+                    const char* seams[] = {"auto", "slope", "steps", "vsteps"};
                     nlohmann::json msg = {{"command", "revo_mission_picker"},
                                           {"data", {{"vehicle", vehicle}, {"mode", int(mode->value)},
                                                     {"gap", pc.opt_float("flat_belt_object_gap")},
@@ -5708,7 +5708,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         if (step > 0.) cfg.set_key_value("flat_belt_step_length", new ConfigOptionFloat(step));
                         cfg.set_key_value("flat_belt_endless", new ConfigOptionBool(endless));
                         cfg.set_key_value("flat_belt_seam", new ConfigOptionEnum<FlatBeltSeam>(
-                            seam == "steps" ? FlatBeltSeam::Steps : seam == "slope" ? FlatBeltSeam::Slope : FlatBeltSeam::Auto));
+                            seam == "steps" ? FlatBeltSeam::Steps : seam == "vsteps" ? FlatBeltSeam::VSteps :
+                            seam == "slope" ? FlatBeltSeam::Slope : FlatBeltSeam::Auto));
                         cfg.set_key_value("flat_belt_eject", new ConfigOptionEnum<FlatBeltEject>(
                             eject == "time" ? FlatBeltEject::AfterTime : eject == "bed_temp" ? FlatBeltEject::AfterBedTemp : FlatBeltEject::Off));
                         if (eject == "time")

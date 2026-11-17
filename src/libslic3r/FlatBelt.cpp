@@ -40,6 +40,12 @@ LongPartsPlan plan_long_parts(const PrintConfig &config, double part_height, siz
 
     switch (config.flat_belt_seam.value) {
     case FlatBeltSeam::Steps: plan.steps = true; break;
+    case FlatBeltSeam::VSteps:
+        plan.steps       = plan.vsteps = true;
+        plan.tooth_width = config.flat_belt_tooth_width.value;
+        plan.tooth_depth = config.flat_belt_tooth_depth.value;
+        plan.tooth_shift = config.flat_belt_tooth_shift.value;
+        break;
     case FlatBeltSeam::Slope: plan.steps = false; break;
     // Steps are the stronger joint; take them when they leave at least half the bed to print on.
     default: plan.steps = steps_seam <= 0.5 * window; break;
@@ -47,7 +53,13 @@ LongPartsPlan plan_long_parts(const PrintConfig &config, double part_height, siz
     if (plan.steps && plan.step < config.flat_belt_head_clearance_y.value)
         throw SlicingError(format(_u8L("The seam step (%1% mm) must be longer than the toolhead front (%2% mm)."),
                                   plan.step, config.flat_belt_head_clearance_y.value));
-    plan.seam    = plan.steps ? steps_seam : slope_seam;
+    // V teeth: the boundary reaches back by up to one tooth depth, so the toolhead in front of a tooth tip
+    // is a step minus the depth away from the next, higher layer of the finished segment.
+    if (plan.vsteps && plan.step - plan.tooth_depth < config.flat_belt_head_clearance_y.value)
+        throw SlicingError(format(_u8L("V-steps seam: the step (%1% mm) minus the tooth depth (%2% mm) must be longer than "
+                                       "the toolhead front (%3% mm). Use longer steps or shallower teeth."),
+                                  plan.step, plan.tooth_depth, config.flat_belt_head_clearance_y.value));
+    plan.seam    = plan.steps ? steps_seam + (plan.vsteps ? plan.tooth_depth : 0.) : slope_seam;
     plan.advance = window - plan.seam;
     if (plan.advance < 0.25 * window)
         throw SlicingError(format(_u8L("The seam is %1% mm long and leaves too little of the bed for each segment. "
@@ -105,6 +117,60 @@ bool clip_y(double ya, double yb, double lo, double hi, double &t0, double &t1)
     t0 = std::max(0., ta);
     t1 = std::min(1., tb);
     return t1 - t0 > 1e-9;
+}
+
+// V-steps: how far the boundary reaches back (towards -Y) at x on a layer, 0 at the tooth tips and the
+// tooth depth in the valleys; a triangle wave along X, shifted by tooth_shift of a tooth per layer.
+double tooth_offset(const LongPartsPlan &plan, double x, size_t layer_idx)
+{
+    double phase = x / plan.tooth_width + double(layer_idx) * plan.tooth_shift;
+    phase -= std::floor(phase);
+    return plan.tooth_depth * (1. - std::abs(2. * phase - 1.));
+}
+
+// Parts of the move a-b inside the band lo - offset(x) <= y <= hi - offset(x), as parameter
+// intervals along it. The offset is linear between the tooth tips and valleys, so the move is cut
+// there and each piece clipped against two straight lines.
+std::vector<std::pair<double, double>> clip_teeth(const LongPartsPlan &plan, size_t layer_idx, double xa, double ya,
+                                                  double xb, double yb, bool has_lo, double lo, bool has_hi, double hi)
+{
+    std::vector<double> cuts{0., 1.};
+    const double dx = xb - xa;
+    if (std::abs(dx) > 1e-9) {
+        // phase(x) = x / W + s crosses a multiple of 1/2 at x = (n / 2 - s) * W
+        const double s  = double(layer_idx) * plan.tooth_shift;
+        const double p0 = 2. * (std::min(xa, xb) / plan.tooth_width + s), p1 = 2. * (std::max(xa, xb) / plan.tooth_width + s);
+        for (double n = std::ceil(p0); n <= p1; n += 1.) {
+            const double t = ((n / 2. - s) * plan.tooth_width - xa) / dx;
+            if (t > 0. && t < 1.) cuts.push_back(t);
+        }
+        std::sort(cuts.begin(), cuts.end());
+    }
+    std::vector<std::pair<double, double>> out;
+    for (size_t i = 0; i + 1 < cuts.size(); ++i) {
+        const double a = cuts[i], b = cuts[i + 1];
+        if (b - a < 1e-12) continue;
+        // g(t) = y(t) + offset(x(t)) is linear on [a, b]; keep lo <= g <= hi
+        auto g = [&](double t) { return ya + t * (yb - ya) + tooth_offset(plan, xa + t * dx, layer_idx); };
+        const double ga = g(a), gb = g(b);
+        double t0 = a, t1 = b;
+        auto limit = [&](double bound, bool keep_above) {
+            if (std::abs(gb - ga) < 1e-12) {
+                if (keep_above ? ga < bound : ga > bound) t1 = t0 - 1.; // nothing on this piece
+                return;
+            }
+            const double t = a + (bound - ga) / (gb - ga) * (b - a);
+            if ((gb > ga) == keep_above) t0 = std::max(t0, t); // g rises: the kept part starts at t
+            else                         t1 = std::min(t1, t);
+        };
+        if (has_lo) limit(lo, true);
+        if (has_hi) limit(hi, false);
+        if (t1 - t0 > 1e-9) {
+            if (!out.empty() && std::abs(out.back().second - t0) < 1e-9) out.back().second = t1;
+            else out.emplace_back(t0, t1);
+        }
+    }
+    return out;
 }
 
 class Emitter
@@ -283,9 +349,12 @@ std::string segment_long_parts(const std::string   &layers_gcode,
         em.set_shift(plan.bed_y_min - y_front - double(k) * plan.advance);
         for (size_t li = 1; li < layers.size(); ++li) {
             const Layer &layer = layers[li];
-            const double lo = k == 0 ? std::numeric_limits<double>::lowest() : boundary(k, li - 1);
-            const double hi = k + 1 == n_seg ? std::numeric_limits<double>::max() : boundary(k + 1, li - 1);
-            if (layer.y_max < lo || layer.y_min > hi)
+            const bool   has_lo = k > 0, has_hi = k + 1 < n_seg;
+            const double lo = has_lo ? boundary(k, li - 1) : std::numeric_limits<double>::lowest();
+            const double hi = has_hi ? boundary(k + 1, li - 1) : std::numeric_limits<double>::max();
+            // V-steps: the boundary reaches back by up to one tooth depth from these
+            const double reach = plan.vsteps ? plan.tooth_depth : 0.;
+            if (layer.y_max < lo - reach || layer.y_min > hi)
                 continue;
             em.set_layer_z(layer.z);
             for (const Item &it : layer.items) {
@@ -294,6 +363,12 @@ std::string segment_long_parts(const std::string   &layers_gcode,
                     continue;
                 }
                 const Move &m = it.move;
+                if (plan.vsteps) {
+                    for (const auto &[t0, t1] : clip_teeth(plan, li - 1, m.x0, m.y0, m.x1, m.y1, has_lo, lo, has_hi, hi))
+                        em.extrude(m.x0 + t0 * (m.x1 - m.x0), m.y0 + t0 * (m.y1 - m.y0),
+                                   m.x0 + t1 * (m.x1 - m.x0), m.y0 + t1 * (m.y1 - m.y0), m.e * (t1 - t0), m.f);
+                    continue;
+                }
                 double t0, t1;
                 if (!clip_y(m.y0, m.y1, lo, hi, t0, t1))
                     continue;

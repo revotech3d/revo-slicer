@@ -766,8 +766,8 @@ function RenderMission()
 	MsChips('copies', plates ? [[2,'2'],[5,'5'],[7,'7'],[10,'10'],[0,'∞ UNTIL STOPPED']] : [[1,'1'],[10,'10'],[20,'20'],[50,'50']], m_Mission.copies, '×');
 	$('#MsSeam').toggle(m_Mission.mode==2);
 	MsChips('gap', [[30,'30'],[50,'50'],[80,'80'],[100,'100']], m_Mission.gap, 'MM');
-	MsChips('seam', [['auto','AUTO'],['slope','SLOPE'],['steps','STEPS']], m_Mission.seam, null);
-	$('#MsStep').toggle(m_Mission.seam=='steps');
+	MsChips('seam', [['auto','AUTO'],['slope','SLOPE'],['steps','STEPS'],['vsteps','V-STEPS']], m_Mission.seam, null);
+	$('#MsStep').toggle(m_Mission.seam=='steps' || m_Mission.seam=='vsteps');
 	MsChips('step', [[10,'10'],[20,'20'],[30,'30']], m_Mission.step, 'MM');
 	MsChips('endless', [['0','MODEL'],['1','ENDLESS · UNTIL STOPPED']], m_Mission.endless, null);
 	// Fixed bed: eject = "off", minutes (number) or "bed_temp"
