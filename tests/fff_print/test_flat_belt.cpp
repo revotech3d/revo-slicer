@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <initializer_list>
 #include <limits>
@@ -153,6 +154,33 @@ Extrusions extrusions(const std::string &gcode, const std::string &from)
     return r;
 }
 
+// Breaks in the extruded path from the first line starting with `from` on: extruding moves that do not
+// start where the previous one ended (a travel in between).
+int path_breaks(const std::string &gcode, const std::string &from)
+{
+    int    n = 0;
+    bool   on = from.empty();
+    double x = 0., y = 0., ex = std::numeric_limits<double>::quiet_NaN(), ey = ex;
+    std::istringstream in(gcode);
+    for (std::string line; std::getline(in, line);) {
+        on = on || line.rfind(from, 0) == 0;
+        if (line.rfind("G1 ", 0) != 0 && line.rfind("G0 ", 0) != 0)
+            continue;
+        const std::string cmd = line.substr(0, line.find(';'));
+        const double px = x, py = y, e = param(cmd, 'E'), nx = param(cmd, 'X'), ny = param(cmd, 'Y');
+        if (nx == nx) x = nx;
+        if (ny == ny) y = ny;
+        const bool xy = std::hypot(x - px, y - py) > 1e-6;
+        if (!on || !xy || !(e > 0.))
+            continue;
+        if (!(std::hypot(px - ex, py - ey) < 1e-3))
+            ++n;
+        ex = x;
+        ey = y;
+    }
+    return n;
+}
+
 } // namespace
 
 TEST_CASE("Long parts prints a part longer than the bed in segments on the bed", "[FlatBelt]")
@@ -195,17 +223,13 @@ TEST_CASE("V-steps prints each segment's piece of a layer with closed walls alon
     DynamicPrintConfig config = belt_config("long_parts", false);
     config.set_deserialize_strict({ { "flat_belt_seam", "vsteps" }, { "flat_belt_tooth_width", 8 }, { "flat_belt_tooth_depth", 8 } });
     const std::string gcode = slice_long_bar(config);
-    // The layers are cut along the teeth before the walls are made, so no path is cut at the seam: a piece
-    // of a layer needs a few travels, not one per infill line crossing the teeth. 10 layers, 3 segments.
-    int retracts = 0;
-    bool on = false;
-    std::istringstream in(gcode);
-    for (std::string line; std::getline(in, line);) {
-        on = on || line.rfind("FLAT_BELT_INFO", 0) == 0;
-        if (on && line.rfind("G1 E-", 0) == 0)
-            ++retracts;
-    }
-    CHECK(retracts <= 15 * LAYERS * 3);
+    // The layers are cut along the teeth before the walls are made, so no path is cut at the seam: each piece
+    // of a layer adds a few breaks in the path (its walls and infill), not one per line crossing the teeth.
+    // 10 layers, 3 segments: 2 seams, a piece on each side of each.
+    const int whole = path_breaks(slice_long_bar(belt_config("fixed_bed", false)), "");
+    const int seg   = path_breaks(gcode, "FLAT_BELT_INFO");
+    WARN("path breaks: whole part " << whole << ", in segments " << seg);
+    CHECK(seg <= whole + 10 * LAYERS * 2 * 2);
 }
 
 TEST_CASE("V-steps joins the segments with teeth", "[FlatBelt]")
