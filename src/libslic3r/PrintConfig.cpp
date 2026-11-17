@@ -7800,11 +7800,12 @@ void PrintConfigDef::init_fff_params()
     def = this->add("flat_belt_tooth_width", coFloat);
     def->label = L("Tooth width");
     def->category = L("Others");
-    def->tooltip = L("Long parts Belt mode, V-steps seam. Width of one V tooth across the part.");
+    def->tooltip = L("Long parts Belt mode, V-steps seam. Width of one V tooth across the part. Narrower teeth are sharper; "
+                     "keep a tooth at least about four line widths wide so the nozzle can draw it.");
     def->sidetext = L("mm");
-    def->min = 5;
+    def->min = 2;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(30.));
+    def->set_default_value(new ConfigOptionFloat(8.));
 
     def = this->add("flat_belt_tooth_depth", coFloat);
     def->label = L("Tooth depth");
@@ -7814,7 +7815,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 1;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(8.));
+    def->set_default_value(new ConfigOptionFloat(9.));
 
     def = this->add("flat_belt_tooth_shift", coFloat);
     def->label = L("Tooth shift per layer");
