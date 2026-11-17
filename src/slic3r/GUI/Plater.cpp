@@ -3622,7 +3622,8 @@ Sidebar::Sidebar(Plater *parent)
         scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
         scrolled_sizer->Add(params_panel->get_top_panel(), 0, wxEXPAND);
         {   // [r]evo: flight plan – the key process values; click a value to pick a new one
-            struct Row { wxString key, value; std::vector<wxString> labels; std::vector<std::function<void(DynamicPrintConfig&)>> apply; int current = -1; };
+            struct Row { wxString key, value; std::vector<wxString> labels; std::vector<std::function<void(DynamicPrintConfig&)>> apply; int current = -1;
+                         bool printer = false; /* the choices change the printer preset, not the process */ };
             auto plan  = new wxPanel(p->scrolled, wxID_ANY);
             plan->SetBackgroundStyle(wxBG_STYLE_PAINT);
             plan->SetCursor(wxCursor(wxCURSOR_HAND));
@@ -3836,8 +3837,8 @@ Sidebar::Sidebar(Plater *parent)
 
                         // Number choices plus Custom for one setting; zero_label names the value 0 ("Max", "Auto").
                         auto num_row = [&c](const wxString& key, const std::string& opt, const std::vector<double>& values,
-                                            const wxString& zero_label, const wxString& unit) {
-                            const double cur = c.opt_float(opt);
+                                            const wxString& zero_label, const wxString& unit, const DynamicPrintConfig* src = nullptr) {
+                            const double cur = (src ? *src : c).opt_float(opt);
                             Row row{key, cur <= 0. && !zero_label.empty() ? zero_label : wxString::Format("%g %s", cur, unit)};
                             for (double v : values) {
                                 if (std::abs(v - cur) < 1e-6) row.current = int(row.labels.size());
@@ -3853,11 +3854,14 @@ Sidebar::Sidebar(Plater *parent)
                                 if (dlg.ShowModal() == wxID_OK && dlg.GetValue().ToCDouble(&v) && v >= 0.)
                                     cfg.set_key_value(opt, new ConfigOptionFloat(v));
                             });
+                            row.printer = src != nullptr;
                             return row;
                         };
                         if (seam == FlatBeltSeam::VSteps) {
                             r.push_back(num_row(_L("Tooth width"), "flat_belt_tooth_width", {4., 6., 8., 10.}, {}, "mm"));
                             r.push_back(num_row(_L("Tooth depth"), "flat_belt_tooth_depth", {5., 7., 9., 12.}, {}, "mm"));
+                            // TRN Flight plan, V-steps: how far the teeth move sideways on each layer, as a part of a tooth
+                            r.push_back(num_row(_L("Tooth shift"), "flat_belt_tooth_shift", {0., 0.25, 0.33, 0.5}, {}, {}));
                         }
                         if (seam == FlatBeltSeam::Slope)
                             r.push_back(num_row(_L("Slope angle"), "flat_belt_slope_angle", {0., 15., 20., 30.}, _L("Auto"),
@@ -3865,6 +3869,31 @@ Sidebar::Sidebar(Plater *parent)
                         // TRN Flight plan, flat belt Long parts: how far the belt moves the part out between segments; Max = as far as the bed allows
                         r.push_back(num_row(_L("Segment"), "flat_belt_segment_length", {0., 50., 100., 150.}, _L("Max"), "mm"));
                         r.push_back(num_row(_L("Belt speed"), "flat_belt_advance_speed", {3., 5., 10., 30.}, {}, "mm/s"));
+                        if (endless) {   // how many times the middle segment repeats, 0 = until stopped
+                            const int cnt = c.opt_int("flat_belt_endless_count");
+                            const wxString inf = wxString::FromUTF8("\xE2\x88\x9E");
+                            Row rep{_L("Repeats"), cnt == 0 ? inf : wxString::Format("%d", cnt)};
+                            for (int v : {0, 2, 5, 10}) {
+                                if (v == cnt) rep.current = int(rep.labels.size());
+                                rep.labels.push_back(v == 0 ? inf : wxString::Format("%d", v));
+                                rep.apply.push_back([v](DynamicPrintConfig& cfg) { cfg.set_key_value("flat_belt_endless_count", new ConfigOptionInt(v)); });
+                            }
+                            if (rep.current < 0) rep.current = int(rep.labels.size());
+                            rep.labels.push_back(_L("Custom"));
+                            rep.apply.push_back([cnt](DynamicPrintConfig& cfg) {
+                                wxTextEntryDialog dlg(nullptr, _L("Number of repeats, 0 until stopped"), _L("Repeats"), wxString::Format("%d", cnt));
+                                long v = 0;
+                                if (dlg.ShowModal() == wxID_OK && dlg.GetValue().ToLong(&v) && v >= 0)
+                                    cfg.set_key_value("flat_belt_endless_count", new ConfigOptionInt(int(v)));
+                            });
+                            r.push_back(std::move(rep));
+                        }
+                        // Toolhead and lift belong to the printer preset (as on the NEW MISSION screen)
+                        const DynamicPrintConfig& pc = bundle->printers.get_edited_preset().config;
+                        r.push_back(num_row(_L("Lift"), "flat_belt_lift", {3., 5., 10.}, {}, "mm", &pc));
+                        // TRN Flight plan, flat belt: toolhead clearance, p = nozzle tip below the toolhead, w = nozzle axis to the toolhead front
+                        r.push_back(num_row(_L("Toolhead p"), "flat_belt_head_clearance_z", {}, {}, "mm", &pc));
+                        r.push_back(num_row(_L("Toolhead w"), "flat_belt_head_clearance_y", {}, {}, "mm", &pc));
                     }
                 }
                 return r;
@@ -3939,7 +3968,15 @@ Sidebar::Sidebar(Plater *parent)
                 pop->Bind(wxEVT_LEFT_UP, [pop, chips, r, k](wxMouseEvent& ev) {
                     for (int c = 0; c < int(chips->size()); ++c)
                         if ((*chips)[c].Contains(ev.GetPosition())) {
-                            wxGetApp().plater()->apply_print_config(r[k].apply[c]);
+                            if (r[k].printer) {
+                                if (Tab* tab = wxGetApp().get_tab(Preset::TYPE_PRINTER)) {
+                                    DynamicPrintConfig cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+                                    r[k].apply[c](cfg);
+                                    tab->load_config(cfg);
+                                    wxGetApp().plater()->on_config_change(*tab->get_config());
+                                }
+                            } else
+                                wxGetApp().plater()->apply_print_config(r[k].apply[c]);
                             pop->Dismiss();
                             return;
                         }
