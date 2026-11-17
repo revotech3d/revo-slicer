@@ -68,6 +68,9 @@ LongPartsPlan plan_long_parts(const PrintConfig &config, double part_height, siz
     // A shorter segment, when asked for, moves the warm part out in smaller, gentler steps.
     if (const double segment = config.flat_belt_segment_length.value; segment > 0.)
         plan.advance = std::min(plan.advance, std::max(segment, 10.));
+    // Print at the back of the bed: a segment spans the advance plus the seam, so with short segments the
+    // part starts at Y max and the belt carries it slowly to the front, staying on the warm bed longer.
+    plan.bed_y_min += window - (plan.advance + plan.seam);
     return plan;
 }
 
@@ -348,7 +351,7 @@ std::string segment_long_parts(const std::string   &layers_gcode,
     }
 
     auto emit_segment = [&](size_t k) {
-        // Segment k sits on the bed after k advances: front of the part at the front of the print zone.
+        // Segment k sits on the bed after k advances, in the print zone at the back of the bed.
         em.set_shift(plan.bed_y_min - y_front - double(k) * plan.advance);
         for (size_t li = 1; li < layers.size(); ++li) {
             const Layer &layer = layers[li];

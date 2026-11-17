@@ -39,7 +39,7 @@ struct LongPartsPlan
     double step      = 0.;    // Steps seam, per layer
     double seam      = 0.;    // seam length along Y, mm
     double advance   = 0.;    // belt advance between segments, mm
-    double bed_y_min = 0.;    // front edge of the print zone, mm
+    double bed_y_min = 0.;    // front edge of the print zone, mm; the zone ends at the back margin of the bed
 };
 
 // Plans the seam and the belt advance for a part of the given height and layer count.

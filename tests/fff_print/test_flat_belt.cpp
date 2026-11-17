@@ -237,8 +237,11 @@ TEST_CASE("Long parts: short segments advance slowly", "[FlatBelt]")
             CHECK(line.find(" SPEED=8") != std::string::npos);
         }
     CHECK(advances >= 3); // 600 mm bar, 200 mm seam: four segments
+    // printed at the back of the bed: 100 + 200 mm zone ending at the back margin
     const Extrusions seg = extrusions(gcode, "FLAT_BELT_INFO");
     CHECK(seg.y_max <= BED - MARGIN + 0.01);
+    CHECK(seg.y_max >= BED - MARGIN - 2.);
+    CHECK(seg.y_min >= BED - MARGIN - 300. - 0.01);
     const Extrusions whole = extrusions(slice_long_bar(belt_config("fixed_bed", false)), "");
     CHECK_THAT(seg.e, WithinRel(whole.e, 0.01));
 }

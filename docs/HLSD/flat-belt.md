@@ -64,7 +64,8 @@ next segment lays its layers onto the previous one:
 
 The belt advance is the print zone length minus the seam. `flat_belt_segment_length` can make it
 shorter: a warm part leaves the bed in small steps and stays stuck to the belt where it is still
-hot. In every mode the belt moves at `flat_belt_advance_speed`, passed to
+hot. The print zone (advance plus seam) always ends at the back of the bed, so a part starts at
+Y max and the belt carries it to the front. In every mode the belt moves at `flat_belt_advance_speed`, passed to
 `flat_belt_advance_gcode` as `belt_advance_speed`.
 
 ## Endless
