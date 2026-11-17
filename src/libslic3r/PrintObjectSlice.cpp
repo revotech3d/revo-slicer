@@ -27,6 +27,7 @@
 #include "ObjectID.hpp"
 #include "Point.hpp"
 #include "Polygon.hpp"
+#include "FlatBelt.hpp"
 #include "Print.hpp"
 #include "BeltTransform.hpp"
 #include "BeltSliceStrategy.hpp"
@@ -876,6 +877,17 @@ void groupingVolumesForBrim(PrintObject* object, LayerPtrs& layers, int firstLay
     reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices, scaled_resolution);
 }
 
+BoundingBoxf PrintObject::flat_belt_part_extents() const
+{
+    BoundingBoxf bb;
+    for (const Layer *layer : m_layers)
+        for (const ExPolygon &expoly : layer->lslices) {
+            const BoundingBox b = get_extents(expoly.contour);
+            bb.merge(BoundingBoxf(unscale(b.min), unscale(b.max)));
+        }
+    return bb;
+}
+
 // Called by make_perimeters()
 // 1) Decides Z positions of the layers,
 // 2) Initializes layers and their regions
@@ -940,6 +952,17 @@ void PrintObject::slice()
 
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
     groupingVolumesForBrim(this, m_layers, firstLayerReplacedBy);
+
+    // Revo flat belt, Long parts: cut the layers along the segment seams, so each segment's piece gets its
+    // own closed walls along the steps or teeth (FlatBelt.hpp). Only the first object is printed in this mode.
+    if (m_print->flat_belt_mode() == FlatBeltMode::LongParts && !m_print->objects().empty() &&
+        m_print->objects().front() == this && !m_layers.empty()) {
+        FlatBelt::LongPartsPlan plan = FlatBelt::plan_long_parts(m_print->config(), m_layers.back()->print_z, m_layers.size());
+        const BoundingBoxf part = this->flat_belt_part_extents();
+        plan.x_origin = part.min.x();
+        FlatBelt::cut_long_parts_layers(plan, part, m_layers);
+        m_print->throw_if_canceled();
+    }
 
     // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(

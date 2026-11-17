@@ -1,7 +1,9 @@
 #include "FlatBelt.hpp"
 
 #include "BoundingBox.hpp"
+#include "ClipperUtils.hpp"
 #include "Exception.hpp"
+#include "Layer.hpp"
 #include "I18N.hpp"
 #include "PrintConfig.hpp"
 #include "format.hpp"
@@ -129,7 +131,7 @@ bool clip_y(double ya, double yb, double lo, double hi, double &t0, double &t1)
 // tooth depth in the valleys; a triangle wave along X, shifted by tooth_shift of a tooth per layer.
 double tooth_offset(const LongPartsPlan &plan, double x, size_t layer_idx)
 {
-    double phase = x / plan.tooth_width + double(layer_idx) * plan.tooth_shift;
+    double phase = (x - plan.x_origin) / plan.tooth_width + double(layer_idx) * plan.tooth_shift;
     phase -= std::floor(phase);
     return plan.tooth_depth * (1. - std::abs(2. * phase - 1.));
 }
@@ -145,9 +147,10 @@ std::vector<std::pair<double, double>> clip_teeth(const LongPartsPlan &plan, siz
     if (std::abs(dx) > 1e-9) {
         // phase(x) = x / W + s crosses a multiple of 1/2 at x = (n / 2 - s) * W
         const double s  = double(layer_idx) * plan.tooth_shift;
-        const double p0 = 2. * (std::min(xa, xb) / plan.tooth_width + s), p1 = 2. * (std::max(xa, xb) / plan.tooth_width + s);
+        const double x0 = plan.x_origin;
+        const double p0 = 2. * ((std::min(xa, xb) - x0) / plan.tooth_width + s), p1 = 2. * ((std::max(xa, xb) - x0) / plan.tooth_width + s);
         for (double n = std::ceil(p0); n <= p1; n += 1.) {
-            const double t = ((n / 2. - s) * plan.tooth_width - xa) / dx;
+            const double t = (x0 + (n / 2. - s) * plan.tooth_width - xa) / dx;
             if (t > 0. && t < 1.) cuts.push_back(t);
         }
         std::sort(cuts.begin(), cuts.end());
@@ -178,6 +181,64 @@ std::vector<std::pair<double, double>> clip_teeth(const LongPartsPlan &plan, siz
     }
     return out;
 }
+
+} // namespace
+
+size_t long_parts_segments(const LongPartsPlan &plan, double length)
+{
+    size_t n_seg = 1;
+    while (double(n_seg) * plan.advance + plan.seam < length)
+        ++n_seg;
+    return n_seg;
+}
+
+double long_parts_boundary(const LongPartsPlan &plan, double y_front, size_t j, size_t layer_idx, double z)
+{
+    const double recede = plan.steps ? double(layer_idx) * plan.step : z / plan.tan_alpha;
+    return y_front + double(j) * plan.advance + plan.seam - recede;
+}
+
+void cut_long_parts_layers(const LongPartsPlan &plan, const BoundingBoxf &part, const std::vector<Layer*> &layers)
+{
+    const size_t n_seg = long_parts_segments(plan, part.size().y());
+    if (n_seg < 2 || layers.empty())
+        return;
+    // A cut 0.05 mm wide keeps the pieces apart, so nothing merges them back into one island.
+    const float  half_gap = float(scale_(0.025));
+    const double x_a = part.min.x() - 1., x_b = part.max.x() + 1.;
+    for (size_t li = 0; li < layers.size(); ++li) {
+        Layer &layer = *layers[li];
+        Polylines cuts;
+        for (size_t j = 1; j < n_seg; ++j) {
+            const double b = long_parts_boundary(plan, part.min.y(), j, li, layer.print_z);
+            Polyline pl;
+            auto add = [&](double x) { pl.points.emplace_back(scale_(x), scale_(b - (plan.vsteps ? tooth_offset(plan, x, li) : 0.))); };
+            add(x_a);
+            if (plan.vsteps) {
+                // the tooth tips and valleys between the ends: phase crosses a multiple of 1/2
+                const double s = double(li) * plan.tooth_shift;
+                for (double n = std::floor(2. * ((x_a - plan.x_origin) / plan.tooth_width + s)) + 1.;; n += 1.) {
+                    const double x = plan.x_origin + (n / 2. - s) * plan.tooth_width;
+                    if (x >= x_b) break;
+                    if (x > x_a) add(x);
+                }
+            }
+            add(x_b);
+            cuts.push_back(std::move(pl));
+        }
+        const Polygons gaps = offset(cuts, half_gap);
+        for (LayerRegion *layerm : layer.regions()) {
+            Surfaces out;
+            for (const Surface &s : layerm->slices.surfaces)
+                for (ExPolygon &e : diff_ex(s.expolygon, gaps))
+                    out.emplace_back(s, std::move(e));
+            layerm->slices.surfaces = std::move(out);
+        }
+        layer.lslices = diff_ex(layer.lslices, gaps);
+    }
+}
+
+namespace {
 
 class Emitter
 {
@@ -305,6 +366,7 @@ std::string segment_long_parts(const std::string   &layers_gcode,
                                const LongPartsPlan &plan,
                                const PrintConfig   &config,
                                double               part_height,
+                               const BoundingBoxf  &part,
                                const std::string   &advance_gcode)
 {
     // 1) Parse into layers, with every move's start and end point.
@@ -313,14 +375,17 @@ std::string segment_long_parts(const std::string   &layers_gcode,
     if (!parse_layers(layers_gcode, layers, y_front, y_back))
         return layers_gcode;
 
-    // 2) Segment boundaries along the part: Ys_j = j * advance + seam, receding with each layer.
+    // 2) Segment boundaries along the part: Ys_j = j * advance + seam, receding with each layer. They are
+    //    measured from the part's outline, the same as the cuts in its layers (cut_long_parts_layers), so
+    //    every path lies inside one segment.
+    if (part.defined) {
+        y_front = part.min.y();
+        y_back  = part.max.y();
+    }
     const double length = y_back - y_front;
-    size_t n_seg = 1;
-    while (double(n_seg) * plan.advance + plan.seam < length)
-        ++n_seg;
+    const size_t n_seg  = long_parts_segments(plan, length);
     auto boundary = [&](size_t j, size_t layer_idx /* 0 based */) {
-        const double recede = plan.steps ? double(layer_idx) * plan.step : layers[layer_idx + 1].z / plan.tan_alpha;
-        return y_front + double(j) * plan.advance + plan.seam - recede;
+        return long_parts_boundary(plan, y_front, j, layer_idx, layers[layer_idx + 1].z);
     };
 
     const double retract   = config.retraction_length.get_at(0);

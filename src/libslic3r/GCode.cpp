@@ -4891,7 +4891,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Generate the whole part, then replay it segment by segment (FlatBelt.hpp).
                 const PrintObject &object = *print.objects().front();
                 const double height = object.layers().back()->print_z;
-                const FlatBelt::LongPartsPlan plan = FlatBelt::plan_long_parts(print.config(), height, object.layers().size());
+                // the part's outline in G-code coordinates, the frame the layers were cut in plus the instance shift
+                const BoundingBoxf part_obj = object.flat_belt_part_extents();
+                const Vec2d        shift    = unscale(object.instances().front().shift);
+                const BoundingBoxf part(part_obj.min + shift, part_obj.max + shift);
+                FlatBelt::LongPartsPlan plan = FlatBelt::plan_long_parts(print.config(), height, object.layers().size());
+                plan.x_origin = part.min.x();
                 std::string layers_gcode;
                 file.capture = &layers_gcode;
                 this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
@@ -4901,7 +4906,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 belt_config.set_key_value("belt_advance_speed", new ConfigOptionFloat(print.config().flat_belt_advance_speed.value));
                 const std::string advance_gcode = this->placeholder_parser_process("flat_belt_advance_gcode",
                     print.config().flat_belt_advance_gcode.value, initial_extruder_id, &belt_config);
-                file.write(FlatBelt::segment_long_parts(layers_gcode, plan, print.config(), height, advance_gcode));
+                file.write(FlatBelt::segment_long_parts(layers_gcode, plan, print.config(), height, part, advance_gcode));
             } else if (print.flat_belt_mode() == FlatBeltMode::Plates) {
                 // Generate the plate once, then replay it flat_belt_copies times with a belt advance between.
                 double height = 0.;

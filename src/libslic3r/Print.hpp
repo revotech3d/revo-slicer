@@ -404,6 +404,8 @@ public:
     // Height is used for slicing, for sorting the objects by height for sequential printing and for checking vertical clearence in sequential print mode.
     // The height is snug.
     coord_t 				     height() const         { return m_size.z(); }
+    // Revo flat belt, Long parts: extent of the sliced part (all layers) in its own XY frame, mm.
+    BoundingBoxf                 flat_belt_part_extents() const;
     double                      max_z() const         { return m_max_z; }
     // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
     const Point& 			     center_offset() const  { return m_center_offset; }

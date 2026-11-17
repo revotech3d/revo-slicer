@@ -29,10 +29,15 @@ and prime tower as usual. Only in Long parts does the plate open along Y
   the same text that starts and ends retracted above the plate. The plate is written once as the body
   of an `[sdcard_loop]`, followed by its belt advance; `flat_belt_copies` is the starting target,
   0 = until stopped.
-- **Long parts** – a part longer than the bed is printed in segments. GCode generates the
-  part's layers whole into a buffer; `FlatBelt::segment_long_parts()` replays them once per
-  segment, clipping each extrusion to the segment's band along Y, shifting it back onto the
-  bed and making its own travels and retractions. Between segments the belt advances.
+- **Long parts** – a part longer than the bed is printed in segments. While slicing,
+  `FlatBelt::cut_long_parts_layers()` cuts every layer along the segment boundaries (steps, V
+  teeth or slope) with a 0.05 mm gap, so each segment's piece of a layer is its own island and
+  gets closed walls along the seam: one outline around the steps or teeth instead of paths cut
+  at the seam, each with a retraction. GCode generates the part's layers whole into a buffer;
+  `FlatBelt::segment_long_parts()` replays them once per segment, keeping the paths inside the
+  segment's band along Y (the same boundaries, measured from the part's outline), shifting them
+  back onto the bed and making its own travels and retractions. Between segments the belt
+  advances. The seam settings therefore invalidate slicing, not only the G-code.
   One object can be as long as 32-bit coordinates around its centre allow (Arachne and the
   Voronoi code take int32): about 43 m at the 10 um resolution the plater picks for a flat
   belt printer, about 4.3 m at the default 1 nm; a longer part is refused with that limit and

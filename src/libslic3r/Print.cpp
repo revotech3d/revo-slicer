@@ -501,30 +501,31 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // Belt printer transform options change the mesh geometry before slicing.
             || opt_key == "belt_printer"
             || opt_key == "belt_slice_rotation"
-            || opt_key == "belt_slice_rotation_angle") {
+            || opt_key == "belt_slice_rotation_angle"
+            // Long parts: the layers are cut along the segment seams while slicing
+            || opt_key == "flat_belt"
+            || opt_key == "flat_belt_mode"
+            || opt_key == "flat_belt_seam"
+            || opt_key == "flat_belt_step_length"
+            || opt_key == "flat_belt_segment_length"
+            || opt_key == "flat_belt_tooth_width"
+            || opt_key == "flat_belt_tooth_depth"
+            || opt_key == "flat_belt_tooth_shift"
+            || opt_key == "flat_belt_slope_angle"
+            || opt_key == "flat_belt_head_clearance_z"
+            || opt_key == "flat_belt_head_clearance_y") {
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "belt_support_floor_offset") {
             osteps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "print_sequence"
-            || opt_key == "flat_belt"
-            || opt_key == "flat_belt_mode"
             || opt_key == "flat_belt_object_gap"
             || opt_key == "flat_belt_lift"
-            || opt_key == "flat_belt_seam"
-            || opt_key == "flat_belt_step_length"
-            || opt_key == "flat_belt_segment_length"
             || opt_key == "flat_belt_advance_speed"
-            || opt_key == "flat_belt_tooth_width"
-            || opt_key == "flat_belt_tooth_depth"
-            || opt_key == "flat_belt_tooth_shift"
-            || opt_key == "flat_belt_slope_angle"
             || opt_key == "flat_belt_endless"
             || opt_key == "flat_belt_endless_count"
             || opt_key == "flat_belt_copies"
-            || opt_key == "flat_belt_head_clearance_z"
-            || opt_key == "flat_belt_head_clearance_y"
             || opt_key == "flat_belt_advance_gcode"
             || opt_key == "flat_belt_eject"
             || opt_key == "flat_belt_eject_time"

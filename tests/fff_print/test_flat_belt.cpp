@@ -180,15 +180,35 @@ TEST_CASE("Long parts prints a part longer than the bed in segments on the bed",
     CHECK(seg.y_max <= BED - MARGIN + 0.01);
 }
 
-TEST_CASE("Long parts extrudes the same filament as the unsegmented part", "[FlatBelt]")
+TEST_CASE("Long parts extrudes the whole part plus walls along the seams", "[FlatBelt]")
 {
     const Extrusions whole = extrusions(slice_long_bar(belt_config("fixed_bed", false)), "");
     const Extrusions seg   = extrusions(slice_long_bar(belt_config("long_parts", false)), "FLAT_BELT_INFO");
     REQUIRE(whole.e > 0.);
-    CHECK_THAT(seg.e, WithinRel(whole.e, 0.01));
+    // nothing is lost; the cut at each seam adds the walls that close every segment's piece of a layer
+    CHECK(seg.e >= 0.99 * whole.e);
+    CHECK(seg.e <= 1.15 * whole.e);
 }
 
-TEST_CASE("V-steps joins the segments with teeth and extrudes the same filament", "[FlatBelt]")
+TEST_CASE("V-steps prints each segment's piece of a layer with closed walls along the teeth", "[FlatBelt]")
+{
+    DynamicPrintConfig config = belt_config("long_parts", false);
+    config.set_deserialize_strict({ { "flat_belt_seam", "vsteps" }, { "flat_belt_tooth_width", 8 }, { "flat_belt_tooth_depth", 8 } });
+    const std::string gcode = slice_long_bar(config);
+    // The layers are cut along the teeth before the walls are made, so no path is cut at the seam: a piece
+    // of a layer needs a few travels, not one per infill line crossing the teeth. 10 layers, 3 segments.
+    int retracts = 0;
+    bool on = false;
+    std::istringstream in(gcode);
+    for (std::string line; std::getline(in, line);) {
+        on = on || line.rfind("FLAT_BELT_INFO", 0) == 0;
+        if (on && line.rfind("G1 E-", 0) == 0)
+            ++retracts;
+    }
+    CHECK(retracts <= 15 * LAYERS * 3);
+}
+
+TEST_CASE("V-steps joins the segments with teeth", "[FlatBelt]")
 {
     DynamicPrintConfig config = belt_config("long_parts", false);
     config.set_deserialize_strict({
@@ -211,9 +231,10 @@ TEST_CASE("V-steps joins the segments with teeth and extrudes the same filament"
     const Extrusions seg = extrusions(gcode, "FLAT_BELT_INFO");
     CHECK(seg.y_min >= MARGIN - 0.01);
     CHECK(seg.y_max <= BED - MARGIN + 0.01);
-    // every bit of the part is printed exactly once, the teeth only move where one segment ends
+    // every bit of the part is printed, the teeth only move where one segment ends (plus their walls)
     const Extrusions whole = extrusions(slice_long_bar(belt_config("fixed_bed", false)), "");
-    CHECK_THAT(seg.e, WithinRel(whole.e, 0.01));
+    CHECK(seg.e >= 0.99 * whole.e);
+    CHECK(seg.e <= 1.15 * whole.e);
 }
 
 TEST_CASE("Long parts: short segments advance slowly", "[FlatBelt]")
@@ -243,7 +264,8 @@ TEST_CASE("Long parts: short segments advance slowly", "[FlatBelt]")
     CHECK(seg.y_max >= BED - MARGIN - 2.);
     CHECK(seg.y_min >= BED - MARGIN - 300. - 0.01);
     const Extrusions whole = extrusions(slice_long_bar(belt_config("fixed_bed", false)), "");
-    CHECK_THAT(seg.e, WithinRel(whole.e, 0.01));
+    CHECK(seg.e >= 0.99 * whole.e);
+    CHECK(seg.e <= 1.15 * whole.e);
 }
 
 TEST_CASE("V-steps refuses teeth too deep for the toolhead", "[FlatBelt]")
