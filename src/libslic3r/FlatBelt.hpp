@@ -59,7 +59,7 @@ double long_parts_boundary(const LongPartsPlan &plan, double y_front, size_t j, 
 // of a layer is its own island: the perimeters close along the seam, one outline around the steps or teeth,
 // and the G-code replay finds every path inside one segment instead of cutting paths at the seam into
 // short pieces with a retraction each. part: the part's extent in the layers' frame.
-void cut_long_parts_layers(const LongPartsPlan &plan, const BoundingBoxf &part, const std::vector<Layer*> &layers);
+void cut_long_parts_layers(const LongPartsPlan &plan, const BoundingBoxf &part, const std::vector<Slic3r::Layer*> &layers);
 
 // Plans the seam and the belt advance for a part of the given height and layer count.
 // Throws a SlicingError when the seam does not fit the bed.

@@ -198,7 +198,7 @@ double long_parts_boundary(const LongPartsPlan &plan, double y_front, size_t j, 
     return y_front + double(j) * plan.advance + plan.seam - recede;
 }
 
-void cut_long_parts_layers(const LongPartsPlan &plan, const BoundingBoxf &part, const std::vector<Layer*> &layers)
+void cut_long_parts_layers(const LongPartsPlan &plan, const BoundingBoxf &part, const std::vector<Slic3r::Layer*> &layers)
 {
     const size_t n_seg = long_parts_segments(plan, part.size().y());
     if (n_seg < 2 || layers.empty())
@@ -207,7 +207,7 @@ void cut_long_parts_layers(const LongPartsPlan &plan, const BoundingBoxf &part, 
     const float  half_gap = float(scale_(0.025));
     const double x_a = part.min.x() - 1., x_b = part.max.x() + 1.;
     for (size_t li = 0; li < layers.size(); ++li) {
-        Layer &layer = *layers[li];
+        Slic3r::Layer &layer = *layers[li];
         Polylines cuts;
         for (size_t j = 1; j < n_seg; ++j) {
             const double b = long_parts_boundary(plan, part.min.y(), j, li, layer.print_z);
