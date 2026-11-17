@@ -80,5 +80,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 200–230 °C, stół 20–90 °C.\nKarta techniczna: https://s3.extrudr.com/extrudr-media/datasheets/tds/tds-en/greentec-TDS-en.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"55"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"60"
+	],
+	"eng_plate_temp": [
+		"60"
+	],
+	"eng_plate_temp_initial_layer": [
+		"65"
 	]
 }

@@ -80,5 +80,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 230–260 °C, stół 65–75 °C.\nKarta techniczna: https://store.bblcdn.com/ce12d65176a94f1086e6aefa238e62e2.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"70"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"75"
+	],
+	"eng_plate_temp": [
+		"75"
+	],
+	"eng_plate_temp_initial_layer": [
+		"80"
 	]
 }

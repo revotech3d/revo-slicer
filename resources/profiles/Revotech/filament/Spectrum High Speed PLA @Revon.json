@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 190–215 °C, stół 0–60 °C.\nKarta techniczna: https://spectrumfilaments.com/wp-content/uploads/2024/05/en_tds_spectrum_high_speed.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"60"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"60"
+	],
+	"eng_plate_temp": [
+		"65"
+	],
+	"eng_plate_temp_initial_layer": [
+		"65"
 	]
 }

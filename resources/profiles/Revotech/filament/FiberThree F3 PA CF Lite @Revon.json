@@ -80,5 +80,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 290–310 °C, stół 0–90 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: http://fiberthree.com/downloads/tdb/filaments/TDS_F3_PA_CF_Lite_English_vers12_2024.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"90"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"90"
+	],
+	"eng_plate_temp": [
+		"95"
+	],
+	"eng_plate_temp_initial_layer": [
+		"95"
 	]
 }

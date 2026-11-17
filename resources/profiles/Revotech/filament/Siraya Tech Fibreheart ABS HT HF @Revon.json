@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 240–260 °C, stół 100–110 °C.\nKarta techniczna: https://siraya.tech/pages/fibreheart-abs-ht-hf-high-temp-filament-tds\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"105"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"110"
+	],
+	"eng_plate_temp": [
+		"110"
+	],
+	"eng_plate_temp_initial_layer": [
+		"115"
 	]
 }

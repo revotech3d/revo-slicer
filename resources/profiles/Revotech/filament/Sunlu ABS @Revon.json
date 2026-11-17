@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 250–290 °C, stół 80–100 °C.\nKarta techniczna: https://media.sunlu.com/prod/20260327/499dacc6-a1e4-4f81-b1ae-8bf1b8e424ec.pdf?filename=TDS\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"90"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"95"
+	],
+	"eng_plate_temp": [
+		"95"
+	],
+	"eng_plate_temp_initial_layer": [
+		"100"
 	]
 }

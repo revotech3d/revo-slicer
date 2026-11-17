@@ -96,5 +96,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 250–270 °C, stół 90–105 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0548/7299/7945/files/PolyLite_PC_TDS_EN_V5.4.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"100"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"105"
+	],
+	"eng_plate_temp": [
+		"105"
+	],
+	"eng_plate_temp_initial_layer": [
+		"110"
 	]
 }

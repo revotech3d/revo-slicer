@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 200–220 °C, stół 50–60 °C.\nKarta techniczna: https://overture3d.com/cdn/shop/files/OVERTURE_SILK_PLA_TDS_EN_V5.1_09e26446-13ed-49b4-a85f-b8a460d8b16e.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"55"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"60"
+	],
+	"eng_plate_temp": [
+		"60"
+	],
+	"eng_plate_temp_initial_layer": [
+		"65"
 	]
 }

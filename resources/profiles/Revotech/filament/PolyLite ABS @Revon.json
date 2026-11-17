@@ -83,5 +83,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 245–265 °C, stół 90–100 °C.\nKarta techniczna: https://polymaker.com/wp-content/uploads/lana-downloads/TDS_Polymaker_PolyLite-ABS_V5.6_2025-12-30_EN.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"95"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"100"
+	],
+	"eng_plate_temp": [
+		"100"
+	],
+	"eng_plate_temp_initial_layer": [
+		"105"
 	]
 }

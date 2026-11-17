@@ -60,5 +60,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 220–240 °C.\nKarta techniczna: http://fiberthree.com/downloads/tdb/filaments/TDS_F3_TPU_80A_English_vers_12_2024.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"35"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"35"
+	],
+	"eng_plate_temp": [
+		"40"
+	],
+	"eng_plate_temp_initial_layer": [
+		"40"
 	]
 }

@@ -83,5 +83,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 270–300 °C, stół 70–80 °C.\nKarta techniczna: https://fiberon.polymaker.com/wp-content/uploads/TDS_FIBERON-PET-CF17_V1.0_EN-1.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"75"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"80"
+	],
+	"eng_plate_temp": [
+		"80"
+	],
+	"eng_plate_temp_initial_layer": [
+		"85"
 	]
 }

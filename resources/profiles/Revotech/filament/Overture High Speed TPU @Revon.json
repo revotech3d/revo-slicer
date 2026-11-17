@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 200–240 °C, stół 25–60 °C.\nKarta techniczna: https://overture3d.com/cdn/shop/files/OVERTURE__HIGH_SPEED_TPU_TDS_EN_V5.1_112e83e3-da49-495b-bd52-96b491f2fc64.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"40"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"45"
+	],
+	"eng_plate_temp": [
+		"45"
+	],
+	"eng_plate_temp_initial_layer": [
+		"50"
 	]
 }

@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 180–220 °C, stół 0–70 °C.\nKarta techniczna: https://storage.googleapis.com/addnorth-com.appspot.com/imgix/assets/production/XPLA_TDS_kdctbP.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"70"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"70"
+	],
+	"eng_plate_temp": [
+		"75"
+	],
+	"eng_plate_temp_initial_layer": [
+		"75"
 	]
 }

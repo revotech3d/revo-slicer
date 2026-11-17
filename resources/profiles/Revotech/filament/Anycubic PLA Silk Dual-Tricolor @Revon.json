@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 210–240 °C, stół 55–65 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0685/7578/9245/files/ANYCUBIC_TDS_PLA_silk_V3.0.pdf?v=1757561075\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"60"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"65"
+	],
+	"eng_plate_temp": [
+		"65"
+	],
+	"eng_plate_temp_initial_layer": [
+		"70"
 	]
 }

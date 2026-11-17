@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 225–260 °C, stół 0–80 °C.\nKarta techniczna: https://storage.googleapis.com/addnorth-com.appspot.com/imgix/assets/production/petg_tds_rev11_ulRIZ3.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"80"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"80"
+	],
+	"eng_plate_temp": [
+		"85"
+	],
+	"eng_plate_temp_initial_layer": [
+		"85"
 	]
 }

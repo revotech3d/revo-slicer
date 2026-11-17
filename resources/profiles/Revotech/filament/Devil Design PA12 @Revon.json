@@ -80,5 +80,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 240–270 °C, stół 95–120 °C.\nKarta techniczna: https://devildesign.com/download/PA12_-_product_card.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"110"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"115"
+	],
+	"eng_plate_temp": [
+		"115"
+	],
+	"eng_plate_temp_initial_layer": [
+		"120"
 	]
 }

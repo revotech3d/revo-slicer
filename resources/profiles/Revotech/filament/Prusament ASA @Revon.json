@@ -75,5 +75,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 255–265 °C, stół 105–115 °C.\nKarta techniczna: https://storage.googleapis.com/prusa3d-content-prod-14e8-wordpress-prusament-prod/2024/05/bc8551ef-tds_prusament-asa_2024_en.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"110"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"115"
+	],
+	"eng_plate_temp": [
+		"115"
+	],
+	"eng_plate_temp_initial_layer": [
+		"120"
 	]
 }

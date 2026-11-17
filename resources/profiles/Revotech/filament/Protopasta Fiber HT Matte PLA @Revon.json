@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 200–220 °C, stół 55–55 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0717/9095/files/TDS__Matte_Fiber_HTPLA_1.0.0.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"55"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"55"
+	],
+	"eng_plate_temp": [
+		"60"
+	],
+	"eng_plate_temp_initial_layer": [
+		"60"
 	]
 }

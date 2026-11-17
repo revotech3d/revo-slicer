@@ -80,5 +80,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 220–270 °C, stół 100–110 °C.\nKarta techniczna: https://s3.extrudr.com/extrudr-media/datasheets/tds/tds-en/durapro-asa-TDS-en.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"105"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"110"
+	],
+	"eng_plate_temp": [
+		"110"
+	],
+	"eng_plate_temp_initial_layer": [
+		"115"
 	]
 }

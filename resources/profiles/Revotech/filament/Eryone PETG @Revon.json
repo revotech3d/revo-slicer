@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 230–250 °C, stół 75–80 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0252/0412/9841/files/ERYONE-PETG-TDS.pdf?v=1747274301\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"80"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"80"
+	],
+	"eng_plate_temp": [
+		"85"
+	],
+	"eng_plate_temp_initial_layer": [
+		"85"
 	]
 }

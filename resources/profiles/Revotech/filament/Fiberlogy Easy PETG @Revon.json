@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 220–250 °C, stół 90–90 °C.\nKarta techniczna: https://fiberlogy.com/app/uploads/2026/05/FIBERLOGY_EASYPETG_TDS.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"90"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"90"
+	],
+	"eng_plate_temp": [
+		"95"
+	],
+	"eng_plate_temp_initial_layer": [
+		"95"
 	]
 }

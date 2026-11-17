@@ -83,5 +83,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 265–285 °C, stół 100–120 °C.\nKarta techniczna: https://prusament.com/wp-content/uploads/2022/10/PCBlend_Prusament_TDS_2022_16_EN.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"110"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"115"
+	],
+	"eng_plate_temp": [
+		"115"
+	],
+	"eng_plate_temp_initial_layer": [
+		"120"
 	]
 }

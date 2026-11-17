@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 190–220 °C, stół 30–60 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: https://cdn.shopify.com/s/files/1/2424/8853/files/TDS_2025_Select_PLA_Marble.pdf?v=1744205199\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"45"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"50"
+	],
+	"eng_plate_temp": [
+		"50"
+	],
+	"eng_plate_temp_initial_layer": [
+		"55"
 	]
 }

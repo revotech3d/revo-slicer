@@ -38,5 +38,17 @@
 	"filament_max_volumetric_speed": [
 		"21",
 		"26"
+	],
+	"textured_cool_plate_temp": [
+		"80"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"80"
+	],
+	"eng_plate_temp": [
+		"85"
+	],
+	"eng_plate_temp_initial_layer": [
+		"85"
 	]
 }

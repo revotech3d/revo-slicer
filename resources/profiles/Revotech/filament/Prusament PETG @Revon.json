@@ -75,5 +75,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 240–260 °C, stół 70–90 °C.\nKarta techniczna: https://www.prusa3d.com/file/3464616/prusament-petg-technical-data-sheet.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"80"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"85"
+	],
+	"eng_plate_temp": [
+		"85"
+	],
+	"eng_plate_temp_initial_layer": [
+		"90"
 	]
 }

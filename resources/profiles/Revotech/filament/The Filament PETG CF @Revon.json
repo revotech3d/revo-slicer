@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 240–265 °C, stół 60–70 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: https://spectrumfilaments.com/wp-content/uploads/2024/11/eng_tds_the_filament_petg_cf.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"65"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"70"
+	],
+	"eng_plate_temp": [
+		"70"
+	],
+	"eng_plate_temp_initial_layer": [
+		"75"
 	]
 }

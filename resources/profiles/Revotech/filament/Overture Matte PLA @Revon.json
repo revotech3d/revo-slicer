@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 190–230 °C, stół 50–70 °C.\nKarta techniczna: https://overture3d.com/cdn/shop/files/OVERTURE_MATTE_PLA_TDS_EN_V5.1_0ae7a33c-dd34-49b9-a202-c6ba0fddfdcb.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"60"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"65"
+	],
+	"eng_plate_temp": [
+		"65"
+	],
+	"eng_plate_temp_initial_layer": [
+		"70"
 	]
 }

@@ -1,6 +1,7 @@
 #include "RevoMonek.hpp"
 //#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
+#include "RevoBedTypes.hpp"
 #include "PresetHints.hpp"
 #include "libslic3r/IMEXHelpers.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -5196,6 +5197,17 @@ void TabFilament::toggle_options()
     const unsigned int variant_index = selected_variant_index();
     if (!m_active_page)
         return;
+    {
+        // [r]evo Slicer: Revon printers show only their four plate types (textured PEI, smooth PEI,
+        // stainless steel, belt); the stainless steel plate and the belt reuse the Engineering and the
+        // Textured Cool Plate keys, see RevoBedTypes.hpp
+        const bool revo = revo_printer_model(wxGetApp().plater() ? wxGetApp().plater()->get_curr_printer_model() : nullptr);
+        toggle_line("supertack_plate_temp_initial_layer", !revo);
+        toggle_line("cool_plate_temp_initial_layer", !revo);
+        set_option_label("eng_plate_temp_initial_layer", revo ? _L("Stainless Steel Plate") : _L("Engineering Plate"));
+        set_option_label("textured_cool_plate_temp_initial_layer", revo ? _L("Belt") : _L("Textured Cool Plate"));
+        set_option_label("hot_plate_temp_initial_layer", revo ? _L("Smooth PEI Plate") : _L("Smooth PEI Plate / High Temp Plate"));
+    }
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
         is_BBL_printer = wxGetApp().preset_bundle->is_bbl_vendor();

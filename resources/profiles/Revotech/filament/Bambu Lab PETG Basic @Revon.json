@@ -80,5 +80,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 230–260 °C, stół 65–75 °C.\nKarta techniczna: https://store.bblcdn.com/s1/default/cb94589bf7994fdcbfa833badefae9cd/Bambu_PETG_Basic_Technical_Data_Sheet.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"70"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"75"
+	],
+	"eng_plate_temp": [
+		"75"
+	],
+	"eng_plate_temp_initial_layer": [
+		"80"
 	]
 }

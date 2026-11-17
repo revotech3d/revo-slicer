@@ -248,6 +248,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/RevoLicencja.hpp
     GUI/RevoKreator.cpp
     GUI/RevoKreator.hpp
+    GUI/RevoBedTypes.hpp
     GUI/RevoMonek.cpp
     GUI/RevoMonek.hpp
     GUI/GUI_App.hpp

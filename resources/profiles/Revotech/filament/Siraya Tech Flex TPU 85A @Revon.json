@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 200–225 °C, stół 20–50 °C.\nKarta techniczna: https://siraya.tech/pages/siraya-tech-fibreheart-flex-tpu-85a-tds\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"35"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"40"
+	],
+	"eng_plate_temp": [
+		"40"
+	],
+	"eng_plate_temp_initial_layer": [
+		"45"
 	]
 }

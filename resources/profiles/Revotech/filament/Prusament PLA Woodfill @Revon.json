@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 185–205 °C, stół 50–70 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: https://storage.googleapis.com/prusa3d-content-prod-14e8-wordpress-prusament-prod/2024/07/286c3bc0-tds_prusament_woodfill-linden-light_en.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"60"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"65"
+	],
+	"eng_plate_temp": [
+		"65"
+	],
+	"eng_plate_temp_initial_layer": [
+		"70"
 	]
 }

@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 235–255 °C, stół 90–90 °C.\nKarta techniczna: https://azurefilm.com/wp-content/uploads/2024/04/TDS-ABS-Prime.pptx.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"90"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"90"
+	],
+	"eng_plate_temp": [
+		"95"
+	],
+	"eng_plate_temp_initial_layer": [
+		"95"
 	]
 }

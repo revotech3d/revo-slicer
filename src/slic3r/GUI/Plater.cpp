@@ -1,6 +1,7 @@
 #include "RevoKreator.hpp"
 #include "RevoLicencja.hpp"
 #include "Plater.hpp"
+#include "RevoBedTypes.hpp"
 #include "../Utils/NetworkAgent.hpp"
 #include "IPrinterAgent.hpp"
 #include "CalibUtils.hpp"
@@ -4751,7 +4752,7 @@ bool Sidebar::reset_bed_type_combox_choices(bool is_sidebar_init)
                 continue;
             }
             m_cur_combox_bed_types.emplace_back(BedType(index));//BedType //btPC =1
-            p->combo_printer_bed->AppendString(_L(item));
+            p->combo_printer_bed->AppendString(revo_bed_label(item, revo_printer_model(pm)));
         }
     }
     else {

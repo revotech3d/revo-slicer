@@ -80,5 +80,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 260–280 °C, stół 90–100 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: https://fiberon.polymaker.com/wp-content/uploads/TDS_FIBERON-ASA-CF08_V1.0_EN.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"95"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"100"
+	],
+	"eng_plate_temp": [
+		"100"
+	],
+	"eng_plate_temp_initial_layer": [
+		"105"
 	]
 }

@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 230–260 °C, stół 90–100 °C.\nMateriał ścierny – drukuj dyszą hartowaną.\nKarta techniczna: https://api.nebulafilaments.com/wp-content/uploads/2025/02/TDS-ABS-GLOWING.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"95"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"100"
+	],
+	"eng_plate_temp": [
+		"100"
+	],
+	"eng_plate_temp_initial_layer": [
+		"105"
 	]
 }

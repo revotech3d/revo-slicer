@@ -68,5 +68,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 250–270 °C.\nKarta techniczna: http://fiberthree.com/downloads/tdb/filaments/TDS_F3_PA_Ortho_English_vers_12_2024.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"100"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"100"
+	],
+	"eng_plate_temp": [
+		"105"
+	],
+	"eng_plate_temp_initial_layer": [
+		"105"
 	]
 }

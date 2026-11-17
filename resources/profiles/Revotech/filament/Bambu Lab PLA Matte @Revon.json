@@ -80,5 +80,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 190–230 °C, stół 35–45 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0584/7236/6216/files/Bambu_PLA_Matte_Technical_Data_Sheet_60a941f9-8495-48ec-b1b0-52e07ff0f4c2.pdf?v=1734060943\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"40"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"45"
+	],
+	"eng_plate_temp": [
+		"45"
+	],
+	"eng_plate_temp_initial_layer": [
+		"50"
 	]
 }

@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 210–230 °C, stół 30–60 °C.\nKarta techniczna: https://cdn.shopify.com/s/files/1/0548/7299/7945/files/TDS_Polymaker_PLA_Pro_v6.0_2026-01-26_EN.pdf\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"45"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"50"
+	],
+	"eng_plate_temp": [
+		"50"
+	],
+	"eng_plate_temp_initial_layer": [
+		"55"
 	]
 }

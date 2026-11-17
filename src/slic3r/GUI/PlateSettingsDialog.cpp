@@ -1,5 +1,6 @@
 #include "PlateSettingsDialog.hpp"
 #include "MsgDialog.hpp"
+#include "RevoBedTypes.hpp"
 #include "Widgets/DialogButtons.hpp"
 #include <climits>
 #include <wx/event.h>
@@ -420,7 +421,7 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
             index++;
             bool find = std::find(pm->not_support_bed_types.begin(), pm->not_support_bed_types.end(), item) != pm->not_support_bed_types.end();
             if (!find) {
-                m_bed_type_choice->AppendString(_L(item));
+                m_bed_type_choice->AppendString(revo_bed_label(item, revo_printer_model(pm)));
                 m_cur_combox_bed_types.emplace_back(BedType(index));
             }
         }

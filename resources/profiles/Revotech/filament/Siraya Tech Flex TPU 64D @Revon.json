@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 240–270 °C, stół 45–45 °C.\nKarta techniczna: https://siraya.tech/pages/flex-tpu-64d-filament-tds\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"45"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"45"
+	],
+	"eng_plate_temp": [
+		"50"
+	],
+	"eng_plate_temp_initial_layer": [
+		"50"
 	]
 }

@@ -72,5 +72,17 @@
 	],
 	"filament_notes": [
 		"Uwaga: profil wykonany na podstawie dokumentacji producenta filamentu, wymaga dostrojenia.\nDane producenta: dysza 220–250 °C, stół 90–110 °C.\nŹródło: Open Filament Database."
+	],
+	"textured_cool_plate_temp": [
+		"100"
+	],
+	"textured_cool_plate_temp_initial_layer": [
+		"105"
+	],
+	"eng_plate_temp": [
+		"105"
+	],
+	"eng_plate_temp_initial_layer": [
+		"110"
 	]
 }
