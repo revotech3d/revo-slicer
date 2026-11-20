@@ -87,6 +87,7 @@ src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/RevoLicencja.cpp
 src/slic3r/GUI/RevoKreator.cpp
+src/slic3r/GUI/RevoMission.cpp
 src/slic3r/GUI/RevoBedTypes.hpp
 src/slic3r/GUI/GUI_AuxiliaryList.cpp
 src/slic3r/GUI/GUI_Init.cpp

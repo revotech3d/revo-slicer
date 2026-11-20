@@ -2,6 +2,7 @@
 #include "CloudProvider.hpp"
 #include "RevoLicencja.hpp"
 #include "RevoKreator.hpp"
+#include "RevoMission.hpp"
 #include "ExportPresetBundleDialog.hpp"
 #include "ICloudServiceAgent.hpp"
 #include "IPrinterAgent.hpp"
@@ -3826,6 +3827,9 @@ bool GUI_App::on_init_inner()
     // Close the splash now that the main UI is visible.
     if (scrn) { scrn->SetText(_L("Showing main window") + dots, 100); scrn->Destroy(); scrn = nullptr; }
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
+    // [r]evo Mission: start path (Simple Mission or Mission Control), unless the user chose not to be asked
+    if (is_editor())
+        mainframe->CallAfter([this]() { Slic3r::GUI::Revo::maybe_ask_start_path(mainframe); });
     // [r]evo Slicer: przy pierwszym uruchomieniu prosty kreator (poziom Newbie)
     if (is_editor() && get_saved_mode() == comSimple)
         mainframe->CallAfter([this]() { Slic3r::GUI::Revo::maybe_first_run_wizard(mainframe); });

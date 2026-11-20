@@ -200,6 +200,7 @@ class MainFrame : public DPIFrame
     // The latest EVT_LOAD_PRINTER_URL, applied when the web Device view is built.
     wxString              m_printer_url;
     wxString              m_printer_api_key;
+    wxMenu*               m_mission_menu{nullptr};
 
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
@@ -488,6 +489,10 @@ public:
     void        load_url(wxString url);
     void        load_printer_url(wxString url, wxString apikey = "");
     void        load_printer_url();
+    // [r]evo Mission: the docked machine, and the Mission menu rebuilt when the start path changes
+    const wxString& printer_url() const { return m_printer_url; }
+    const wxString& printer_api_key() const { return m_printer_api_key; }
+    void        update_mission_menu();
     bool        is_printer_view() const;
     void        refresh_plugin_tips();
     void RunScript(wxString js);

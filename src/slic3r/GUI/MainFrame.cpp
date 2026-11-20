@@ -1,4 +1,5 @@
 #include "RevoKreator.hpp"
+#include "RevoMission.hpp"
 #include "RevoLicencja.hpp"
 #include "MainFrame.hpp"
 #include "Widgets/Label.hpp"
@@ -3687,6 +3688,9 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);
     top_menu->AppendSeparator();
+    m_mission_menu = new wxMenu();
+    update_mission_menu();
+    m_topbar->AddDropDownSubMenu(m_mission_menu, _L("Mission"));
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
 
     // SoftFever calibrations
@@ -3867,6 +3871,9 @@ void MainFrame::init_menubar_as_editor()
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
     m_menubar->Append(calib_menu,wxString::Format("&%s", _L("Calibration")));
+    m_mission_menu = new wxMenu();
+    update_mission_menu();
+    m_menubar->Append(m_mission_menu, wxString::Format("&%s", _L("Mission")));
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);
@@ -4700,6 +4707,8 @@ void MainFrame::load_printer_url()
     // [r]evo: an empty address clears the device page (printer undocked or none docked)
     load_printer_url(url, apikey);
 }
+
+void MainFrame::update_mission_menu() { Slic3r::GUI::Revo::fill_mission_menu(m_mission_menu, this); }
 
 bool MainFrame::is_printer_view() const { return m_tabpanel->GetSelectedPageName() == TAB_ID_MONITOR; }
 
