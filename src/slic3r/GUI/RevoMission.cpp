@@ -1,19 +1,27 @@
 #include "RevoMission.hpp"
 
+#include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
 #include "I18N.hpp"
 #include "MainFrame.hpp"
 #include "MsgDialog.hpp"
-#include "PurgeModeDialog.hpp"
+#include "WebViewDialog.hpp"
+#include "slic3r/Utils/Http.hpp"
 #include "wxExtensions.hpp"
-#include "Widgets/CheckBox.hpp"
-#include "Widgets/DialogButtons.hpp"
-#include "Widgets/Label.hpp"
 #include "Widgets/WebView.hpp"
 #include "libslic3r/AppConfig.hpp"
 
+#include <nlohmann/json.hpp>
+
+#include <atomic>
+#include <map>
+#include <string>
+#include <thread>
+
+#include <wx/app.h>
 #include <wx/colour.h>
+#include <wx/time.h>
 #include <wx/event.h>
 #include <wx/frame.h>
 #include <wx/gdicmn.h>
@@ -30,6 +38,13 @@ namespace {
 constexpr const char* PATH_KEY = "revo_mission_path";   // "simple" | "control"
 constexpr const char* ASK_KEY  = "revo_mission_ask";     // "0" = don't ask at startup
 
+// Start screen state, GUI thread only: the path was picked this session, and the last summary of the docked machine.
+bool           g_answered = false;
+nlohmann::json g_summary;
+std::string    g_summary_base;
+long long      g_summary_at = 0;
+std::atomic<bool> g_fetching{false};
+
 const char* view_tab(MissionView v)
 {
     switch (v) {
@@ -39,79 +54,6 @@ const char* view_tab(MissionView v)
     default:                   return "zl";
     }
 }
-
-// Two cards: Simple Mission and Mission Control.
-class StartPathDialog : public DPIDialog
-{
-public:
-    explicit StartPathDialog(wxWindow* parent)
-        : DPIDialog(parent, wxID_ANY, _L("[r]evo Mission"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
-    {
-        SetBackgroundColour(*wxWHITE);
-        m_control = mission_control();
-
-        auto* sizer = new wxBoxSizer(wxVERTICAL);
-        auto* title = new Label(this, Label::Head_16, _L("How do you want to start?"));
-        sizer->Add(title, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
-
-        auto* cards = new wxBoxSizer(wxHORIZONTAL);
-        m_simple_card  = new PurgeModeBtnPanel(this, _L("Simple Mission"),
-                                               _L("Prepare and print. Just the slicer, as simple as it gets."), "tab_3d_active");
-        m_control_card = new PurgeModeBtnPanel(this, _L("Mission Control"),
-                                               _L("The slicer plus production: orders, queue and farm, clients, shops and print reports."),
-                                               "tab_multi_active");
-        for (auto* card : {m_simple_card, m_control_card}) {
-            card->SetMinSize(wxSize(FromDIP(220), FromDIP(150)));
-            const bool control = card == m_control_card;
-            card->Bind(wxEVT_LEFT_DOWN, [this, control](wxMouseEvent&) { select(control); });
-            card->Bind(wxEVT_LEFT_DCLICK, [this, control](wxMouseEvent&) { select(control); EndModal(wxID_OK); });
-        }
-        cards->Add(m_simple_card, 1, wxEXPAND | wxRIGHT, FromDIP(12));
-        cards->Add(m_control_card, 1, wxEXPAND);
-        sizer->Add(cards, 0, wxEXPAND | wxALL, FromDIP(20));
-
-        auto* ask_row = new wxBoxSizer(wxHORIZONTAL);
-        m_dont_ask    = new ::CheckBox(this);
-        ask_row->Add(m_dont_ask, 0, wxALIGN_CENTER_VERTICAL);
-        ask_row->Add(new Label(this, Label::Body_13, _L("Don't ask at startup (change it any time in the Mission menu)")), 0,
-                     wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
-        sizer->Add(ask_row, 0, wxLEFT | wxRIGHT, FromDIP(20));
-
-        auto* btns = new DialogButtons(this, {"OK"});
-        btns->GetOK()->SetLabel(_L("Start"));
-        btns->GetOK()->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); });
-        sizer->Add(btns, 0, wxEXPAND);
-
-        select(m_control);
-        SetSizerAndFit(sizer);
-        CenterOnParent();
-        wxGetApp().UpdateDlgDarkUI(this);
-    }
-
-    bool control() const { return m_control; }
-    bool dont_ask() const { return m_dont_ask->GetValue(); }
-
-protected:
-    void on_dpi_changed(const wxRect&) override
-    {
-        m_dont_ask->Rescale();
-        GetSizer()->SetSizeHints(this);
-        Refresh();
-    }
-
-private:
-    void select(bool control)
-    {
-        m_control = control;
-        m_simple_card->Select(!control);
-        m_control_card->Select(control);
-    }
-
-    PurgeModeBtnPanel* m_simple_card{nullptr};
-    PurgeModeBtnPanel* m_control_card{nullptr};
-    ::CheckBox*        m_dont_ask{nullptr};
-    bool               m_control{false};
-};
 
 // One window for all Mission views of the docked machine; signs in with the slicer's API key.
 class MissionFrame : public DPIFrame
@@ -186,12 +128,15 @@ private:
 
 MissionFrame* MissionFrame::s_instance = nullptr;
 
-// Scheme and host of the docked machine's web UI ("http://revon.local").
-wxString machine_base(const wxString& url)
+// Scheme and host of the docked machine's web UI ("http://revon.local"); empty when no printer is docked.
+wxString machine_base(wxString url)
 {
-    const int scheme = url.Find("://");
-    const int slash  = url.find('/', scheme == wxNOT_FOUND ? 0 : scheme + 3);
-    return slash == wxNOT_FOUND ? url : url.Left(slash);
+    if (url.IsEmpty())
+        return url;
+    if (url.Find("://") == wxNOT_FOUND)
+        url = "http://" + url;
+    const size_t slash = url.find('/', url.Find("://") + 3);
+    return slash == wxString::npos ? url : url.Left(slash);
 }
 
 } // namespace
@@ -210,21 +155,71 @@ void set_mission_control(bool on)
         f->update_mission_menu();
     if (!on && MissionFrame::s_instance)
         MissionFrame::s_instance->Close();
+    send_mission_home(on);
 }
 
-void maybe_ask_start_path(wxWindow* parent)
+void send_mission_home(bool refresh)
 {
-    static bool asked = false;
-    AppConfig*  c     = wxGetApp().app_config;
-    if (asked || !c || c->get(ASK_KEY) == "0")
+    WebViewPanel* home = WebViewPanel::if_built();
+    MainFrame*    main = wxGetApp().mainframe;
+    AppConfig*    c    = wxGetApp().app_config;
+    if (!home || !main || !c)
         return;
-    asked = true;
-    StartPathDialog dlg(parent);
-    if (dlg.ShowModal() != wxID_OK)
+    const bool        control = mission_control();
+    const std::string base    = into_u8(machine_base(main->printer_url()));
+    if (base != g_summary_base) {
+        g_summary      = nullptr;
+        g_summary_base = base;
+        g_summary_at   = 0;
+    }
+    nlohmann::json d = {{"control", control}, {"ask", !g_answered && c->get(ASK_KEY) != "0"}, {"summary", g_summary},
+                        {"machine", base.empty() ? "" : base.substr(base.find("://") + 3)}};
+    home->RunScript(wxString::Format("window.postMessage(%s)", from_u8(nlohmann::json({{"command", "revo_mission"}, {"data", d}}).dump())));
+
+    // Every 20 s while the start screen polls; the hub answers for the whole farm.
+    const long long now = wxGetUTCTime();
+    if (!refresh || !control || base.empty() || now - g_summary_at < 20 || g_fetching.exchange(true))
         return;
-    if (dlg.dont_ask())
-        c->set(ASK_KEY, "0");
-    set_mission_control(dlg.control());
+    g_summary_at = now;
+    std::thread([base, key = into_u8(main->printer_api_key())] {
+        nlohmann::json res;
+        Http::get(base + "/revo/sesja/mission-podsumowanie")
+            .header("X-Api-Key", key)
+            .timeout_connect(2)
+            .timeout_max(8)
+            .on_complete([&res](std::string body, unsigned status) {
+                try {
+                    if (status == 200)
+                        res = nlohmann::json::parse(body);
+                } catch (...) {}
+            })
+            .perform_sync();
+        wxTheApp->CallAfter([base, res] {
+            g_fetching = false;
+            if (base == g_summary_base && res.is_object()) {
+                g_summary = res;
+                send_mission_home(false);
+            }
+        });
+    }).detach();
+}
+
+void handle_home_message(const std::string& action, bool control, bool remember, const std::string& view)
+{
+    if (action == "start") {
+        g_answered = true;
+        if (AppConfig* c = wxGetApp().app_config; c && remember)
+            c->set(ASK_KEY, "0");
+        set_mission_control(control);
+    } else if (action == "switch") {
+        set_mission_control(!mission_control());
+    } else if (action == "open") {
+        static const std::map<std::string, MissionView> views = {
+            {"orders", MissionView::Orders}, {"queue", MissionView::Queue}, {"clients", MissionView::Clients}, {"shops", MissionView::Shops}};
+        const auto it = views.find(view);
+        open_mission(it == views.end() ? MissionView::Orders : it->second);
+    } else
+        send_mission_home(true);
 }
 
 void fill_mission_menu(wxMenu* menu, wxWindow* parent)
@@ -252,6 +247,8 @@ void fill_mission_menu(wxMenu* menu, wxWindow* parent)
                      [](wxCommandEvent&) {
                          if (AppConfig* c = wxGetApp().app_config)
                              c->set(ASK_KEY, "1");
+                         g_answered = false;
+                         send_mission_home(false);
                      },
                      "", nullptr, []() { return true; }, parent);
     append_menu_item(menu, wxID_ANY, _L("Switch to Simple Mission"), _L("Just the slicer"),

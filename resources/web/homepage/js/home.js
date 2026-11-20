@@ -162,6 +162,8 @@ function HandleStudio( pVal )
     ShowStaffPick(m_HotModelList);
   } else if (strCmd == "revo_mission_picker") {
     ShowMissionPicker(pVal["data"]);
+  } else if (strCmd == "revo_mission") {
+    ShowMissionHome(pVal["data"]);
   } else if (strCmd == "revo_printers") {
     ShowMyPrinters(pVal["printers"]);
   } else if (strCmd == "SetLoginPanelVisibility") {
@@ -823,4 +825,46 @@ function StartMission()
 		slope_angle:m_Mission.slope_angle*1, segment:Math.max(0, m_Mission.segment*1), adv_speed:m_Mission.adv_speed*1, endless_count:Math.max(0, Math.round(m_Mission.endless_count*1)),
 		lift:m_Mission.lift*1, clear_z:m_Mission.clear_z*1, clear_y:m_Mission.clear_y*1}}));
 	GotoMenu('printers');
+}
+
+
+/*---- [r]evo Mission: start path and production strip ----*/
+var m_Msn = { control: 0, remember: true, d: null };
+
+function MsnSend(action, extra)
+{
+	SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_mission",data:Object.assign({action:action},extra||{})}));
+}
+function MsnPick(c){ m_Msn.control=c; $("#MsnPath .MsnCard").each(function(){ $(this).toggleClass("on", $(this).attr("data-control")==String(c)); }); }
+function MsnRemember(){ m_Msn.remember=!m_Msn.remember; $("#MsnBox").toggleClass("on", m_Msn.remember); }
+function MsnStart(){ MsnSend("start", {control: !!m_Msn.control, remember: m_Msn.remember}); }
+
+function ShowMissionHome(d)
+{
+	m_Msn.d=d;
+	$("#MsnCap").text(d.control ? "[R]EVO MISSION CONTROL" : (d.ask ? "[R]EVO SLICER" : "[R]EVO SLICER · SIMPLE MISSION"));
+	$("#MsnSwitch").toggle(!d.ask).text(d.control ? "SWITCH TO SIMPLE MISSION" : "SWITCH TO MISSION CONTROL ▸");
+	if (d.ask && !$("#MsnPath").is(":visible")) MsnPick(d.control ? 1 : 0);
+	$("#MsnPath").toggle(!!d.ask);
+	let box=$("#MsnProd");
+	if (!d.control || d.ask) { box.hide().empty(); return; }
+	let s=d.summary;
+	if (!s) {
+		box.html('<div class="MsnNone">'+(d.machine ? 'CONNECTING TO '+PbEsc(d.machine)+'…' : 'DOCK A REVON PRINTER TO SEE ORDERS, QUEUE AND FARM. WITH A FARM, DOCK THE HUB MACHINE.')+'</div>').show();
+		return;
+	}
+	let n=s.nastepne;
+	let tile=function(view,k,v,unit,detail){ return '<div class="MsnTile" data-view="'+view+'"><div class="k">'+k+'</div><div class="v">'+v+'<small>'+unit+'</small></div><div class="d">'+detail+'</div></div>'; };
+	let html='<div class="PbSec" style="margin-top:22px"><span>PRODUCTION · '+PbEsc(s.machine_id)+(s.hub?' HUB':'')+' · '+s.maszyny+(s.maszyny==1?' MACHINE':' MACHINES')+'</span><a onClick="MsnSend(\'open\',{view:\'orders\'})">OPEN MISSION ▸</a></div>';
+	if (n) html+='<div class="MsnNext"><div class="k">NEXT IN QUEUE</div><div class="t">'+PbEsc(n.numer)+' · '+PbEsc(n.nazwa)+' · '+n.dobre+' / '+n.sztuk+' PCS'+
+		'<span>'+PbEsc(n.klient||'')+(n.termin?' · DUE '+PbEsc(n.termin):'')+'</span></div><div class="PbBtn PbBtnMain" onClick="MsnSend(\'open\',{view:\'queue\'})">OPEN QUEUE</div></div>';
+	let due=s.po_terminie?'<span class="r">'+s.po_terminie+' overdue</span> · ':'';
+	html+='<div class="MsnStrip">'+
+		tile('orders','ORDERS',s.otwarte,'OPEN',due+'<span class="a">'+s.w_tym_tygodniu+' due this week</span> · '+s.gotowe+' ready to ship')+
+		tile('queue','QUEUE & FARM',s.w_kolejce,'WAITING','<span class="b">'+s.drukuje+' printing</span> · <span class="g">'+s.wolne+' ready</span> · <span class="a">'+s.odbior+' removal</span>')+
+		tile('clients','CLIENTS',s.od_klienta_7d,'REPLIES · 7 DAYS',s.ostatnia?('Last: '+PbEsc(s.ostatnia.klient||s.ostatnia.numer)+' — “'+PbEsc(s.ostatnia.tekst)+'”'):'No client replies this week')+
+		tile('shops','SHOPS',s.sklep_nowe,'NEW ORDERS','From Base.com, waiting to be planned')+
+		'</div>';
+	box.html(html).show();
+	box.find(".MsnTile").click(function(){ MsnSend("open",{view:$(this).attr("data-view")}); });
 }

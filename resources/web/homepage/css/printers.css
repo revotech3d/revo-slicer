@@ -115,3 +115,36 @@ body, #RightBoard { background: #000 !important; }
 .PbBoard .MsFoot .PbBtn { background: #fff; color: #000; padding: 12px 28px; }
 /* [r]evo: four Belt mission types in one row */
 #MissionBoard .PbGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* ---- [r]evo Mission: wybór ścieżki i pasek produkcji ---- */
+.MsnPath{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0 8px}
+.MsnCard{position:relative;border:1px solid #2a2f36;padding:26px 28px 24px;cursor:pointer;min-height:190px;background:linear-gradient(180deg,rgba(255,255,255,.015),rgba(0,0,0,0));transition:border-color .2s,background .2s}
+.MsnCard:hover{border-color:#fff}
+.MsnCard.on{border-color:#5aa0ff;background:linear-gradient(180deg,rgba(90,160,255,.10),rgba(90,160,255,.02));box-shadow:0 0 0 1px #5aa0ff inset,0 0 40px rgba(90,160,255,.12)}
+.MsnCard svg{width:46px;height:46px;stroke:#cfd6df;fill:none;stroke-width:1.4}
+.MsnCard.on svg{stroke:#5aa0ff}
+.MsnCard b{display:block;font-weight:400;font-size:26px;letter-spacing:6px;margin:16px 0 8px;color:#fff}
+.MsnCard span{display:block;font-size:13px;color:#9aa4b2;letter-spacing:1px;line-height:1.6;max-width:460px}
+.MsnCard ul{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.MsnCard li{font-size:11px;letter-spacing:2px;color:#cfd6df;border:1px solid #2a2f36;padding:4px 9px}
+.MsnCard.on li{border-color:rgba(90,160,255,.45)}
+.MsnCard i{position:absolute;right:22px;top:22px;font-style:normal;font-size:11px;letter-spacing:3px;color:#5aa0ff}
+.MsnFoot{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px;font-size:11px;letter-spacing:2px;color:#9aa4b2}
+.MsnFoot label{display:flex;gap:10px;align-items:center;cursor:pointer}
+.MsnFoot .box{width:14px;height:14px;border:1px solid #5aa0ff;display:inline-block;position:relative}
+.MsnFoot .box.on:after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #5aa0ff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.MsnGo{background:#5aa0ff;color:#000;padding:10px 26px;letter-spacing:4px;font-size:13px;cursor:pointer}
+.MsnSwitch{font-size:11px;letter-spacing:3px;color:#5aa0ff;cursor:pointer;margin-left:18px}
+.MsnStrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0 6px}
+.MsnTile{border:1px solid #2a2f36;padding:14px 16px 16px;cursor:pointer;transition:border-color .2s}
+.MsnTile:hover{border-color:#5aa0ff}
+.MsnTile .k{font-size:10px;letter-spacing:3px;color:#9aa4b2}
+.MsnTile .v{font-size:34px;letter-spacing:2px;margin:6px 0 4px;color:#fff;font-weight:300}
+.MsnTile .v small{font-size:13px;letter-spacing:2px;color:#9aa4b2;margin-left:6px}
+.MsnTile .d{font-size:12px;color:#cfd6df;letter-spacing:.5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.MsnTile .a{color:#ffb547}.MsnTile .g{color:#5ee08f}.MsnTile .b{color:#5aa0ff}.MsnTile .r{color:#ff5a5a}
+.MsnNext{display:flex;align-items:center;gap:18px;border:1px solid #5aa0ff;padding:12px 16px;margin:8px 0 4px;background:rgba(90,160,255,.06)}
+.MsnNext .k{font-size:10px;letter-spacing:3px;color:#5aa0ff;white-space:nowrap}
+.MsnNext .t{flex:1;font-size:14px;letter-spacing:1px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.MsnNext .t span{color:#9aa4b2;font-size:12px;margin-left:10px}
+.MsnNone{border:1px dashed #2a2f36;padding:16px;margin:18px 0 6px;font-size:12px;letter-spacing:2px;color:#9aa4b2}

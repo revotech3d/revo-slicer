@@ -3827,9 +3827,6 @@ bool GUI_App::on_init_inner()
     // Close the splash now that the main UI is visible.
     if (scrn) { scrn->SetText(_L("Showing main window") + dots, 100); scrn->Destroy(); scrn = nullptr; }
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
-    // [r]evo Mission: start path (Simple Mission or Mission Control), unless the user chose not to be asked
-    if (is_editor())
-        mainframe->CallAfter([this]() { Slic3r::GUI::Revo::maybe_ask_start_path(mainframe); });
     // [r]evo Slicer: przy pierwszym uruchomieniu prosty kreator (poziom Newbie)
     if (is_editor() && get_saved_mode() == comSimple)
         mainframe->CallAfter([this]() { Slic3r::GUI::Revo::maybe_first_run_wizard(mainframe); });
@@ -5772,7 +5769,17 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 CallAfter([this] { Revo::show_connect_wizard(mainframe); });
             }
             else if (command_str.compare("homepage_myprinters") == 0) {   // [r]evo: lista dodanych drukarek
-                CallAfter([] { Revo::send_my_printers(); });
+                CallAfter([] {
+                    Revo::send_my_printers();
+                    Revo::send_mission_home(true);
+                });
+            }
+            else if (command_str.compare("homepage_mission") == 0) {   // [r]evo Mission: ścieżka startu, przełączanie, okno Mission
+                const std::string action   = root.get<std::string>("data.action", "");
+                const bool        control  = root.get<bool>("data.control", false);
+                const bool        remember = root.get<bool>("data.remember", false);
+                const std::string view     = root.get<std::string>("data.view", "");
+                CallAfter([action, control, remember, view] { Revo::handle_home_message(action, control, remember, view); });
             }
             else if (command_str.compare("homepage_selectprinter") == 0) {  // [r]evo: wybór aktywnej drukarki
                 const std::string name = root.get<std::string>("data.name", "");
