@@ -508,7 +508,19 @@ void PrintHostSendDialog::init()
     content_sizer->Add(txt_filename, 0, wxEXPAND);
     content_sizer->Add(label_dir_hint);
     content_sizer->AddSpacer(VERT_SPACING);
-    
+
+    // [r]evo Mission: the machine links a file to an order when the order number is in the file name
+    // (e.g. ZL-2026-0042_bracket.gcode), so this works with every printer host and with files copied by hand.
+    auto *label_order = new wxStaticText(this, wxID_ANY, _L("[r]evo Mission order number (optional)") + ":");
+    txt_order = new wxTextCtrl(this, wxID_ANY);
+    txt_order->SetHint(_L("e.g. ZL/2026/0042"));
+#ifdef __APPLE__
+    txt_order->OSXDisableAllSmartSubstitutions();
+#endif
+    content_sizer->Add(label_order);
+    content_sizer->Add(txt_order, 0, wxEXPAND);
+    content_sizer->AddSpacer(VERT_SPACING);
+
     if (combo_groups != nullptr) {
         // Repetier specific: Show a selection of file groups.
         auto *label_group = new wxStaticText(this, wxID_ANY, _L("Group"));
@@ -641,7 +653,19 @@ void PrintHostSendDialog::init()
 
 fs::path PrintHostSendDialog::filename() const
 {
-    return into_path(txt_filename->GetValue());
+    wxString path = txt_filename->GetValue();
+    wxString order = txt_order ? txt_order->GetValue().Strip(wxString::both) : wxString();
+    if (order.empty())
+        return into_path(path);
+    // ZL/2026/0042 -> ZL-2026-0042_ in front of the file name (a slash would be read as a directory)
+    for (wxChar c : wxString("/\\:*?\"<>| "))
+        order.Replace(wxString(c), "-");
+    const int last_slash = path.Find('/', true);
+    const wxString dir  = last_slash == wxNOT_FOUND ? wxString() : path.Left(last_slash + 1);
+    const wxString base = last_slash == wxNOT_FOUND ? path : path.Mid(last_slash + 1);
+    if (base.Lower().StartsWith(order.Lower()))
+        return into_path(path);
+    return into_path(dir + order + "_" + base);
 }
 
 PrintHostPostUploadAction PrintHostSendDialog::post_action() const
