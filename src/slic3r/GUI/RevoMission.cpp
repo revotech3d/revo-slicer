@@ -85,7 +85,11 @@ public:
                 message(format_wxstr(_L("Can't reach %1%. Check that the machine is on and in the same network."), m_base));
                 m_base.clear();   // retry on the next visit
             });
-            message(_L("Dock a Revon printer in Main Launch Control to see orders, queue and farm."));
+            // A page set before the web view is ready is dropped on macOS: show it once the view exists.
+            CallAfter([this] {
+                if (m_base.IsEmpty())
+                    message(_L("Dock a Revon printer in Main Launch Control to see orders, queue and farm."));
+            });
         }
         SetSizer(sizer);
         // Opened from the tab bar: follow the machine docked now.
@@ -275,6 +279,16 @@ void fill_mission_menu(wxMenu* menu, wxWindow* parent)
                      "", nullptr, []() { return true; }, parent);
     append_menu_item(menu, wxID_ANY, _L("Switch to Simple Mission"), _L("Just the slicer"),
                      [](wxCommandEvent&) { set_mission_control(false); }, "", nullptr, []() { return true; }, parent);
+}
+
+void mission_printer_changed()
+{
+    MainFrame* main = wxGetApp().mainframe;
+    if (!main || !MissionPanel::s_instance || !MissionPanel::s_instance->IsShownOnScreen())
+        return;
+    const wxString base = machine_base(main->printer_url());
+    if (!base.IsEmpty())
+        MissionPanel::s_instance->show(base, main->printer_api_key(), MissionView::Orders);
 }
 
 wxWindow* create_mission_page(wxWindow* parent)

@@ -1249,6 +1249,7 @@ void MainFrame::update_layout()
 #endif
         m_tabpanel->InsertPage(prepare_pos, TAB_ID_PREPARE, m_plater, _L("Prepare"), "tab_3d_active");
         m_tabpanel->InsertPage(prepare_pos + 1, TAB_ID_PREVIEW, m_plater, _L("Preview"), "tab_preview_active");
+        place_mission_tab();   // [r]evo: MISSION before Prepare
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 0);
 
         m_tabpanel->Bind(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, [this](wxCommandEvent& evt)
@@ -1625,6 +1626,7 @@ void MainFrame::init_tabpanel() {
         m_printer_api_key = evt.GetAPIkey();
         if (PrinterWebView* view = PrinterWebView::if_built())
             view->load_url(m_printer_url, m_printer_api_key);
+        Slic3r::GUI::Revo::mission_printer_changed();
     });
 
     m_multi_machine_page = new LazyPage<MultiMachinePage>(m_tabpanel, TAB_ID_MULTI_DEVICE, 40);
@@ -4717,8 +4719,8 @@ void MainFrame::update_mission_menu()
     if (Slic3r::GUI::Revo::mission_control() && idx == wxNOT_FOUND) {
         wxWindow* page = Slic3r::GUI::Revo::create_mission_page(m_tabpanel);
         page->Show(false);
-        // The first tab: production is managed before anything is prepared or printed.
         m_tabpanel->InsertPage(m_tabpanel->PositionAfter({TAB_ID_HOME}), TAB_ID_MISSION, page, _L("Mission"), "tab_mission_active");
+        place_mission_tab();
         fit_tab_labels();
     } else if (!Slic3r::GUI::Revo::mission_control() && idx != wxNOT_FOUND) {
         if (m_tabpanel->GetSelection() == idx)
@@ -4726,6 +4728,20 @@ void MainFrame::update_mission_menu()
         m_tabpanel->RemovePage(idx);
         fit_tab_labels();
     }
+}
+
+// The MISSION tab goes first, right before Prepare: production is managed before anything is prepared
+// or printed. Prepare is inserted after the menu bar builds the tab, so this runs again from update_layout().
+void MainFrame::place_mission_tab()
+{
+    const int idx     = m_tabpanel ? m_tabpanel->FindPageByName(TAB_ID_MISSION) : wxNOT_FOUND;
+    const int prepare = idx == wxNOT_FOUND ? wxNOT_FOUND : m_tabpanel->FindPageByName(TAB_ID_PREPARE);
+    if (prepare == wxNOT_FOUND || idx == prepare - 1)
+        return;
+    const bool selected = m_tabpanel->GetSelection() == idx;
+    wxWindow*  page     = m_tabpanel->GetPage(idx);
+    m_tabpanel->RemovePage(idx);
+    m_tabpanel->InsertPage(size_t(m_tabpanel->FindPageByName(TAB_ID_PREPARE)), TAB_ID_MISSION, page, _L("Mission"), "tab_mission_active", selected);
 }
 
 bool MainFrame::is_printer_view() const { return m_tabpanel->GetSelectedPageName() == TAB_ID_MONITOR; }

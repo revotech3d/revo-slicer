@@ -494,6 +494,7 @@ public:
     const wxString& printer_url() const { return m_printer_url; }
     const wxString& printer_api_key() const { return m_printer_api_key; }
     void        update_mission_menu();   // also shows or hides the MISSION tab
+    void        place_mission_tab();
     bool        is_printer_view() const;
     void        refresh_plugin_tips();
     void RunScript(wxString js);

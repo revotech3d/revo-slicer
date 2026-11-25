@@ -30,4 +30,7 @@ wxWindow* create_mission_page(wxWindow* parent);
 
 void open_mission(MissionView view);
 
+// The docked machine changed: reload the MISSION tab when it is on screen.
+void mission_printer_changed();
+
 } // namespace Slic3r::GUI::Revo
