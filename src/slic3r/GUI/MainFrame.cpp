@@ -4717,8 +4717,8 @@ void MainFrame::update_mission_menu()
     if (Slic3r::GUI::Revo::mission_control() && idx == wxNOT_FOUND) {
         wxWindow* page = Slic3r::GUI::Revo::create_mission_page(m_tabpanel);
         page->Show(false);
-        m_tabpanel->InsertPage(m_tabpanel->PositionAfter({TAB_ID_MONITOR_WEB, TAB_ID_MONITOR, TAB_ID_PREVIEW}), TAB_ID_MISSION, page,
-                               _L("Mission"), "tab_mission_active");
+        // The first tab: production is managed before anything is prepared or printed.
+        m_tabpanel->InsertPage(m_tabpanel->PositionAfter({TAB_ID_HOME}), TAB_ID_MISSION, page, _L("Mission"), "tab_mission_active");
         fit_tab_labels();
     } else if (!Slic3r::GUI::Revo::mission_control() && idx != wxNOT_FOUND) {
         if (m_tabpanel->GetSelection() == idx)

@@ -6,7 +6,6 @@
 #include "I18N.hpp"
 #include "format.hpp"
 #include "MainFrame.hpp"
-#include "MsgDialog.hpp"
 #include "WebViewDialog.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "wxExtensions.hpp"
@@ -231,6 +230,9 @@ void handle_home_message(const std::string& action, bool control, bool remember,
         if (AppConfig* c = wxGetApp().app_config; c && remember)
             c->set(ASK_KEY, "0");
         set_mission_control(control);
+        if (control)
+            if (MainFrame* main = wxGetApp().mainframe)
+                main->select_tab(wxString(TAB_ID_MISSION));
     } else if (action == "switch") {
         set_mission_control(!mission_control());
     } else if (action == "open") {
@@ -288,16 +290,11 @@ void open_mission(MissionView view)
     if (!main)
         return;
     const wxString base = machine_base(main->printer_url());
-    if (base.IsEmpty()) {
-        InfoDialog(main, _L("[r]evo Mission"),
-                   _L("Dock a Revon printer in Main Launch Control first. With a farm, dock the hub machine: it shows the queue of every machine."))
-            .ShowModal();
-        return;
-    }
     if (!mission_control())
         set_mission_control(true);
     main->select_tab(wxString(TAB_ID_MISSION));
-    if (MissionPanel::s_instance)
+    // Without a docked machine the tab itself says what to do.
+    if (MissionPanel::s_instance && !base.IsEmpty())
         MissionPanel::s_instance->show(base, main->printer_api_key(), view);
 }
 

@@ -3786,6 +3786,9 @@ bool GUI_App::on_init_inner()
     if (is_editor()) {
         if (starts_on_prepare()) {
             mainframe->select_tab(TAB_ID_PREPARE);
+        } else if (Revo::mission_control() && app_config->get("revo_mission_ask") == "0") {
+            // [r]evo Mission Control: production is the first screen
+            mainframe->select_tab(TAB_ID_MISSION);
         } else {
             mainframe->select_tab(TAB_ID_HOME);
         }
