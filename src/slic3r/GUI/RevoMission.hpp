@@ -1,7 +1,8 @@
 #pragma once
 // [r]evo Mission in [r]evo Slicer: on the start screen the user picks Simple Mission (the slicer) or Mission
 // Control (the slicer plus production). Mission Control fills the Mission menu and the start screen's production
-// strip; both open the docked machine's Mission views (orders, queue and farm, clients, shops) in a separate window.
+// strip and adds the MISSION tab next to DEVICE; menu items and strip tiles open the docked machine's Mission
+// views (orders, queue and farm, clients, shops) in that tab.
 
 #include <string>
 
@@ -23,6 +24,9 @@ void handle_home_message(const std::string& action, bool control, bool remember,
 
 // Rebuilds the Mission menu for the current path.
 void fill_mission_menu(wxMenu* menu, wxWindow* parent);
+
+// Page of the MISSION tab; MainFrame inserts it while Mission Control is on.
+wxWindow* create_mission_page(wxWindow* parent);
 
 void open_mission(MissionView view);
 

@@ -49,6 +49,7 @@
 // id of its own: sharing TAB_ID_MONITOR makes every name lookup resolve to whichever of the two
 // comes first, which silently defeats PluginPages' selection round-trip across a tab relayout.
 #define TAB_ID_MONITOR_WEB   "monitor_web"
+#define TAB_ID_MISSION       "mission"   // [r]evo Mission Control
 #define TAB_ID_MULTI_DEVICE  "multi_device"
 #define TAB_ID_PROJECT       "project"
 #define TAB_ID_CALIBRATION   "calibration"
@@ -492,7 +493,7 @@ public:
     // [r]evo Mission: the docked machine, and the Mission menu rebuilt when the start path changes
     const wxString& printer_url() const { return m_printer_url; }
     const wxString& printer_api_key() const { return m_printer_api_key; }
-    void        update_mission_menu();
+    void        update_mission_menu();   // also shows or hides the MISSION tab
     bool        is_printer_view() const;
     void        refresh_plugin_tips();
     void RunScript(wxString js);
