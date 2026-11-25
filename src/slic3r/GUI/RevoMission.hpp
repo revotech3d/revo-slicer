@@ -1,9 +1,10 @@
 #pragma once
 // [r]evo Mission in [r]evo Slicer: on the start screen the user picks Simple Mission (the slicer) or Mission
 // Control (the slicer plus production). Mission Control adds the MISSION tab, first before Prepare: orders, clients
-// and finished prints are kept by the slicer on this computer (data_dir()/revo_mission), so production is managed
-// without any printer; order items go to any added printer, online or offline, and finished prints come back from
-// the printers' agents to be attached to an order, a client or own production.
+// and finished prints are kept by the slicer on this computer (data_dir()/revo_mission), or by the main station of the
+// local network (RevoMissionNet), so production is managed without any printer; order items go to any added printer,
+// online or offline, and finished prints come back from the printers' agents to be attached to an order, a client or
+// own production.
 
 #include <string>
 
@@ -30,6 +31,11 @@ void fill_mission_menu(wxMenu* menu, wxWindow* parent);
 wxWindow* create_mission_page(wxWindow* parent);
 
 void open_mission(MissionView view);
+
+// The local network: this computer as the main station sharing its orders (when the user turned sharing on), or
+// working with another station's orders. Started when the main window exists, stopped on shutdown.
+void start_mission_network();
+void stop_mission_network();
 
 // Printer states changed: the MISSION tab updates its printers and queues.
 void mission_printer_changed();

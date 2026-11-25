@@ -8,7 +8,10 @@
      by the slicer on this computer (mission.json in the slicer's data folder), so production works without any printer.
      Printers are only where order items go: an item can be given to any added printer, online or not; finished prints
      come back from the printers and wait in "Unassigned prints" until they are attached to an order, a client or own
-     production. The page talks to the slicer through window.wx.postMessage; replies arrive as MissionApp.* calls. -->
+     production. The page talks to the slicer through window.wx.postMessage; replies arrive as MissionApp.* calls.
+     On a local network one slicer can be the main station: the others work on its orders (Station tab). Every saved
+     change stamps the records it touched ("zm") and deleted records leave a tombstone ("usuniete"), so the slicer can
+     merge copies from several stations record by record; the copy that comes back replaces the one shown. -->
 <style>
 @font-face{font-family:Rajdhani;font-weight:600;src:url(../homepage/fonts/Rajdhani-SemiBold.ttf)}
 @font-face{font-family:Rajdhani;font-weight:700;src:url(../homepage/fonts/Rajdhani-Bold.ttf)}
@@ -63,6 +66,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .warnbox{border:1px solid var(--err);color:var(--err);padding:10px;margin:10px 0;font-size:13px}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--blue);padding:9px 16px;display:none;font-size:13px}
 .hist{font-size:12px;color:var(--dim);margin:8px 0 0;padding-left:16px}
+#banner{display:none;margin-top:12px;padding:9px 12px;border:1px solid var(--blue);font-size:13px}
+#banner.off{border-color:var(--warn);color:var(--warn)}
+.ck{flex-direction:row;align-items:center;gap:8px;font:13px -apple-system,"Segoe UI",sans-serif;letter-spacing:0;text-transform:none;color:var(--text)}
+.ck input{width:auto}
+.kv{font-size:13px;line-height:1.9}.kv b{font-weight:400;color:var(--dim);display:inline-block;min-width:150px}
 </style>
 </head>
 <body>
@@ -71,6 +79,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <div><div class="cap">[r]evo Mission Control</div><h1>Production</h1></div>
     <div style="display:flex;gap:8px"><button class="b" onclick="editClient()">+ Client</button><button class="b p" onclick="editOrder()">+ New order</button></div>
   </div>
+  <div id="banner"></div>
   <div class="tabs" id="tabs"></div>
   <div id="view"></div>
 </main>
@@ -80,7 +89,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 "use strict";
 // ---------- store ----------
 const OWN = "";   // client id of own production (no external recipient)
-let D = null, PR = [], VIEW = "un", loaded = false;
+let D = null, PR = [], VIEW = "un", loaded = false, NET = {role: "local"}, BASE = {}, FOUND = null;
+const COLS = ["klienci", "zlecenia", "wydruki"];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const now = () => new Date().toISOString().slice(0, 19);
@@ -90,9 +100,34 @@ function send(cmd, extra) { try { window.wx.postMessage(JSON.stringify(Object.as
 function toast(t) { const e = $("toast"); e.textContent = t; e.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = "none", 3500); }
 function blank() { return {v: 1, nr: {rok: new Date().getFullYear(), n: 0}, klienci: [], zlecenia: [], wydruki: [], sync: {}}; }
 
+// Read-only: this computer works with a main station that does not answer.
+function readOnly() { return NET.role === "client" && !(NET.station && NET.station.connected); }
+// What changed since the copy last loaded: changed records get a new "zm", removed ones a tombstone.
+function sig(e) { const c = Object.assign({}, e); delete c.zm; return JSON.stringify(c); }
+function rebase() { BASE = {}; for (const k of COLS) BASE[k] = new Map(D[k].map(e => [e.id, sig(e)])); }
+function stamp() {
+  const t = Date.now();
+  D.usuniete = D.usuniete || {};
+  for (const k of COLS) {
+    const seen = new Set();
+    for (const e of D[k]) { seen.add(e.id); if (BASE[k].get(e.id) !== sig(e)) e.zm = t; }
+    for (const id of BASE[k].keys()) if (!seen.has(id)) D.usuniete[id] = t;
+  }
+}
+// Entry points that change data stop here while the copy is read-only.
+function blocked() { if (readOnly()) toast("The main station is off – this copy is read-only"); return readOnly(); }
 function save() {
+  if (readOnly()) { toast("The main station is off – this copy is read-only"); send("load"); return; }
+  stamp();
   D.podsumowanie = summary();
   send("save", {data: D});
+  rebase();
+}
+function norm(data) {
+  const d = data && data.v ? data : blank();
+  for (const k of COLS) d[k] = d[k] || [];
+  d.sync = d.sync || {};
+  return d;
 }
 function log(z, txt) { (z.historia = z.historia || []).unshift({at: now(), txt}); }
 function client(id) { return id === OWN ? {nazwa: "Own production"} : (D.klienci.find(k => k.id === id) || {nazwa: "?"}); }
@@ -160,19 +195,29 @@ function detach(w) {
 
 // ---------- replies from the slicer ----------
 window.MissionApp = {
-  onLoad(data) {
-    D = data && data.v ? data : blank();
-    for (const k of ["klienci", "zlecenia", "wydruki"]) D[k] = D[k] || [];
-    D.sync = D.sync || {};
+  onLoad(data, net) {
+    D = norm(data);
+    if (net) NET = net;
+    rebase();
     loaded = true;
     render();
     send("printers");
     send("prints", {since: D.sync});
   },
-  onSaved(ok) { if (!ok) toast("Could not save – check the disk"); },
+  // The merged copy after a save here or on another station.
+  onMerged(data) { if (!loaded) return; D = norm(data); rebase(); render(); },
+  onSaveFailed(msg) { toast(msg); },
+  onNet(net) { NET = net; if (loaded) render(); },
+  onNetResult(ok, msg) { toast(msg); send("net"); },
+  onFound(list) { FOUND = list; if (VIEW === "st") render(); if (!list.length) toast("No main station found – type its address"); },
+  onProfiles(r) {
+    toast(r.ok ? `Profiles synced · ${r.pulled} received (${r.added} new), ${r.pushed} sent` + (r.failed ? `, ${r.failed} failed` : "") +
+                 (r.pulled > r.added ? " · changed profiles apply after a restart" : "") : r.error);
+    NET.last_sync = r.last_sync; if (VIEW === "st") render();
+  },
   onPrinters(list) { PR = list || []; if (loaded) render(); },
   onPrints(host, name, list) {
-    if (!loaded || !Array.isArray(list)) return;
+    if (!loaded || !Array.isArray(list) || readOnly()) return;
     let added = 0, auto = 0;
     for (const r of list) {
       const id = host + "#" + r.id;
@@ -192,17 +237,29 @@ window.MissionApp = {
 function tabs() {
   const n = s => D.zlecenia.filter(z => stage(z) === s).length, up = unassignedPrints().length;
   const t = [["un", "Unassigned", n("un")], ["as", "Assigned", n("as")], ["ok", "Completed", n("ok")], ["ar", "Archive", n("ar")],
-             ["wy", "Unassigned prints", up], ["pr", "Printers", PR.length], ["kl", "Clients", D.klienci.length]];
+             ["wy", "Unassigned prints", up], ["pr", "Printers", PR.length], ["kl", "Clients", D.klienci.length],
+             ["st", "Station", NET.role === "main" ? "ON" : NET.role === "client" ? (readOnly() ? "OFF" : "LINK") : "—"]];
   $("tabs").innerHTML = t.map(([k, l, c]) =>
-    `<button class="${VIEW === k ? "on" : ""} ${(k === "wy" && c) || (k === "un" && c) ? "alert" : ""}" onclick="VIEW='${k}';render()">${l}<b>${c}</b></button>`).join("");
+    `<button class="${VIEW === k ? "on" : ""} ${(k === "wy" && c) || (k === "un" && c) || (k === "st" && c === "OFF") ? "alert" : ""}" onclick="VIEW='${k}';render()">${l}<b>${c}</b></button>`).join("");
+}
+function banner() {
+  const b = $("banner"), st = NET.station;
+  if (NET.role !== "client" || !st) { b.style.display = "none"; return; }
+  b.style.display = "block";
+  b.className = readOnly() ? "off" : "";
+  b.innerHTML = readOnly()
+    ? `Main station <b>${esc(st.name)}</b> is not answering${NET.error ? " (" + esc(NET.error) + ")" : ""} · read-only copy from ${esc(st.cache_at || "—")}`
+    : `Working on the orders of main station <b>${esc(st.name)}</b> · ${esc(st.host)}`;
 }
 function render() {
   if (!D) return;
+  banner();
   tabs();
   const v = $("view");
   if (["un", "as", "ok", "ar"].includes(VIEW)) v.innerHTML = ordersView(VIEW);
   else if (VIEW === "wy") v.innerHTML = printsView();
   else if (VIEW === "pr") v.innerHTML = printersView();
+  else if (VIEW === "st") v.innerHTML = stationView();
   else v.innerHTML = clientsView();
 }
 function ordersView(s) {
@@ -259,6 +316,58 @@ function clientsView() {
      <td class="mono">${D.zlecenia.filter(z => z.klient_id === k.id && ["un", "as"].includes(stage(z))).length}</td></tr>`).join("") + "</table>";
 }
 
+// ---------- station: sharing on the local network, other stations, profiles ----------
+function stationView() {
+  const kv = (k, v) => `<div><b>${k}</b>${v}</div>`;
+  if (NET.role === "client") {
+    const st = NET.station || {}, pr = NET.prof || {};
+    return `<div class="win"><div class="wt">Main station</div><div class="kv">
+        ${kv("Station", esc(st.name))}${kv("Address", `<span class="mono">${esc(st.host)}:${st.port}</span>`)}
+        ${kv("State", readOnly() ? `<span class="c-un">not answering · read-only copy from ${esc(st.cache_at || "—")}</span>` : '<span class="c-ok">connected</span>')}</div>
+        <div class="dim" style="font-size:12px;margin-top:8px">Orders, clients and prints are kept on the main station. When it is off, this computer shows the last copy and cannot change it.</div>
+        <div class="acts"><button class="b" onclick="send('net_push_local')">Copy this computer's orders to the station</button>
+          <button class="b x" onclick="send('net_leave')">Disconnect</button></div></div>
+      <div class="win"><div class="wt">Profiles</div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap">${[["machine", "Printers"], ["process", "Process"], ["filament", "Filament"]].map(([k, l]) =>
+          `<label class="ck"><input type="checkbox" id="pf_${k}" ${pr[k] !== false ? "checked" : ""} onchange="setProf()">${l}</label>`).join("")}</div>
+        <div class="dim" style="font-size:12px;margin-top:10px">Only your own presets are synced, both ways: the newer file wins and the one it replaces is kept in the profile-backup folder. New profiles appear at once, changed ones after the next start. Printer presets carry the printers' API keys; they travel encrypted with the station password.</div>
+        <div class="acts"><span class="dim" style="font-size:12px;margin-right:auto;align-self:center">Last sync: ${esc(NET.last_sync || "never")}</span>
+          <button class="b p" ${readOnly() ? "disabled" : ""} onclick="send('prof_sync');toast('Syncing profiles…')">Sync now</button></div></div>`;
+  }
+  const main = NET.role === "main";
+  let h = `<div class="win"><div class="wt">This computer as the main station <span class="pill ${main ? "c-ok" : "c-ar"}">${main ? "SHARING" : "PRIVATE"}</span></div>
+    <div class="dim" style="font-size:12px;margin-bottom:12px">${main
+      ? `Other [r]evo Slicer stations on the local network can work on these orders and sync profiles. Address: <span class="mono">${(NET.addrs || []).map(a => esc(a) + ":" + NET.port).join(", ") || "—"}</span>`
+      : "Orders stay on this computer only. Turn sharing on to let other stations in the building work on them with the password."}</div>
+    ${NET.error ? `<div class="warnbox">${esc(NET.error)}</div>` : ""}
+    <div class="f"><label>Station name<input id="st_name" value="${esc(NET.name)}"></label>
+      <label>Password<input id="st_pw" type="password" autocomplete="new-password" placeholder="${NET.has_password ? "unchanged" : "set a password"}"></label></div>
+    <div class="acts">${main
+      ? `<button class="b" onclick="share(true)">Save name / password</button><button class="b x" onclick="share(false)">Stop sharing</button>`
+      : `<button class="b p" onclick="share(true)">Share on local network</button>`}</div></div>`;
+  if (!main) h += `<div class="win"><div class="wt">Work with a main station</div>
+    <div class="dim" style="font-size:12px;margin-bottom:12px">Use the orders of another station on the local network. The orders on this computer stay here and come back when you disconnect.</div>
+    <div class="acts" style="justify-content:flex-start;margin:0 0 12px"><button class="b" onclick="FOUND=null;send('net_find');toast('Looking for stations…')">Find stations</button></div>
+    ${FOUND && FOUND.length ? `<table style="margin-bottom:12px">${FOUND.map(f => `<tr><td>${esc(f.name)}</td><td class="mono dim">${esc(f.host)}:${f.port}</td>
+      <td class="r"><button class="b sm" onclick="$('j_host').value='${esc(f.host)}';$('j_port').value='${f.port}';$('j_pw').focus()">Choose</button></td></tr>`).join("")}</table>` : ""}
+    <div class="f"><label>Address<input id="j_host" placeholder="192.168.0.10"></label><label>Port<input id="j_port" type="number" value="13660"></label>
+      <label>Password<input id="j_pw" type="password" autocomplete="off"></label></div>
+    <div class="acts"><button class="b p" onclick="joinStation()">Connect</button></div></div>`;
+  return h;
+}
+function share(on) {
+  const name = $("st_name").value.trim(), password = $("st_pw").value;
+  if (on && !password && !NET.has_password) return toast("Set a password for the station");
+  if (password && password.length < 6) return toast("Use at least 6 characters");
+  send("net_share", {on, name, password});
+}
+function joinStation() {
+  const host = $("j_host").value.trim(), port = +$("j_port").value || 13660, password = $("j_pw").value;
+  if (!host || !password) return toast("Address and password are needed");
+  send("net_join", {host, port, password}); toast("Connecting…");
+}
+function setProf() { send("prof_set", {machine: $("pf_machine").checked, process: $("pf_process").checked, filament: $("pf_filament").checked}); }
+
 // ---------- modals ----------
 function modal(html, wide) { $("box").className = "box" + (wide ? " wide" : ""); $("box").innerHTML = html; $("modal").style.display = "flex"; }
 function close_() { $("modal").style.display = "none"; }
@@ -276,6 +385,7 @@ function printerOptions(sel) {
 }
 let EDIT = null;
 function editOrder(id) {
+  if (blocked()) return;
   const z = id ? JSON.parse(JSON.stringify(order(id))) : {id: null, klient_id: OWN, po: "", termin: "", notatki: "", pozycje: [{id: uid("p"), nazwa: "", sztuk: 1, material: "", plik: "", drukarka: "", dobre: 0, wadliwe: 0}]};
   EDIT = z;
   modal(`<h2>${id ? "Edit " + esc(z.numer) : "New order"}</h2>
@@ -339,12 +449,14 @@ function showOrder(id) {
       <button class="b" onclick="close_()">Close</button></div>`, true);
 }
 function archive(id, on) {
+  if (blocked()) return;
   const z = order(id);
   z.archiwum = on ? now() : null; log(z, on ? "Archived" : "Restored from archive");
   save(); close_(); render(); toast(`${z.numer} ${on ? "archived" : "restored"}`);
 }
 // Deleting needs two steps: confirm, then type the order number.
 function askDelete(id) {
+  if (blocked()) return;
   const z = order(id);
   modal(`<h2>Delete ${esc(z.numer)}?</h2><div class="warnbox">The order, its items and history are removed from the list. Prints attached to it go back to Unassigned prints.</div>
     <div class="acts"><button class="b" onclick="close_()">Cancel</button><button class="b x" onclick="askDelete2('${id}')">Delete…</button></div>`);
@@ -363,6 +475,7 @@ function doDelete(id) {
   save(); close_(); render(); toast(`${z.numer} deleted`);
 }
 function attach(wid) {
+  if (blocked()) return;
   const w = D.wydruki.find(w => w.id === wid);
   const open = D.zlecenia.filter(z => ["un", "as", "ok"].includes(stage(z)));
   modal(`<h2>Attach print</h2><div class="dim" style="font-size:13px">${esc(w.plik)} · ${esc(w.drukarka)} · ${esc((w.koniec || "").replace("T", " ").slice(0, 16))}</div>
@@ -382,8 +495,9 @@ function doAttach(wid, own) {
   else return toast("Choose an order item, a client or own production");
   save(); close_(); render(); toast("Print attached");
 }
-function undoAttach(wid) { detach(D.wydruki.find(w => w.id === wid)); save(); render(); }
+function undoAttach(wid) { if (blocked()) return; detach(D.wydruki.find(w => w.id === wid)); save(); render(); }
 function editClient(id) {
+  if (blocked()) return;
   const k = id ? D.klienci.find(k => k.id === id) : {nazwa: "", email: "", tel: "", nip: "", notatki: ""};
   modal(`<h2>${id ? "Client" : "New client"}</h2><div class="f">
     <label>Name<input id="k_n" value="${esc(k.nazwa)}"></label><label>E-mail<input id="k_e" value="${esc(k.email)}"></label>
@@ -399,6 +513,8 @@ function saveClient(id) {
 }
 
 setInterval(() => { if (loaded) send("printers"); }, 15000);
+setInterval(() => { if (loaded && NET.role === "client") send("poll"); }, 10000);
+setInterval(() => { if (loaded && NET.role === "client" && !readOnly() && Object.values(NET.prof || {}).some(Boolean)) send("prof_sync"); }, 15 * 60000);
 setInterval(() => { if (loaded) send("prints", {since: D.sync}); }, 120000);
 send("load");
 </script>

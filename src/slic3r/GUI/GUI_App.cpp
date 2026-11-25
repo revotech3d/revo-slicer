@@ -1310,6 +1310,8 @@ void GUI_App::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown enter";
 
+    Revo::stop_mission_network();
+
 	if (m_removable_drive_manager) {
 		removable_drive_manager()->shutdown();
 	}
@@ -3792,6 +3794,7 @@ bool GUI_App::on_init_inner()
         } else {
             mainframe->select_tab(TAB_ID_HOME);
         }
+        Revo::start_mission_network();
     }
 
     sidebar().obj_list()->init();

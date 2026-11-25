@@ -28,6 +28,8 @@
 	<string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
 	<key>ATSApplicationFontsPath</key>
   	<string>fonts/</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>[r]evo Mission shares orders and profiles with other [r]evo Slicer stations on your local network.</string>
   <key>CFBundleURLTypes</key>
     <array>
       <dict>
