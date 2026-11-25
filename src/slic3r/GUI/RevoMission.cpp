@@ -4,6 +4,7 @@
 #include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
 #include "I18N.hpp"
+#include "format.hpp"
 #include "MainFrame.hpp"
 #include "MsgDialog.hpp"
 #include "WebViewDialog.hpp"
@@ -79,6 +80,13 @@ public:
         if (m_browser) {
             sizer->Add(m_browser, 1, wxEXPAND);
             m_browser->Bind(wxEVT_WEBVIEW_LOADED, &MissionPanel::on_loaded, this);
+            m_browser->Bind(wxEVT_WEBVIEW_ERROR, [this](wxWebViewEvent& e) {
+                e.Skip();
+                // TRN %1% is the machine address, e.g. http://192.168.0.38
+                message(format_wxstr(_L("Can't reach %1%. Check that the machine is on and in the same network."), m_base));
+                m_base.clear();   // retry on the next visit
+            });
+            message(_L("Dock a Revon printer in Main Launch Control to see orders, queue and farm."));
         }
         SetSizer(sizer);
         // Opened from the tab bar: follow the machine docked now.
@@ -102,6 +110,7 @@ public:
         if (!m_browser)
             return;
         if (base != m_base) {
+            message(format_wxstr(_L("Connecting to %1%…"), base));
             m_base           = base;
             m_redirected     = false;
             m_mission_loaded = false;
@@ -114,9 +123,24 @@ public:
     }
 
 private:
+    // A dark page in the slicer's style instead of a blank white one.
+    void message(const wxString& text)
+    {
+        wxString t = text;
+        t.Replace("&", "&amp;");
+        t.Replace("<", "&lt;");
+        m_browser->SetPage("<html><body style=\"margin:0;background:#05080c;color:#9aa4b2;font:12px -apple-system,Segoe UI,sans-serif;"
+                           "letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;height:100vh\">"
+                           "<div style=\"text-align:center\"><div style=\"color:#5aa0ff;font-size:11px;margin-bottom:14px\">[R]EVO MISSION CONTROL</div>" +
+                               t + "</div></body></html>",
+                           "about:blank");
+    }
+
     void on_loaded(wxWebViewEvent& evt)
     {
         evt.Skip();
+        if (m_base.IsEmpty() || m_browser->GetCurrentURL().StartsWith("about:"))
+            return;
         if (!m_browser->GetCurrentURL().Contains("mission.html")) {
             if (!m_redirected) {
                 m_redirected = true;
