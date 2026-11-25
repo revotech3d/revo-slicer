@@ -2,33 +2,37 @@
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
-#include "GUI_Utils.hpp"
 #include "I18N.hpp"
-#include "format.hpp"
 #include "MainFrame.hpp"
+#include "RevoKreator.hpp"
 #include "WebViewDialog.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/WebView.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Utils.hpp"
 
+#include <boost/filesystem.hpp>
+#include <boost/nowide/fstream.hpp>
 #include <nlohmann/json.hpp>
 
-#include <atomic>
+#include <algorithm>
 #include <map>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include <wx/app.h>
 #include <wx/colour.h>
-#include <wx/time.h>
+#include <wx/datetime.h>
 #include <wx/event.h>
-#include <wx/gdicmn.h>
 #include <wx/menu.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/string.h>
 #include <wx/webview.h>
+
+namespace fs = boost::filesystem;
 
 namespace Slic3r::GUI::Revo {
 
@@ -37,35 +41,80 @@ namespace {
 constexpr const char* PATH_KEY = "revo_mission_path";   // "simple" | "control"
 constexpr const char* ASK_KEY  = "revo_mission_ask";     // "0" = don't ask at startup
 
-// Start screen state, GUI thread only: the path was picked this session, and the last summary of the docked machine.
-bool           g_answered = false;
-nlohmann::json g_summary;
-std::string    g_summary_base;
-long long      g_summary_at = 0;
-std::atomic<bool> g_fetching{false};
+bool g_answered = false;   // the start path was picked this session
 
-const char* view_tab(MissionView v)
+const char* view_id(MissionView v)
 {
     switch (v) {
-    case MissionView::Queue:   return "kol";
-    case MissionView::Clients: return "kl";
-    case MissionView::Shops:   return "sk";
-    default:                   return "zl";
+    case MissionView::Assigned:   return "as";
+    case MissionView::Completed:  return "ok";
+    case MissionView::Prints:     return "wy";
+    case MissionView::Printers:   return "pr";
+    case MissionView::Clients:    return "kl";
+    default:                      return "un";
     }
 }
 
-// Scheme and host of the docked machine's web UI ("http://revon.local"); empty when no printer is docked.
-wxString machine_base(wxString url)
+// ---------- local store: orders, clients and finished prints live on this computer ----------
+
+fs::path store_dir() { return fs::path(data_dir()) / "revo_mission"; }
+fs::path store_file() { return store_dir() / "mission.json"; }
+
+std::string read_store()
 {
-    if (url.IsEmpty())
-        return url;
-    if (url.Find("://") == wxNOT_FOUND)
-        url = "http://" + url;
-    const size_t slash = url.find('/', url.Find("://") + 3);
-    return slash == wxString::npos ? url : url.Left(slash);
+    boost::nowide::ifstream f(store_file().string(), std::ios::binary);
+    if (!f)
+        return "null";
+    std::string s((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    try {
+        return nlohmann::json::parse(s).dump();
+    } catch (...) {
+        return "null";
+    }
 }
 
-// The Mission tab: the docked machine's Mission page, signed in with the slicer's API key.
+// Written to a temporary file and renamed, so a crash never leaves half a file. One copy per day is kept for 30 days.
+bool write_store(const nlohmann::json& data)
+{
+    try {
+        fs::create_directories(store_dir());
+        const fs::path tmp = store_file().string() + ".tmp";
+        {
+            boost::nowide::ofstream f(tmp.string(), std::ios::binary | std::ios::trunc);
+            f << data.dump(1);
+            if (!f)
+                return false;
+        }
+        fs::rename(tmp, store_file());
+        const fs::path daily = store_dir() / ("mission-" + into_u8(wxDateTime::Now().FormatISODate()) + ".json");
+        fs::copy_file(store_file(), daily, fs::copy_options::overwrite_existing);
+        std::vector<fs::path> old;
+        for (const auto& e : fs::directory_iterator(store_dir()))
+            if (e.path().filename().string().rfind("mission-", 0) == 0)
+                old.push_back(e.path());
+        std::sort(old.begin(), old.end());
+        for (size_t i = 0; i + 30 < old.size(); ++i)
+            fs::remove(old[i]);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+nlohmann::json g_summary;   // last summary the Mission page saved, for the start screen
+
+// Scheme and host of a printer's web UI ("http://192.168.0.38").
+std::string machine_base(std::string url)
+{
+    if (url.empty())
+        return url;
+    if (url.find("://") == std::string::npos)
+        url = "http://" + url;
+    const size_t slash = url.find('/', url.find("://") + 3);
+    return slash == std::string::npos ? url : url.substr(0, slash);
+}
+
+// The MISSION tab: the local Mission Control page.
 class MissionPanel : public wxPanel
 {
 public:
@@ -78,88 +127,111 @@ public:
         m_browser   = WebView::CreateWebView(this, wxEmptyString);
         if (m_browser) {
             sizer->Add(m_browser, 1, wxEXPAND);
-            m_browser->Bind(wxEVT_WEBVIEW_LOADED, &MissionPanel::on_loaded, this);
-            m_browser->Bind(wxEVT_WEBVIEW_ERROR, [this](wxWebViewEvent& e) {
+            m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &MissionPanel::on_message, this);
+            m_browser->Bind(wxEVT_WEBVIEW_LOADED, [this](wxWebViewEvent& e) {
                 e.Skip();
-                // TRN %1% is the machine address, e.g. http://192.168.0.38
-                message(format_wxstr(_L("Can't reach %1%. Check that the machine is on and in the same network."), m_base));
-                m_base.clear();   // retry on the next visit
+                m_ready = true;
+                if (!m_view.empty())
+                    show(m_view);
             });
-            // A page set before the web view is ready is dropped on macOS: show it once the view exists.
             CallAfter([this] {
-                if (m_base.IsEmpty())
-                    message(_L("Dock a Revon printer in Main Launch Control to see orders, queue and farm."));
+                WebView::LoadUrl(m_browser, file_url_from_path(fs::path(resources_dir()) / "web" / "mission" / "index.html"));
             });
         }
         SetSizer(sizer);
-        // Opened from the tab bar: follow the machine docked now.
-        Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
-            e.Skip();
-            if (!e.IsShown())
-                return;
-            if (MainFrame* main = wxGetApp().mainframe) {
-                const wxString base = machine_base(main->printer_url());
-                if (!base.IsEmpty() && base != m_base)
-                    show(base, main->printer_api_key(), MissionView::Orders);
-            }
-        });
     }
     ~MissionPanel() override { s_instance = nullptr; }
 
-    // Loads the machine's Mission page when the docked machine changed, then shows `view`.
-    void show(const wxString& base, const wxString& key, MissionView view)
+    void show(const std::string& view)
     {
-        m_tab = view_tab(view);
-        if (!m_browser)
-            return;
-        if (base != m_base) {
-            message(format_wxstr(_L("Connecting to %1%…"), base));
-            m_base           = base;
-            m_redirected     = false;
-            m_mission_loaded = false;
-            // The agent sets the session cookie and redirects to `next`; an older Revo OS ignores `next`
-            // and lands on the Revo Panel, which on_loaded() turns into the Mission page.
-            WebView::LoadUrl(m_browser, key.IsEmpty() ? m_base + "/mission.html" :
-                                                        m_base + "/revo/sesja/klucz?k=" + key + "&next=%2Fmission.html");
-        } else if (m_mission_loaded)
-            WebView::RunScript(m_browser, wxString::Format("if(typeof tab==='function')tab('%s')", m_tab));
+        m_view = view;
+        if (m_ready)
+            call("MissionApp.show", nlohmann::json(view).dump());
+    }
+
+    // New printer states: the Printers view and the printer choice in orders follow.
+    void printers_changed()
+    {
+        if (m_ready)
+            call("MissionApp.onPrinters", my_printers_json().dump());
     }
 
 private:
-    // A dark page in the slicer's style instead of a blank white one.
-    void message(const wxString& text)
-    {
-        wxString t = text;
-        t.Replace("&", "&amp;");
-        t.Replace("<", "&lt;");
-        m_browser->SetPage("<html><body style=\"margin:0;background:#05080c;color:#9aa4b2;font:12px -apple-system,Segoe UI,sans-serif;"
-                           "letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;height:100vh\">"
-                           "<div style=\"text-align:center\"><div style=\"color:#5aa0ff;font-size:11px;margin-bottom:14px\">[R]EVO MISSION CONTROL</div>" +
-                               t + "</div></body></html>",
-                           "about:blank");
-    }
+    void call(const char* fn, const std::string& args) { WebView::RunScript(m_browser, wxString::Format("%s(%s)", fn, from_u8(args))); }
 
-    void on_loaded(wxWebViewEvent& evt)
+    void on_message(wxWebViewEvent& evt)
     {
-        evt.Skip();
-        if (m_base.IsEmpty() || m_browser->GetCurrentURL().StartsWith("about:"))
-            return;
-        if (!m_browser->GetCurrentURL().Contains("mission.html")) {
-            if (!m_redirected) {
-                m_redirected = true;
-                WebView::LoadUrl(m_browser, m_base + "/mission.html");
-            }
+        nlohmann::json msg;
+        try {
+            msg = nlohmann::json::parse(into_u8(evt.GetString()));
+        } catch (...) {
             return;
         }
-        m_mission_loaded = true;
-        WebView::RunScript(m_browser, wxString::Format("if(typeof tab==='function')tab('%s')", m_tab));
+        const std::string cmd = msg.value("cmd", "");
+        // Replies run after this handler returns: no window work on the stack of a script message.
+        if (cmd == "load") {
+            CallAfter([this] { call("MissionApp.onLoad", read_store()); });
+        } else if (cmd == "save" && msg.contains("data")) {
+            const bool ok = write_store(msg["data"]);
+            g_summary     = msg["data"].value("podsumowanie", nlohmann::json());
+            CallAfter([this, ok] {
+                call("MissionApp.onSaved", ok ? "true" : "false");
+                send_mission_home(false);
+            });
+        } else if (cmd == "printers") {
+            CallAfter([this] {
+                printers_changed();
+                const long long now = wxGetUTCTime();
+                if (now - m_refreshed > 15) {
+                    m_refreshed = now;
+                    refresh_printers();
+                }
+            });
+        } else if (cmd == "prints") {
+            fetch_prints(msg.value("since", nlohmann::json::object()));
+        }
     }
 
-    wxWebView* m_browser{nullptr};
-    wxString   m_base;
-    wxString   m_tab{"zl"};
-    bool       m_redirected{false};
-    bool       m_mission_loaded{false};
+    // Finished prints from every added printer that answers; offline printers are asked again later.
+    void fetch_prints(const nlohmann::json& since)
+    {
+        for (const PrinterLink& p : printer_links()) {
+            if (p.key.empty())
+                continue;
+            const std::string base = machine_base(p.host);
+            const std::string od   = since.is_object() && since.contains(base.substr(base.find("://") + 3)) ?
+                                         since.value(base.substr(base.find("://") + 3), "") : "";
+            std::thread([p, base, od] {
+                std::string body;
+                Http::get(base + "/revo/sesja/wydruki?od=" + Http::url_encode(od))
+                    .header("X-Api-Key", p.key)
+                    .timeout_connect(2)
+                    .timeout_max(8)
+                    .on_complete([&body](std::string b, unsigned status) {
+                        if (status == 200)
+                            body = std::move(b);
+                    })
+                    .perform_sync();
+                if (body.empty())
+                    return;
+                wxTheApp->CallAfter([p, base, body] {
+                    if (!s_instance)
+                        return;
+                    try {
+                        const auto j = nlohmann::json::parse(body);
+                        const std::string host = base.substr(base.find("://") + 3);
+                        s_instance->call("MissionApp.onPrints", nlohmann::json(host).dump() + "," + nlohmann::json(p.name).dump() + "," +
+                                                                    j.value("wydruki", nlohmann::json::array()).dump());
+                    } catch (...) {}
+                });
+            }).detach();
+        }
+    }
+
+    wxWebView*  m_browser{nullptr};
+    bool        m_ready{false};
+    std::string m_view;
+    long long   m_refreshed{0};
 };
 
 MissionPanel* MissionPanel::s_instance = nullptr;
@@ -178,53 +250,21 @@ void set_mission_control(bool on)
         c->set(PATH_KEY, on ? "control" : "simple");
     if (MainFrame* f = wxGetApp().mainframe)
         f->update_mission_menu();
-    send_mission_home(on);
+    send_mission_home(false);
 }
 
-void send_mission_home(bool refresh)
+void send_mission_home(bool /*refresh*/)
 {
     WebViewPanel* home = WebViewPanel::if_built();
-    MainFrame*    main = wxGetApp().mainframe;
     AppConfig*    c    = wxGetApp().app_config;
-    if (!home || !main || !c)
+    if (!home || !c)
         return;
-    const bool        control = mission_control();
-    const std::string base    = into_u8(machine_base(main->printer_url()));
-    if (base != g_summary_base) {
-        g_summary      = nullptr;
-        g_summary_base = base;
-        g_summary_at   = 0;
-    }
-    nlohmann::json d = {{"control", control}, {"ask", !g_answered && c->get(ASK_KEY) != "0"}, {"summary", g_summary},
-                        {"machine", base.empty() ? "" : base.substr(base.find("://") + 3)}};
+    if (g_summary.is_null())
+        try {
+            g_summary = nlohmann::json::parse(read_store()).value("podsumowanie", nlohmann::json());
+        } catch (...) {}
+    nlohmann::json d = {{"control", mission_control()}, {"ask", !g_answered && c->get(ASK_KEY) != "0"}, {"summary", g_summary}};
     home->RunScript(wxString::Format("window.postMessage(%s)", from_u8(nlohmann::json({{"command", "revo_mission"}, {"data", d}}).dump())));
-
-    // Every 20 s while the start screen polls; the hub answers for the whole farm.
-    const long long now = wxGetUTCTime();
-    if (!refresh || !control || base.empty() || now - g_summary_at < 20 || g_fetching.exchange(true))
-        return;
-    g_summary_at = now;
-    std::thread([base, key = into_u8(main->printer_api_key())] {
-        nlohmann::json res;
-        Http::get(base + "/revo/sesja/mission-podsumowanie")
-            .header("X-Api-Key", key)
-            .timeout_connect(2)
-            .timeout_max(8)
-            .on_complete([&res](std::string body, unsigned status) {
-                try {
-                    if (status == 200)
-                        res = nlohmann::json::parse(body);
-                } catch (...) {}
-            })
-            .perform_sync();
-        wxTheApp->CallAfter([base, res] {
-            g_fetching = false;
-            if (base == g_summary_base && res.is_object()) {
-                g_summary = res;
-                send_mission_home(false);
-            }
-        });
-    }).detach();
 }
 
 void handle_home_message(const std::string& action, bool control, bool remember, const std::string& view)
@@ -235,17 +275,17 @@ void handle_home_message(const std::string& action, bool control, bool remember,
             c->set(ASK_KEY, "0");
         set_mission_control(control);
         if (control)
-            if (MainFrame* main = wxGetApp().mainframe)
-                main->select_tab(wxString(TAB_ID_MISSION));
+            open_mission(MissionView::Unassigned);
     } else if (action == "switch") {
         set_mission_control(!mission_control());
     } else if (action == "open") {
-        static const std::map<std::string, MissionView> views = {
-            {"orders", MissionView::Orders}, {"queue", MissionView::Queue}, {"clients", MissionView::Clients}, {"shops", MissionView::Shops}};
+        static const std::map<std::string, MissionView> views = {{"un", MissionView::Unassigned}, {"as", MissionView::Assigned},
+                                                                 {"ok", MissionView::Completed}, {"wy", MissionView::Prints},
+                                                                 {"pr", MissionView::Printers},  {"kl", MissionView::Clients}};
         const auto it = views.find(view);
-        open_mission(it == views.end() ? MissionView::Orders : it->second);
+        open_mission(it == views.end() ? MissionView::Unassigned : it->second);
     } else
-        send_mission_home(true);
+        send_mission_home(false);
 }
 
 void fill_mission_menu(wxMenu* menu, wxWindow* parent)
@@ -256,7 +296,7 @@ void fill_mission_menu(wxMenu* menu, wxWindow* parent)
         menu->Destroy(menu->FindItemByPosition(0));
 
     if (!mission_control()) {
-        append_menu_item(menu, wxID_ANY, _L("Switch to Mission Control"), _L("Orders, queue and farm, clients and shops"),
+        append_menu_item(menu, wxID_ANY, _L("Switch to Mission Control"), _L("Orders, printers, clients and finished prints"),
                          [](wxCommandEvent&) { set_mission_control(true); }, "", nullptr, []() { return true; }, parent);
         return;
     }
@@ -264,10 +304,12 @@ void fill_mission_menu(wxMenu* menu, wxWindow* parent)
         append_menu_item(menu, wxID_ANY, name, name, [view](wxCommandEvent&) { open_mission(view); }, "", nullptr,
                          []() { return true; }, parent);
     };
-    item(_L("Orders"), MissionView::Orders);
-    item(_L("Queue and farm"), MissionView::Queue);
+    item(_L("Unassigned orders"), MissionView::Unassigned);
+    item(_L("Assigned orders"), MissionView::Assigned);
+    item(_L("Completed orders"), MissionView::Completed);
+    item(_L("Unassigned prints"), MissionView::Prints);
+    item(_L("Printers and queues"), MissionView::Printers);
     item(_L("Clients"), MissionView::Clients);
-    item(_L("Shops and e-mail"), MissionView::Shops);
     menu->AppendSeparator();
     append_menu_item(menu, wxID_ANY, _L("Ask at startup"), _L("Choose Simple Mission or Mission Control when the slicer starts"),
                      [](wxCommandEvent&) {
@@ -283,12 +325,8 @@ void fill_mission_menu(wxMenu* menu, wxWindow* parent)
 
 void mission_printer_changed()
 {
-    MainFrame* main = wxGetApp().mainframe;
-    if (!main || !MissionPanel::s_instance || !MissionPanel::s_instance->IsShownOnScreen())
-        return;
-    const wxString base = machine_base(main->printer_url());
-    if (!base.IsEmpty())
-        MissionPanel::s_instance->show(base, main->printer_api_key(), MissionView::Orders);
+    if (MissionPanel::s_instance)
+        MissionPanel::s_instance->printers_changed();
 }
 
 wxWindow* create_mission_page(wxWindow* parent)
@@ -303,13 +341,11 @@ void open_mission(MissionView view)
     MainFrame* main = wxGetApp().mainframe;
     if (!main)
         return;
-    const wxString base = machine_base(main->printer_url());
     if (!mission_control())
         set_mission_control(true);
     main->select_tab(wxString(TAB_ID_MISSION));
-    // Without a docked machine the tab itself says what to do.
-    if (MissionPanel::s_instance && !base.IsEmpty())
-        MissionPanel::s_instance->show(base, main->printer_api_key(), view);
+    if (MissionPanel::s_instance)
+        MissionPanel::s_instance->show(view_id(view));
 }
 
 } // namespace Slic3r::GUI::Revo

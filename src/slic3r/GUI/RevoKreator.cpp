@@ -2,6 +2,7 @@
 #include "slic3r/GUI/I18N.hpp"
 
 #include "RevoKreator.hpp"
+#include "RevoMission.hpp"
 
 #include <algorithm>
 #include <map>
@@ -1728,15 +1729,17 @@ std::string cover_file(const std::string& m)
     return m == "belt" ? "Revon Belt 350x350x300" : "Revon " + m;
 }
 
-struct Docked { std::string name, host; };
+struct Docked { std::string name, host, key; };
 
 std::vector<Docked> docked_printers()
 {
     std::vector<Docked> out;
     for (const Preset& p : wxGetApp().preset_bundle->printers)
         if (!p.is_system && !p.is_default && p.is_visible)
-            if (const auto* h = p.config.option<ConfigOptionString>("print_host"); h && !h->value.empty())
-                out.push_back({p.name, h->value});
+            if (const auto* h = p.config.option<ConfigOptionString>("print_host"); h && !h->value.empty()) {
+                const auto* k = p.config.option<ConfigOptionString>("printhost_apikey");
+                out.push_back({p.name, h->value, k ? k->value : std::string()});
+            }
     return out;
 }
 
@@ -1788,11 +1791,21 @@ void refresh_live()
 }
 } // namespace
 
-void send_my_printers(bool refresh)
+std::vector<PrinterLink> printer_links()
 {
-    WebViewPanel* home = WebViewPanel::if_built();
-    if (!home || !wxGetApp().preset_bundle)
-        return;
+    std::vector<PrinterLink> out;
+    if (wxGetApp().preset_bundle)
+        for (const auto& d : docked_printers())
+            out.push_back({d.name, d.host, d.key});
+    return out;
+}
+
+void refresh_printers() { refresh_live(); }
+
+nlohmann::json my_printers_json()
+{
+    if (!wxGetApp().preset_bundle)
+        return nlohmann::json::array();
     const std::string active = wxGetApp().preset_bundle->printers.get_selected_preset_name();
     nlohmann::json    list   = nlohmann::json::array();
     for (const auto& d : docked_printers()) {
@@ -1803,6 +1816,7 @@ void send_my_printers(bool refresh)
             if (const auto* n = p->config.option<ConfigOptionFloats>("nozzle_diameter"); n && !n->values.empty())
                 noz = n->values.front();
         nlohmann::json e = {{"name", d.name}, {"host", d.host}, {"active", d.name == active}, {"online", false}, {"state", ""}, {"id", ""}};
+        e["haskey"] = !d.key.empty();
         if (auto it = g_live.find(d.host); it != g_live.end() && it->second.online) {
             const auto& f = it->second.f;
             if (!f.model.empty())
@@ -1824,6 +1838,16 @@ void send_my_printers(bool refresh)
         e["cover"]  = cover_file(model) + "_cover.png";
         list.push_back(e);
     }
+    return list;
+}
+
+void send_my_printers(bool refresh)
+{
+    WebViewPanel* home = WebViewPanel::if_built();
+    if (!home || !wxGetApp().preset_bundle)
+        return;
+    const nlohmann::json list = my_printers_json();
+    mission_printer_changed();
     nlohmann::json msg = {{"command", "revo_printers"}, {"printers", list}};
     home->RunScript(wxString::Format("window.postMessage(%s)", from_u8(msg.dump())));
     if (refresh)

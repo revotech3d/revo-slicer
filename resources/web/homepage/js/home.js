@@ -850,20 +850,21 @@ function ShowMissionHome(d)
 	if (!d.control || d.ask) { box.hide().empty(); return; }
 	let s=d.summary;
 	if (!s) {
-		box.html('<div class="MsnNone">'+(d.machine ? 'CONNECTING TO '+PbEsc(d.machine)+'…' : 'DOCK A REVON PRINTER TO SEE ORDERS, QUEUE AND FARM. WITH A FARM, DOCK THE HUB MACHINE.')+'</div>').show();
+		box.html('<div class="MsnNone">NO ORDERS YET · OPEN THE MISSION TAB TO ADD THE FIRST ONE</div>').show();
+		box.find(".MsnNone").css("cursor","pointer").click(function(){ MsnSend("open",{view:"un"}); });
 		return;
 	}
 	let n=s.nastepne;
 	let tile=function(view,k,v,unit,detail){ return '<div class="MsnTile" data-view="'+view+'"><div class="k">'+k+'</div><div class="v">'+v+'<small>'+unit+'</small></div><div class="d">'+detail+'</div></div>'; };
-	let html='<div class="PbSec" style="margin-top:22px"><span>PRODUCTION · '+PbEsc(s.machine_id)+(s.hub?' HUB':'')+' · '+s.maszyny+(s.maszyny==1?' MACHINE':' MACHINES')+'</span><a onClick="MsnSend(\'open\',{view:\'orders\'})">OPEN MISSION ▸</a></div>';
-	if (n) html+='<div class="MsnNext"><div class="k">NEXT IN QUEUE</div><div class="t">'+PbEsc(n.numer)+' · '+PbEsc(n.nazwa)+' · '+n.dobre+' / '+n.sztuk+' PCS'+
-		'<span>'+PbEsc(n.klient||'')+(n.termin?' · DUE '+PbEsc(n.termin):'')+'</span></div><div class="PbBtn PbBtnMain" onClick="MsnSend(\'open\',{view:\'queue\'})">OPEN QUEUE</div></div>';
-	let due=s.po_terminie?'<span class="r">'+s.po_terminie+' overdue</span> · ':'';
+	let html='<div class="PbSec" style="margin-top:22px"><span>PRODUCTION</span><a onClick="MsnSend(\'open\',{view:\'un\'})">OPEN MISSION ▸</a></div>';
+	if (n) html+='<div class="MsnNext"><div class="k">NEXT</div><div class="t">'+PbEsc(n.numer)+' · '+PbEsc(n.nazwa)+' · '+n.dobre+' / '+n.sztuk+' PCS'+
+		'<span>'+PbEsc(n.klient||'')+(n.drukarka?' · '+PbEsc(n.drukarka):'')+(n.termin?' · DUE '+PbEsc(n.termin):'')+'</span></div><div class="PbBtn PbBtnMain" onClick="MsnSend(\'open\',{view:\'pr\'})">PRINTERS</div></div>';
+	let late=s.po_terminie?'<span class="r">'+s.po_terminie+' overdue</span> · ':'';
 	html+='<div class="MsnStrip">'+
-		tile('orders','ORDERS',s.otwarte,'OPEN',due+'<span class="a">'+s.w_tym_tygodniu+' due this week</span> · '+s.gotowe+' ready to ship')+
-		tile('queue','QUEUE & FARM',s.w_kolejce,'WAITING','<span class="b">'+s.drukuje+' printing</span> · <span class="g">'+s.wolne+' ready</span> · <span class="a">'+s.odbior+' removal</span>')+
-		tile('clients','CLIENTS',s.od_klienta_7d,'REPLIES · 7 DAYS',s.ostatnia?('Last: '+PbEsc(s.ostatnia.klient||s.ostatnia.numer)+' — “'+PbEsc(s.ostatnia.tekst)+'”'):'No client replies this week')+
-		tile('shops','SHOPS',s.sklep_nowe,'NEW ORDERS','From Base.com, waiting to be planned')+
+		tile('un','UNASSIGNED',s.nieprzydzielone,'ORDERS',s.nieprzydzielone?'<span class="a">waiting for a printer</span>':'all orders have a printer')+
+		tile('as','ASSIGNED',s.przydzielone,'ORDERS',late+'<span class="a">'+s.w_tym_tygodniu+' due this week</span>')+
+		tile('ok','COMPLETED',s.zakonczone,'ORDERS','<span class="g">ready to deliver and archive</span>')+
+		tile('wy','UNASSIGNED PRINTS',s.wydruki_nieprzydzielone,'PRINTS',s.wydruki_nieprzydzielone?'<span class="a">attach to an order or client</span>':'every print is attached')+
 		'</div>';
 	box.html(html).show();
 	box.find(".MsnTile").click(function(){ MsnSend("open",{view:$(this).attr("data-view")}); });

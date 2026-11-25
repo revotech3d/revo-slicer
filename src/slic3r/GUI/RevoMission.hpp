@@ -1,8 +1,9 @@
 #pragma once
 // [r]evo Mission in [r]evo Slicer: on the start screen the user picks Simple Mission (the slicer) or Mission
-// Control (the slicer plus production). Mission Control fills the Mission menu and the start screen's production
-// strip and adds the MISSION tab next to DEVICE; menu items and strip tiles open the docked machine's Mission
-// views (orders, queue and farm, clients, shops) in that tab.
+// Control (the slicer plus production). Mission Control adds the MISSION tab, first before Prepare: orders, clients
+// and finished prints are kept by the slicer on this computer (data_dir()/revo_mission), so production is managed
+// without any printer; order items go to any added printer, online or offline, and finished prints come back from
+// the printers' agents to be attached to an order, a client or own production.
 
 #include <string>
 
@@ -11,13 +12,13 @@ class wxWindow;
 
 namespace Slic3r::GUI::Revo {
 
-enum class MissionView { Orders, Queue, Clients, Shops };
+enum class MissionView { Unassigned, Assigned, Completed, Prints, Printers, Clients };
 
 bool mission_control();
 void set_mission_control(bool on);
 
-// Start screen (Main Launch Control): the path cards until the user picks one, and in Mission Control
-// the production strip with the docked machine's summary. `refresh` fetches a new summary in the background.
+// Start screen (Main Launch Control): the path cards until the user picks one, and in Mission Control the production
+// strip with the summary the MISSION page saved last.
 void send_mission_home(bool refresh);
 // A "homepage_mission" message from the start screen: start, switch, open <view>, or state.
 void handle_home_message(const std::string& action, bool control, bool remember, const std::string& view);
@@ -30,7 +31,7 @@ wxWindow* create_mission_page(wxWindow* parent);
 
 void open_mission(MissionView view);
 
-// The docked machine changed: reload the MISSION tab when it is on screen.
+// Printer states changed: the MISSION tab updates its printers and queues.
 void mission_printer_changed();
 
 } // namespace Slic3r::GUI::Revo

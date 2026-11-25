@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[r]evo Mission Control</title>
+<!-- [r]evo Mission Control in [r]evo Slicer (the MISSION tab). Orders, clients and the record of finished prints are kept
+     by the slicer on this computer (mission.json in the slicer's data folder), so production works without any printer.
+     Printers are only where order items go: an item can be given to any added printer, online or not; finished prints
+     come back from the printers and wait in "Unassigned prints" until they are attached to an order, a client or own
+     production. The page talks to the slicer through window.wx.postMessage; replies arrive as MissionApp.* calls. -->
+<style>
+@font-face{font-family:Rajdhani;font-weight:600;src:url(../homepage/fonts/Rajdhani-SemiBold.ttf)}
+@font-face{font-family:Rajdhani;font-weight:700;src:url(../homepage/fonts/Rajdhani-Bold.ttf)}
+@font-face{font-family:Mono;src:url(../homepage/fonts/ShareTechMono-Regular.ttf)}
+:root{--bg:#05080c;--panel:#0d1117;--panel2:#0a0d12;--line:#1f252d;--line2:#171c22;--text:#f2f3f5;--muted:#9aa4b2;--dim:#6e7680;
+--blue:#5aa0ff;--ok:#5ee08f;--warn:#ffb547;--err:#ff5a5a;--mono:Mono,ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 -apple-system,"Segoe UI",Inter,sans-serif}
+main{padding:18px 26px 40px}
+.cap{font:12px var(--mono);letter-spacing:4px;color:var(--blue);text-transform:uppercase}
+h1{font:600 30px Rajdhani,sans-serif;letter-spacing:7px;margin:4px 0 14px;text-transform:uppercase;font-weight:400}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:16px 0}
+.tabs button{background:none;border:1px solid var(--line);color:var(--muted);font:600 13px Rajdhani,sans-serif;letter-spacing:3px;
+  text-transform:uppercase;padding:9px 14px;cursor:pointer}
+.tabs button.on{border-color:var(--blue);color:#fff;background:rgba(90,160,255,.10)}
+.tabs button b{font:12px var(--mono);margin-left:8px;color:var(--blue)}
+.tabs button.alert b{color:var(--warn)}
+button.b{background:none;border:1px solid var(--line);color:var(--text);font:600 12px Rajdhani,sans-serif;letter-spacing:2px;
+  text-transform:uppercase;padding:7px 12px;cursor:pointer}
+button.b:hover{border-color:var(--blue)}
+button.p{background:var(--blue);border-color:var(--blue);color:#000}
+button.x{color:var(--err)}button.x:hover{border-color:var(--err)}
+button.sm{padding:4px 8px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font:11px var(--mono);letter-spacing:2px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--line);padding:7px 8px;white-space:nowrap}
+td{border-bottom:1px solid var(--line2);padding:8px;vertical-align:middle}
+tr.cl{cursor:pointer}tr.cl:hover td{background:var(--panel)}
+.mono{font-family:var(--mono)}.dim{color:var(--dim)}.r{text-align:right}.nw{white-space:nowrap}
+.pill{font:11px var(--mono);letter-spacing:1px;padding:2px 8px;border:1px solid currentColor;white-space:nowrap}
+.c-un{color:var(--warn)}.c-as{color:var(--blue)}.c-ok{color:var(--ok)}.c-ar{color:var(--dim)}.c-err{color:var(--err)}
+.bar{height:5px;background:var(--line);min-width:80px}.bar b{display:block;height:100%;background:var(--ok)}
+.empty{border:1px dashed var(--line);padding:26px;text-align:center;color:var(--dim);font:12px var(--mono);letter-spacing:3px;text-transform:uppercase}
+.win{border:1px solid var(--line);background:var(--panel2);padding:16px;margin-bottom:14px}
+.wt{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font:12px var(--mono);letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:12px}
+label{display:flex;flex-direction:column;gap:4px;font:11px var(--mono);letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+input,select,textarea{font:14px -apple-system,"Segoe UI",sans-serif;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 9px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+.items td{padding:4px}.items input,.items select{padding:5px 7px}
+.printers{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.pr{border:1px solid var(--line);padding:14px;background:var(--panel2)}
+.pr h3{margin:0 0 2px;font:600 18px Rajdhani,sans-serif;letter-spacing:3px;font-weight:400;text-transform:uppercase}
+.pr .st{font:11px var(--mono);letter-spacing:2px}
+.pr ol{margin:10px 0 0;padding-left:18px;font-size:13px}.pr li{margin:3px 0}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;background:var(--dim)}.dot.on{background:var(--ok)}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:9}
+#modal .box{background:var(--panel);border:1px solid var(--line);padding:20px;width:min(560px,92vw);max-height:88vh;overflow:auto}
+#modal .box.wide{width:min(980px,96vw)}
+#modal h2{margin:0 0 12px;font:400 20px Rajdhani,sans-serif;letter-spacing:4px;text-transform:uppercase}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.warnbox{border:1px solid var(--err);color:var(--err);padding:10px;margin:10px 0;font-size:13px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--blue);padding:9px 16px;display:none;font-size:13px}
+.hist{font-size:12px;color:var(--dim);margin:8px 0 0;padding-left:16px}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div><div class="cap">[r]evo Mission Control</div><h1>Production</h1></div>
+    <div style="display:flex;gap:8px"><button class="b" onclick="editClient()">+ Client</button><button class="b p" onclick="editOrder()">+ New order</button></div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="view"></div>
+</main>
+<div id="modal"><div class="box" id="box"></div></div>
+<div id="toast"></div>
+<script>
+"use strict";
+// ---------- store ----------
+const OWN = "";   // client id of own production (no external recipient)
+let D = null, PR = [], VIEW = "un", loaded = false;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const now = () => new Date().toISOString().slice(0, 19);
+const today = () => new Date().toISOString().slice(0, 10);
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+function send(cmd, extra) { try { window.wx.postMessage(JSON.stringify(Object.assign({cmd}, extra || {}))); } catch (e) {} }
+function toast(t) { const e = $("toast"); e.textContent = t; e.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = "none", 3500); }
+function blank() { return {v: 1, nr: {rok: new Date().getFullYear(), n: 0}, klienci: [], zlecenia: [], wydruki: [], sync: {}}; }
+
+function save() {
+  D.podsumowanie = summary();
+  send("save", {data: D});
+}
+function log(z, txt) { (z.historia = z.historia || []).unshift({at: now(), txt}); }
+function client(id) { return id === OWN ? {nazwa: "Own production"} : (D.klienci.find(k => k.id === id) || {nazwa: "?"}); }
+function order(id) { return D.zlecenia.find(z => z.id === id); }
+function done(p) { return Math.min(p.dobre || 0, p.sztuk); }
+function progress(z) { const s = z.pozycje.reduce((a, p) => a + p.sztuk, 0), d = z.pozycje.reduce((a, p) => a + done(p), 0); return [d, s]; }
+// Lists follow the process: unassigned -> assigned (to the end) -> completed -> archive.
+function stage(z) {
+  if (z.archiwum) return "ar";
+  if (z.pozycje.length && z.pozycje.every(p => done(p) >= p.sztuk)) return "ok";
+  if (z.pozycje.length && z.pozycje.every(p => p.drukarka)) return "as";
+  return "un";
+}
+const STAGE = {un: ["Unassigned", "c-un"], as: ["Assigned", "c-as"], ok: ["Completed", "c-ok"], ar: ["Archive", "c-ar"]};
+function newNumber() {
+  const y = new Date().getFullYear();
+  if (D.nr.rok !== y) D.nr = {rok: y, n: 0};
+  D.nr.n++;
+  return `ZL/${y}/${String(D.nr.n).padStart(4, "0")}`;
+}
+function unassignedPrints() { return D.wydruki.filter(w => !w.przypisanie); }
+function summary() {
+  const open = D.zlecenia.filter(z => ["un", "as"].includes(stage(z)));
+  const week = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  const next = open.filter(z => stage(z) === "as").sort((a, b) => (a.termin || "9") < (b.termin || "9") ? -1 : 1)[0];
+  const p = next && next.pozycje.find(p => done(p) < p.sztuk);
+  return {
+    nieprzydzielone: D.zlecenia.filter(z => stage(z) === "un").length,
+    przydzielone: D.zlecenia.filter(z => stage(z) === "as").length,
+    zakonczone: D.zlecenia.filter(z => stage(z) === "ok").length,
+    po_terminie: open.filter(z => z.termin && z.termin < today()).length,
+    w_tym_tygodniu: open.filter(z => z.termin && z.termin <= week).length,
+    wydruki_nieprzydzielone: unassignedPrints().length,
+    klienci: D.klienci.length,
+    nastepne: p ? {numer: next.numer, nazwa: p.nazwa, dobre: done(p), sztuk: p.sztuk, klient: client(next.klient_id).nazwa, termin: next.termin || "", drukarka: p.drukarka} : null
+  };
+}
+
+// ---------- finished prints from printers ----------
+// A print whose file starts with the order number (ZL-2026-0042_part.gcode, added by the send dialog) attaches itself.
+function autoAttach(w) {
+  const m = /^ZL-(\d{4})-(\d{4})/.exec(w.plik || "");
+  if (!m) return false;
+  const z = D.zlecenia.find(z => z.numer === `ZL/${m[1]}/${m[2]}` && !z.archiwum);
+  if (!z) return false;
+  const p = z.pozycje.find(p => p.plik && w.plik.endsWith(p.plik)) || z.pozycje.find(p => done(p) < p.sztuk) || z.pozycje[0];
+  if (!p) return false;
+  attachToItem(w, z, p, true);
+  return true;
+}
+function attachToItem(w, z, p, auto) {
+  w.przypisanie = {typ: "zlecenie", zlecenie_id: z.id, pozycja_id: p.id};
+  p.dobre = (p.dobre || 0) + (w.dobre ?? 1);
+  p.wadliwe = (p.wadliwe || 0) + (w.wadliwe || 0);
+  log(z, `${auto ? "Print attached by file name" : "Print attached"}: ${w.plik} from ${w.drukarka} (${w.dobre ?? 1} good) → ${p.nazwa}`);
+}
+function detach(w) {
+  const a = w.przypisanie;
+  if (a && a.typ === "zlecenie") {
+    const z = order(a.zlecenie_id), p = z && z.pozycje.find(p => p.id === a.pozycja_id);
+    if (p) { p.dobre = Math.max(0, (p.dobre || 0) - (w.dobre ?? 1)); p.wadliwe = Math.max(0, (p.wadliwe || 0) - (w.wadliwe || 0)); log(z, `Print detached: ${w.plik}`); }
+  }
+  w.przypisanie = null;
+}
+
+// ---------- replies from the slicer ----------
+window.MissionApp = {
+  onLoad(data) {
+    D = data && data.v ? data : blank();
+    for (const k of ["klienci", "zlecenia", "wydruki"]) D[k] = D[k] || [];
+    D.sync = D.sync || {};
+    loaded = true;
+    render();
+    send("printers");
+    send("prints", {since: D.sync});
+  },
+  onSaved(ok) { if (!ok) toast("Could not save – check the disk"); },
+  onPrinters(list) { PR = list || []; if (loaded) render(); },
+  onPrints(host, name, list) {
+    if (!loaded || !Array.isArray(list)) return;
+    let added = 0, auto = 0;
+    for (const r of list) {
+      const id = host + "#" + r.id;
+      if (D.wydruki.some(w => w.id === id)) continue;
+      const w = {id, raport: r.id, host, drukarka: name, plik: r.plik, start: r.start, koniec: r.koniec, stan: r.stan,
+                 dobre: r.dobre, wadliwe: r.wadliwe, przypisanie: null};
+      D.wydruki.unshift(w); added++;
+      if (autoAttach(w)) auto++;
+      if (!D.sync[host] || r.koniec > D.sync[host]) D.sync[host] = r.koniec;
+    }
+    if (added) { save(); render(); toast(`${added} finished print(s) from ${name}` + (auto ? `, ${auto} attached by order number` : "")); }
+  },
+  show(view) { const m = {zl: "un", kol: "pr", kl: "kl", sk: "un"}; VIEW = m[view] || view || VIEW; if (loaded) render(); }
+};
+
+// ---------- views ----------
+function tabs() {
+  const n = s => D.zlecenia.filter(z => stage(z) === s).length, up = unassignedPrints().length;
+  const t = [["un", "Unassigned", n("un")], ["as", "Assigned", n("as")], ["ok", "Completed", n("ok")], ["ar", "Archive", n("ar")],
+             ["wy", "Unassigned prints", up], ["pr", "Printers", PR.length], ["kl", "Clients", D.klienci.length]];
+  $("tabs").innerHTML = t.map(([k, l, c]) =>
+    `<button class="${VIEW === k ? "on" : ""} ${(k === "wy" && c) || (k === "un" && c) ? "alert" : ""}" onclick="VIEW='${k}';render()">${l}<b>${c}</b></button>`).join("");
+}
+function render() {
+  if (!D) return;
+  tabs();
+  const v = $("view");
+  if (["un", "as", "ok", "ar"].includes(VIEW)) v.innerHTML = ordersView(VIEW);
+  else if (VIEW === "wy") v.innerHTML = printsView();
+  else if (VIEW === "pr") v.innerHTML = printersView();
+  else v.innerHTML = clientsView();
+}
+function ordersView(s) {
+  const list = D.zlecenia.filter(z => stage(z) === s).sort((a, b) => (a.termin || "9999") < (b.termin || "9999") ? -1 : 1);
+  const hint = {un: "Orders with items not yet given to a printer.", as: "Every item has a printer. Orders stay here until all parts are done.",
+                ok: "All parts done. Archive them once delivered.", ar: "Archived orders. Delete only here, with double confirmation."}[s];
+  if (!list.length) return `<div class="empty">No orders here · ${esc(hint)}</div>`;
+  return `<div class="dim" style="margin-bottom:8px;font-size:12px">${esc(hint)}</div><table><tr><th>Number</th><th>Client</th><th>PO</th><th>Due</th><th>Items</th><th>Printers</th><th>Progress</th><th></th></tr>` +
+    list.map(z => {
+      const [d, t] = progress(z), late = z.termin && z.termin < today() && s !== "ok" && s !== "ar";
+      const prs = [...new Set(z.pozycje.map(p => p.drukarka).filter(Boolean))];
+      return `<tr class="cl" onclick="showOrder('${z.id}')"><td class="mono nw">${esc(z.numer)}</td><td>${esc(client(z.klient_id).nazwa)}</td>
+        <td class="dim">${esc(z.po)}</td><td class="mono nw ${late ? "c-err" : ""}">${esc(z.termin || "—")}</td><td>${z.pozycje.length}</td>
+        <td class="dim">${prs.length ? prs.map(esc).join(", ") : '<span class="c-un">none</span>'}</td>
+        <td><div class="bar"><b style="width:${t ? 100 * d / t : 0}%"></b></div><span class="mono dim">${d}/${t}</span></td>
+        <td class="r nw" onclick="event.stopPropagation()">${s === "ok" ? `<button class="b sm" onclick="archive('${z.id}',true)">Archive</button>` : ""}
+        ${s === "ar" ? `<button class="b sm" onclick="archive('${z.id}',false)">Restore</button> <button class="b sm x" onclick="askDelete('${z.id}')">Delete</button>` : ""}</td></tr>`;
+    }).join("") + "</table>";
+}
+function printsView() {
+  const list = unassignedPrints(), done_ = D.wydruki.filter(w => w.przypisanie).slice(0, 30);
+  const off = PR.filter(p => !p.online).length;
+  let h = `<div class="dim" style="margin-bottom:8px;font-size:12px">Every print finished on your printers lands here until you attach it to an order, a client or own production.
+    ${off ? `${off} printer(s) offline – their prints arrive when they are back.` : ""} <button class="b sm" onclick="send('prints',{since:D.sync})">Check printers now</button></div>`;
+  h += list.length ? `<table><tr><th>Finished</th><th>Printer</th><th>File</th><th>Good</th><th>Defective</th><th></th></tr>` + list.map(w =>
+    `<tr><td class="mono nw">${esc((w.koniec || "").replace("T", " ").slice(0, 16))}</td><td>${esc(w.drukarka)}</td><td>${esc(w.plik)}</td>
+     <td class="mono">${w.dobre ?? "—"}</td><td class="mono">${w.wadliwe ?? "—"}</td>
+     <td class="r nw"><button class="b sm p" onclick="attach('${w.id}')">Attach…</button></td></tr>`).join("") + "</table>"
+    : `<div class="empty">No unassigned prints</div>`;
+  if (done_.length) h += `<div class="wt" style="margin-top:22px">Recently attached</div><table>` + done_.map(w => {
+    const a = w.przypisanie, z = a.typ === "zlecenie" && order(a.zlecenie_id);
+    const to = a.typ === "wlasna" ? "Own production" : a.typ === "klient" ? client(a.klient_id).nazwa : z ? z.numer : "?";
+    return `<tr><td class="mono nw dim">${esc((w.koniec || "").replace("T", " ").slice(0, 16))}</td><td>${esc(w.drukarka)}</td><td>${esc(w.plik)}</td><td>→ ${esc(to)}</td>
+      <td class="r"><button class="b sm" onclick="undoAttach('${w.id}')">Detach</button></td></tr>`;
+  }).join("") + "</table>";
+  return h;
+}
+function printersView() {
+  if (!PR.length) return `<div class="empty">No printers added · add one in Main Launch Control</div>`;
+  return `<div class="dim" style="margin-bottom:8px;font-size:12px">Items can be given to any printer, online or offline. An offline printer keeps its queue here until it is back.</div><div class="printers">` +
+    PR.map(p => {
+      const q = [];
+      for (const z of D.zlecenia) if (!z.archiwum) for (const it of z.pozycje) if (it.drukarka === p.name && done(it) < it.sztuk) q.push([z, it]);
+      q.sort((a, b) => (a[0].termin || "9") < (b[0].termin || "9") ? -1 : 1);
+      return `<div class="pr"><h3>${esc(p.title || p.name)}</h3><div class="st"><span class="dot ${p.online ? "on" : ""}"></span>${esc(p.online ? p.state : "OFFLINE · QUEUE WAITS")}</div>
+        <div class="dim mono" style="font-size:11px;margin-top:4px">${esc(p.name)}</div>
+        ${q.length ? "<ol>" + q.map(([z, it]) => `<li><span class="mono">${esc(z.numer)}</span> ${esc(it.nazwa)} · ${done(it)}/${it.sztuk}</li>`).join("") + "</ol>" : '<div class="dim" style="margin-top:10px">Queue empty</div>'}</div>`;
+    }).join("") + "</div>";
+}
+function clientsView() {
+  if (!D.klienci.length) return `<div class="empty">No clients yet · orders without a client are own production</div>`;
+  return `<table><tr><th>Client</th><th>E-mail</th><th>Phone</th><th>Tax ID</th><th>Open orders</th></tr>` + D.klienci.map(k =>
+    `<tr class="cl" onclick="editClient('${k.id}')"><td>${esc(k.nazwa)}</td><td>${esc(k.email)}</td><td>${esc(k.tel)}</td><td class="mono">${esc(k.nip)}</td>
+     <td class="mono">${D.zlecenia.filter(z => z.klient_id === k.id && ["un", "as"].includes(stage(z))).length}</td></tr>`).join("") + "</table>";
+}
+
+// ---------- modals ----------
+function modal(html, wide) { $("box").className = "box" + (wide ? " wide" : ""); $("box").innerHTML = html; $("modal").style.display = "flex"; }
+function close_() { $("modal").style.display = "none"; }
+$("modal").addEventListener("mousedown", e => { if (e.target.id === "modal") close_(); });
+function clientOptions(sel) {
+  return `<option value="">Own production</option>` + D.klienci.map(k => `<option value="${k.id}" ${k.id === sel ? "selected" : ""}>${esc(k.nazwa)}</option>`).join("");
+}
+function printerOptions(sel) {
+  const names = PR.map(p => p.name);
+  if (sel && !names.includes(sel)) names.push(sel);
+  return `<option value="">— not assigned —</option>` + names.map(n => {
+    const p = PR.find(p => p.name === n);
+    return `<option value="${esc(n)}" ${n === sel ? "selected" : ""}>${esc(n)}${p && !p.online ? " (offline – queued)" : ""}</option>`;
+  }).join("");
+}
+let EDIT = null;
+function editOrder(id) {
+  const z = id ? JSON.parse(JSON.stringify(order(id))) : {id: null, klient_id: OWN, po: "", termin: "", notatki: "", pozycje: [{id: uid("p"), nazwa: "", sztuk: 1, material: "", plik: "", drukarka: "", dobre: 0, wadliwe: 0}]};
+  EDIT = z;
+  modal(`<h2>${id ? "Edit " + esc(z.numer) : "New order"}</h2>
+    <div class="f"><label>Client<select id="o_k">${clientOptions(z.klient_id)}</select></label>
+      <label>Client PO<input id="o_po" value="${esc(z.po)}"></label>
+      <label>Due<input id="o_t" type="date" value="${esc(z.termin)}"></label></div>
+    <label>Notes<textarea id="o_n">${esc(z.notatki)}</textarea></label>
+    <div class="wt" style="margin-top:14px">Items <button class="b sm" onclick="addItem()">+ Item</button></div>
+    <table class="items"><tr><th>Part</th><th>Qty</th><th>Material</th><th>G-code file</th><th>Printer</th><th></th></tr><tbody id="o_items"></tbody></table>
+    <div class="acts"><button class="b" onclick="close_()">Cancel</button><button class="b p" onclick="saveOrder()">Save</button></div>`, true);
+  drawItems();
+}
+function drawItems() {
+  $("o_items").innerHTML = EDIT.pozycje.map((p, i) => `<tr>
+    <td><input value="${esc(p.nazwa)}" oninput="EDIT.pozycje[${i}].nazwa=this.value"></td>
+    <td style="width:80px"><input type="number" min="1" value="${p.sztuk}" oninput="EDIT.pozycje[${i}].sztuk=Math.max(1,+this.value||1)"></td>
+    <td style="width:110px"><input value="${esc(p.material)}" oninput="EDIT.pozycje[${i}].material=this.value"></td>
+    <td><input value="${esc(p.plik)}" placeholder="part.gcode" oninput="EDIT.pozycje[${i}].plik=this.value"></td>
+    <td><select onchange="EDIT.pozycje[${i}].drukarka=this.value">${printerOptions(p.drukarka)}</select></td>
+    <td>${EDIT.pozycje.length > 1 && !p.dobre ? `<button class="b sm x" onclick="EDIT.pozycje.splice(${i},1);drawItems()">×</button>` : ""}</td></tr>`).join("");
+}
+function addItem() { EDIT.pozycje.push({id: uid("p"), nazwa: "", sztuk: 1, material: "", plik: "", drukarka: "", dobre: 0, wadliwe: 0}); drawItems(); }
+function saveOrder() {
+  const z = EDIT;
+  z.klient_id = $("o_k").value; z.po = $("o_po").value.trim(); z.termin = $("o_t").value; z.notatki = $("o_n").value;
+  z.pozycje = z.pozycje.filter(p => p.nazwa.trim() || p.plik.trim());
+  if (!z.pozycje.length) return toast("Add at least one item");
+  const old = z.id && order(z.id);
+  if (!old) {
+    z.id = uid("z"); z.numer = newNumber(); z.utworzone = now(); z.historia = [];
+    log(z, "Order created"); D.zlecenia.push(z);
+  } else {
+    for (const p of z.pozycje) {
+      const was = old.pozycje.find(q => q.id === p.id);
+      if (p.drukarka && (!was || was.drukarka !== p.drukarka)) log(z, `${p.nazwa} → ${p.drukarka}`);
+      if (!p.drukarka && was && was.drukarka) log(z, `${p.nazwa}: printer removed`);
+    }
+    log(z, "Order edited");
+    D.zlecenia[D.zlecenia.indexOf(old)] = z;
+  }
+  save(); close_(); VIEW = stage(z); render(); toast(`${z.numer} saved · ${STAGE[stage(z)][0]}`);
+}
+function showOrder(id) {
+  const z = order(id), [d, t] = progress(z), s = stage(z);
+  const prints = D.wydruki.filter(w => w.przypisanie && w.przypisanie.zlecenie_id === id);
+  modal(`<div class="cap">${esc(client(z.klient_id).nazwa)}</div><h2>${esc(z.numer)} <span class="pill ${STAGE[s][1]}">${STAGE[s][0]}</span></h2>
+    <div class="dim" style="font-size:13px">${z.po ? "PO " + esc(z.po) + " · " : ""}Due ${esc(z.termin || "—")} · ${d}/${t} parts</div>
+    ${z.notatki ? `<p>${esc(z.notatki)}</p>` : ""}
+    <table style="margin-top:10px"><tr><th>Part</th><th>Printer</th><th>Good</th><th>Defective</th></tr>${z.pozycje.map(p => {
+      const pr = PR.find(x => x.name === p.drukarka);
+      return `<tr><td>${esc(p.nazwa)}<div class="dim mono" style="font-size:11px">${esc(p.material)} ${esc(p.plik)}</div></td>
+        <td>${p.drukarka ? esc(p.drukarka) + (pr && !pr.online ? ' <span class="c-un mono" style="font-size:11px">OFFLINE · QUEUED</span>' : "") : '<span class="c-un">not assigned</span>'}</td>
+        <td class="mono">${done(p)}/${p.sztuk}</td><td class="mono">${p.wadliwe || 0}</td></tr>`;
+    }).join("")}</table>
+    ${prints.length ? `<div class="wt" style="margin-top:14px">Prints</div><table>${prints.map(w => `<tr><td class="mono dim nw">${esc((w.koniec || "").replace("T", " ").slice(0, 16))}</td><td>${esc(w.drukarka)}</td><td>${esc(w.plik)}</td><td class="mono">${w.dobre ?? "—"}</td></tr>`).join("")}</table>` : ""}
+    <ul class="hist">${(z.historia || []).slice(0, 12).map(h => `<li>${esc(h.at.replace("T", " ").slice(0, 16))} · ${esc(h.txt)}</li>`).join("")}</ul>
+    <div class="acts">
+      ${s === "ar" ? `<button class="b sm x" onclick="askDelete('${id}')">Delete</button><button class="b" onclick="archive('${id}',false)">Restore</button>` :
+                     `<button class="b" onclick="archive('${id}',true)">Archive</button>`}
+      ${s !== "ar" ? `<button class="b p" onclick="editOrder('${id}')">Edit / assign printers</button>` : ""}
+      <button class="b" onclick="close_()">Close</button></div>`, true);
+}
+function archive(id, on) {
+  const z = order(id);
+  z.archiwum = on ? now() : null; log(z, on ? "Archived" : "Restored from archive");
+  save(); close_(); render(); toast(`${z.numer} ${on ? "archived" : "restored"}`);
+}
+// Deleting needs two steps: confirm, then type the order number.
+function askDelete(id) {
+  const z = order(id);
+  modal(`<h2>Delete ${esc(z.numer)}?</h2><div class="warnbox">The order, its items and history are removed from the list. Prints attached to it go back to Unassigned prints.</div>
+    <div class="acts"><button class="b" onclick="close_()">Cancel</button><button class="b x" onclick="askDelete2('${id}')">Delete…</button></div>`);
+}
+function askDelete2(id) {
+  const z = order(id);
+  modal(`<h2>Confirm deletion</h2><p>Type the order number <b class="mono">${esc(z.numer)}</b> to delete it for good.</p>
+    <input id="d_nr" autocomplete="off" oninput="$('d_go').disabled=this.value.trim()!=='${esc(z.numer)}'">
+    <div class="acts"><button class="b" onclick="close_()">Cancel</button><button class="b x" id="d_go" disabled onclick="doDelete('${id}')">Delete order</button></div>`);
+  setTimeout(() => $("d_nr").focus(), 50);
+}
+function doDelete(id) {
+  const z = order(id);
+  for (const w of D.wydruki) if (w.przypisanie && w.przypisanie.zlecenie_id === id) w.przypisanie = null;
+  D.zlecenia.splice(D.zlecenia.indexOf(z), 1);
+  save(); close_(); render(); toast(`${z.numer} deleted`);
+}
+function attach(wid) {
+  const w = D.wydruki.find(w => w.id === wid);
+  const open = D.zlecenia.filter(z => ["un", "as", "ok"].includes(stage(z)));
+  modal(`<h2>Attach print</h2><div class="dim" style="font-size:13px">${esc(w.plik)} · ${esc(w.drukarka)} · ${esc((w.koniec || "").replace("T", " ").slice(0, 16))}</div>
+    <div class="f" style="margin-top:12px"><label>Good parts<input id="a_g" type="number" min="0" value="${w.dobre ?? 1}"></label><label>Defective<input id="a_d" type="number" min="0" value="${w.wadliwe ?? 0}"></label></div>
+    <label>To an order item<select id="a_z"><option value="">—</option>${open.map(z => z.pozycje.map(p =>
+      `<option value="${z.id}|${p.id}">${esc(z.numer)} · ${esc(client(z.klient_id).nazwa)} · ${esc(p.nazwa)} (${done(p)}/${p.sztuk})</option>`).join("")).join("")}</select></label>
+    <div class="dim" style="margin:10px 0;text-align:center;font:11px var(--mono);letter-spacing:3px">OR</div>
+    <label>To a client, without an order<select id="a_k"><option value="-">—</option>${D.klienci.map(k => `<option value="${k.id}">${esc(k.nazwa)}</option>`).join("")}</select></label>
+    <div class="acts"><button class="b" onclick="close_()">Cancel</button><button class="b" onclick="doAttach('${wid}','own')">Own production</button><button class="b p" onclick="doAttach('${wid}')">Attach</button></div>`);
+}
+function doAttach(wid, own) {
+  const w = D.wydruki.find(w => w.id === wid);
+  w.dobre = Math.max(0, +$("a_g").value || 0); w.wadliwe = Math.max(0, +$("a_d").value || 0);
+  if (own) w.przypisanie = {typ: "wlasna"};
+  else if ($("a_z").value) { const [zid, pid] = $("a_z").value.split("|"), z = order(zid); attachToItem(w, z, z.pozycje.find(p => p.id === pid), false); }
+  else if ($("a_k").value !== "-") w.przypisanie = {typ: "klient", klient_id: $("a_k").value};
+  else return toast("Choose an order item, a client or own production");
+  save(); close_(); render(); toast("Print attached");
+}
+function undoAttach(wid) { detach(D.wydruki.find(w => w.id === wid)); save(); render(); }
+function editClient(id) {
+  const k = id ? D.klienci.find(k => k.id === id) : {nazwa: "", email: "", tel: "", nip: "", notatki: ""};
+  modal(`<h2>${id ? "Client" : "New client"}</h2><div class="f">
+    <label>Name<input id="k_n" value="${esc(k.nazwa)}"></label><label>E-mail<input id="k_e" value="${esc(k.email)}"></label>
+    <label>Phone<input id="k_t" value="${esc(k.tel)}"></label><label>Tax ID<input id="k_nip" value="${esc(k.nip)}"></label></div>
+    <label>Notes<textarea id="k_no">${esc(k.notatki)}</textarea></label>
+    <div class="acts"><button class="b" onclick="close_()">Cancel</button><button class="b p" onclick="saveClient('${id || ""}')">Save</button></div>`);
+}
+function saveClient(id) {
+  const v = {nazwa: $("k_n").value.trim(), email: $("k_e").value.trim(), tel: $("k_t").value.trim(), nip: $("k_nip").value.trim(), notatki: $("k_no").value};
+  if (!v.nazwa) return toast("Client name is required");
+  if (id) Object.assign(D.klienci.find(k => k.id === id), v); else D.klienci.push(Object.assign({id: uid("k"), utworzony: now()}, v));
+  save(); close_(); if (VIEW === "kl") render(); else tabs(); toast("Client saved");
+}
+
+setInterval(() => { if (loaded) send("printers"); }, 15000);
+setInterval(() => { if (loaded) send("prints", {since: D.sync}); }, 120000);
+send("load");
+</script>
+</body>
+</html>
