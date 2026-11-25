@@ -41435,3 +41435,18 @@ msgstr ""
 # AI Translated
 msgid "Move over surface"
 msgstr "Przesuń po powierzchni"
+
+# AI Translated
+msgid "Presentation mode"
+msgstr "Tryb prezentacji"
+
+# AI Translated
+msgid ""
+"Shows sample Revon printers, orders, clients and finished prints, e.g. for a"
+" fair or a training. Your own printers and orders stay untouched and come "
+"back when you turn it off. Sharing on the local network is off meanwhile."
+msgstr ""
+"Pokazuje przykładowe drukarki Revon, zlecenia, klientów i gotowe wydruki, "
+"np. na targi albo szkolenie. Twoje drukarki i zlecenia zostają nietknięte i "
+"wracają po wyłączeniu. Udostępnianie w sieci lokalnej jest w tym czasie "
+"wyłączone."

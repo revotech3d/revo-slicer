@@ -5,6 +5,7 @@
 #include "MainFrame.hpp"
 #include "WebViewDialog.hpp"
 #include "Plater.hpp"
+#include "RevoMission.hpp"
 #include "GLCanvas3D.hpp" // ORCA: for live preview refresh when toggling "Dim lower layers"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
@@ -1080,6 +1081,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxString too
             if (m_sync_user_preset_checkbox) m_sync_user_preset_checkbox->Enable(!enabled);
             if (m_bambu_cloud_checkbox)      m_bambu_cloud_checkbox->Enable(!enabled);
         }
+        else if (param == "revo_presentation") {
+            Revo::set_presentation_mode(checkbox->GetValue());
+        }
         else if (param == "hide_login_side_panel") {
             if (WebViewPanel* home = WebViewPanel::if_built()) {
                 home->SendCloudProvidersInfo();
@@ -1698,6 +1702,14 @@ void PreferencesDialog::create_items()
 
     auto item_show_splash_scr  = create_item_checkbox(_L("Show splash screen"), _L("Show the splash screen during startup."), "show_splash_screen");
     g_sizer->Add(item_show_splash_scr);
+
+    // [r]evo: sample machines, orders, clients and prints for demonstrations (fairs, showroom, training)
+    auto item_presentation = create_item_checkbox(_L("Presentation mode"),
+        _L("Shows sample Revon printers, orders, clients and finished prints, e.g. for a fair or a training. "
+           "Your own printers and orders stay untouched and come back when you turn it off. "
+           "Sharing on the local network is off meanwhile."),
+        "revo_presentation");
+    g_sizer->Add(item_presentation);
 
 #ifdef __linux__
     auto item_window_button_pos  = create_item_checkbox(_L("Use window buttons on left side"), "", "window_buttons_on_left", _L("(Requires restart)"));

@@ -1802,8 +1802,47 @@ std::vector<PrinterLink> printer_links()
 
 void refresh_printers() { refresh_live(); }
 
+namespace {
+// Presentation mode: one machine of every Revon model, in every state the start page shows.
+struct DemoPrinter { const char* name; const char* model; const char* id; const char* kind; int progress; double nozzle; };
+const DemoPrinter DEMO_PRINTERS[] = {
+    {"Revon Belt 350 · BELT-01", "belt", "ORBIT-VEGA-0101", "drukowanie", 63, 0.6},
+    {"Revon 600 · HALL-A1", "600x600x600", "STEADY-SATURN-1126", "drukowanie", 28, 0.8},
+    {"Revon 600 Z400 · HALL-A2", "600x600x400", "BRIGHT-LYRA-0412", "gotowa", 0, 0.6},
+    {"Revon 1200 · HALL-B1", "1200x600x500", "GIANT-ATLAS-0907", "nagrzewanie", 0, 1.0},
+    {"Revon 600 · HALL-A3", "600x600x600", "QUIET-ORION-0318", "pauza", 0, 0.6},
+    {"Revon Belt 350 · BELT-02", "belt", "SWIFT-DRACO-0225", "", 0, 0.4},
+};
+
+nlohmann::json demo_printers_json()
+{
+    nlohmann::json list = nlohmann::json::array();
+    for (const DemoPrinter& d : DEMO_PRINTERS) {
+        const bool online = *d.kind != 0;
+        wxString   st     = online ? state_name(d.kind) : _L("Offline");
+        if (d.progress > 0)
+            st += wxString::Format(" %d%%", d.progress);
+        list.push_back({{"name", d.name}, {"host", ""}, {"active", &d == &DEMO_PRINTERS[0]}, {"online", online},
+                        {"state", into_u8(st.Upper())}, {"kind", d.kind}, {"id", d.id}, {"haskey", false},
+                        {"title", into_u8(model_name(d.model).Upper())}, {"dims", into_u8(model_dims(d.model))},
+                        {"nozzle", into_u8(wxString::Format("%.1f", d.nozzle))}, {"cover", cover_file(d.model) + "_cover.png"}});
+    }
+    return list;
+}
+} // namespace
+
+std::vector<std::string> demo_printer_names()
+{
+    std::vector<std::string> out;
+    for (const DemoPrinter& d : DEMO_PRINTERS)
+        out.emplace_back(d.name);
+    return out;
+}
+
 nlohmann::json my_printers_json()
 {
+    if (presentation_mode())
+        return demo_printers_json();
     if (!wxGetApp().preset_bundle)
         return nlohmann::json::array();
     const std::string active = wxGetApp().preset_bundle->printers.get_selected_preset_name();

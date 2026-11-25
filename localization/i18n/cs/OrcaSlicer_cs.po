@@ -41268,3 +41268,17 @@ msgstr ""
 # AI Translated
 msgid "Move over surface"
 msgstr "Posunout po povrchu"
+
+# AI Translated
+msgid "Presentation mode"
+msgstr "Režim prezentace"
+
+# AI Translated
+msgid ""
+"Shows sample Revon printers, orders, clients and finished prints, e.g. for a"
+" fair or a training. Your own printers and orders stay untouched and come "
+"back when you turn it off. Sharing on the local network is off meanwhile."
+msgstr ""
+"Ukáže ukázkové tiskárny Revon, zakázky, klienty a hotové tisky, např. na "
+"veletrh nebo školení. Tvé tiskárny a zakázky zůstanou nedotčené a po vypnutí"
+" se vrátí. Sdílení v místní síti je mezitím vypnuté."

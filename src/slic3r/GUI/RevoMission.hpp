@@ -34,6 +34,11 @@ void open_mission(MissionView view);
 
 // The local network: this computer as the main station sharing its orders (when the user turned sharing on), or
 // working with another station's orders. Started when the main window exists, stopped on shutdown.
+// Presentation mode (Preferences): sample printers, orders, clients and prints for demonstrations. The user's own
+// orders and printers are left untouched and come back when it is turned off; the local network is off meanwhile.
+bool presentation_mode();
+void set_presentation_mode(bool on);
+
 void start_mission_network();
 void stop_mission_network();
 

@@ -76,7 +76,11 @@ const char* view_id(MissionView v)
 
 // ---------- local store: orders, clients and finished prints live on this computer ----------
 
-fs::path store_dir() { return fs::path(data_dir()) / "revo_mission"; }
+constexpr const char* DEMO_KEY = "revo_presentation";   // Preferences → Presentation mode
+std::atomic<bool>     g_demo{false};                      // read by the station server thread too
+
+// Presentation mode keeps its sample orders in a folder of its own, so the user's orders stay as they are.
+fs::path store_dir() { return fs::path(data_dir()) / (g_demo ? "revo_mission_demo" : "revo_mission"); }
 fs::path store_file() { return store_dir() / "mission.json"; }
 fs::path cache_file() { return store_dir() / "station-cache.json"; }
 fs::path station_file() { return store_dir() / "station.json"; }
@@ -769,6 +773,8 @@ private:
             fetch_prints(msg.value("since", nlohmann::json::object()));
         else if (cmd == "net")
             net_changed();
+        else if (g_demo && (cmd == "net_share" || cmd == "net_join" || cmd == "net_find" || cmd == "net_push_local" || cmd == "prof_sync"))
+            result(false, "Not available in presentation mode");
         else if (cmd == "net_share")
             share(msg.value("on", false), msg.value("name", ""), msg.value("password", ""));
         else if (cmd == "net_find")
@@ -791,6 +797,8 @@ private:
     // Finished prints from every added printer that answers; offline printers are asked again later.
     void fetch_prints(const nlohmann::json& since)
     {
+        if (g_demo) // the sample prints are already in the store; real ones must not land among them
+            return;
         for (const PrinterLink& p : printer_links()) {
             if (p.key.empty())
                 continue;
@@ -844,10 +852,120 @@ void deliver(const nlohmann::json& store, long long rev)
 
 } // namespace
 
+namespace {
+
+// "2026-11-25T14:30:00" for a time `days` from now at `hour`.
+std::string demo_at(int days, int hour, int minute = 0)
+{
+    wxDateTime t = wxDateTime::Today() + wxDateSpan::Days(days);
+    t.SetHour(hour).SetMinute(minute);
+    return into_u8(t.Format("%Y-%m-%dT%H:%M:%S"));
+}
+std::string demo_day(int days) { return demo_at(days, 0).substr(0, 10); }
+
+// Sample orders for presentations: every list of the Mission page has something in it, the due dates follow today.
+nlohmann::json demo_store()
+{
+    using json = nlohmann::json;
+    const std::vector<std::string> pr = demo_printer_names(); // BELT-01, HALL-A1, HALL-A2, HALL-B1, HALL-A3, BELT-02
+    const int year = wxDateTime::Today().GetYear();
+    auto numer = [year](int n) { return wxString::Format("ZL/%d/%04d", year, n).ToStdString(); };
+    auto item  = [](const char* id, const char* name, int qty, const char* mat, const char* file, const std::string& printer, int good,
+                   int bad = 0) {
+        return json{{"id", id}, {"nazwa", name}, {"sztuk", qty}, {"material", mat}, {"plik", file}, {"drukarka", printer}, {"dobre", good}, {"wadliwe", bad}};
+    };
+    auto order = [&](const char* id, int n, const char* client, const char* po, int due, int made, json items, const char* notes = "",
+                     bool archived = false) {
+        json z = {{"id", id}, {"numer", numer(n)}, {"klient_id", client}, {"po", po}, {"termin", demo_day(due)}, {"notatki", notes},
+                  {"pozycje", std::move(items)}, {"utworzone", demo_at(made, 9, 15)}, {"archiwum", archived ? json(demo_at(-2, 16)) : json()},
+                  {"historia", json::array({{{"at", demo_at(made, 9, 15)}, {"txt", "Order created"}}})}};
+        return z;
+    };
+    json klienci = json::array({
+        {{"id", "k1"}, {"nazwa", "Mechanika Precyzyjna Nowak Sp. z o.o."}, {"email", "zakupy@mp-nowak.example"}, {"tel", "+48 32 555 01 10"}, {"nip", "6340000001"}, {"notatki", "Faktura do 14 dni"}},
+        {{"id", "k2"}, {"nazwa", "AutoParts Silesia"}, {"email", "biuro@autoparts.example"}, {"tel", "+48 32 555 02 20"}, {"nip", "6250000002"}, {"notatki", ""}},
+        {{"id", "k3"}, {"nazwa", "Studio Projektowe Forma"}, {"email", "studio@forma.example"}, {"tel", "+48 600 555 303"}, {"nip", "9540000003"}, {"notatki", "Prototypy, kolor czarny"}},
+        {{"id", "k4"}, {"nazwa", "Laboratorium Robotyki – Politechnika"}, {"email", "lab@uczelnia.example"}, {"tel", "+48 32 555 04 40"}, {"nip", "6310000004"}, {"notatki", ""}},
+        {{"id", "k5"}, {"nazwa", "Kraft Gastro GmbH"}, {"email", "einkauf@kraft-gastro.example"}, {"tel", "+49 30 5550 5050"}, {"nip", "DE000000005"}, {"notatki", "Dostawa kurierem"}},
+    });
+    json zlecenia = json::array({
+        // unassigned: items not given to a printer yet
+        order("z1", 1, "k3", "SP/118", 9, -1, json::array({item("p11", "Obudowa czujnika – prototyp", 4, "PETG", "obudowa_czujnika.gcode", "", 0),
+                                                            item("p12", "Pokrywa z zatrzaskiem", 4, "PETG", "pokrywa.gcode", pr[2], 0)}), "Kolor czarny, matowy"),
+        order("z2", 2, "k5", "PO-55871", 16, 0, json::array({item("p21", "Prowadnica kabla 600 mm", 30, "PA-CF", "prowadnica_600.gcode", "", 0)})),
+        // assigned: in production
+        order("z3", 3, "k1", "ZAM/2026/441", -2, -9, json::array({item("p31", "Uchwyt narzędziowy", 40, "PETG", "uchwyt_narzedziowy.gcode", pr[1], 26, 1),
+                                                                   item("p32", "Przyrząd montażowy", 6, "PA-CF", "przyrzad.gcode", pr[3], 2)}), "Pilne – linia stoi"),
+        order("z4", 4, "k2", "AP-2026-1093", 3, -5, json::array({item("p41", "Kratka wentylacyjna", 120, "ASA", "kratka.gcode", pr[0], 74, 2)})),
+        order("z5", 5, "", "", 12, -3, json::array({item("p51", "Listwa dystansowa – taśma ciągła", 25, "PLA", "listwa_endless.gcode", pr[5], 8),
+                                                     item("p52", "Stopka antywibracyjna", 16, "TPU", "stopka.gcode", pr[4], 6)}), "Produkcja własna – magazyn"),
+        order("z6", 6, "k4", "", 6, -6, json::array({item("p61", "Ramię chwytaka", 2, "PA-CF", "ramie_chwytaka.gcode", pr[3], 0),
+                                                       item("p62", "Osłona przekładni", 4, "PETG", "oslona.gcode", pr[1], 1)})),
+        // completed and archived
+        order("z7", 7, "k2", "AP-2026-1051", -1, -12, json::array({item("p71", "Zaślepka profilu 40×40", 200, "PETG", "zaslepka_40.gcode", pr[0], 200, 3)})),
+        order("z8", 8, "k1", "ZAM/2026/402", -8, -20, json::array({item("p81", "Uchwyt czujnika indukcyjnego", 24, "PETG", "uchwyt_czujnika.gcode", pr[2], 24)}), "", true),
+    });
+    // finished prints: three wait to be attached, the rest are attached to orders
+    auto print = [&](const char* id, const std::string& printer, const std::string& file, int days, int hour, int good, int bad, json to) {
+        return json{{"id", std::string("demo#") + id}, {"raport", id}, {"host", "demo"}, {"drukarka", printer}, {"plik", file},
+                    {"start", demo_at(days, hour - 2)}, {"koniec", demo_at(days, hour, 40)}, {"stan", "complete"}, {"dobre", good}, {"wadliwe", bad},
+                    {"przypisanie", std::move(to)}};
+    };
+    auto to = [](const char* z, const char* p) { return nlohmann::json{{"typ", "zlecenie"}, {"zlecenie_id", z}, {"pozycja_id", p}}; };
+    json wydruki = json::array({
+        print("R-1001", pr[1], "probka_klienta.gcode", 0, 11, 1, 0, nullptr),
+        print("R-1002", pr[2], "kalibracja_PA-CF.gcode", 0, 8, 1, 0, nullptr),
+        print("R-1003", pr[0], "kostki_testowe_x20.gcode", -1, 15, 20, 0, nullptr),
+        print("R-0994", pr[0], "ZL-" + std::to_string(year) + "-0004_kratka.gcode", -1, 13, 37, 1, to("z4", "p41")),
+        print("R-0990", pr[1], "ZL-" + std::to_string(year) + "-0003_uchwyt_narzedziowy.gcode", -2, 18, 13, 1, to("z3", "p31")),
+        print("R-0981", pr[0], "ZL-" + std::to_string(year) + "-0007_zaslepka_40.gcode", -3, 10, 100, 2, to("z7", "p71")),
+    });
+    json store = {{"v", 1}, {"nr", {{"rok", year}, {"n", 8}}}, {"klienci", klienci}, {"zlecenia", zlecenia}, {"wydruki", wydruki},
+                  {"sync", json::object()}, {"usuniete", json::object()}};
+    // what the start screen shows until the Mission page saves its own summary
+    store["podsumowanie"] = {{"nieprzydzielone", 2}, {"przydzielone", 4}, {"zakonczone", 1}, {"po_terminie", 1}, {"w_tym_tygodniu", 3},
+                             {"wydruki_nieprzydzielone", 3}, {"klienci", 5},
+                             {"nastepne", {{"numer", numer(3)}, {"nazwa", "Uchwyt narzędziowy"}, {"dobre", 26}, {"sztuk", 40},
+                                           {"klient", "Mechanika Precyzyjna Nowak Sp. z o.o."}, {"termin", demo_day(-2)}, {"drukarka", pr[1]}}}};
+    return store;
+}
+
+} // namespace
+
+bool presentation_mode() { return g_demo; }
+
+void set_presentation_mode(bool on)
+{
+    if (AppConfig* c = wxGetApp().app_config)
+        c->set_bool(DEMO_KEY, on);
+    stop_mission_network();
+    g_demo = on;
+    if (on) {
+        // fresh sample data every time, whatever was clicked in the last presentation
+        std::lock_guard<std::mutex> lock(g_store_mx);
+        write_json(store_file(), demo_store());
+        write_json(station_file(), nlohmann::json::object());
+        g_rev++;
+    }
+    g_summary = nullptr;
+    start_mission_network();
+    if (MissionPanel::s_instance) {
+        MissionPanel::s_instance->load();
+        MissionPanel::s_instance->net_changed();
+        MissionPanel::s_instance->printers_changed();
+    }
+    send_my_printers(false);
+    send_mission_home(false);
+}
+
 void start_mission_network()
 {
+    if (AppConfig* c = wxGetApp().app_config)
+        g_demo = c->get_bool(DEMO_KEY);
+    if (g_demo && !fs::exists(store_file()))
+        write_json(store_file(), demo_store());
     load_station();
-    if (g_st.share && !g_st.key.empty() && !client() && !start_server())
+    if (!g_demo && g_st.share && !g_st.key.empty() && !client() && !start_server())
         BOOST_LOG_TRIVIAL(error) << "[r]evo Mission: station not started: " << g_server_error;
 }
 

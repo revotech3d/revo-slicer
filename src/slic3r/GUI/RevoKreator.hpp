@@ -24,6 +24,8 @@ void send_my_printers(bool refresh = true);
 void select_my_printer(const std::string& name);
 // The same list for [r]evo Mission: name, host, model, state from the last network check.
 nlohmann::json my_printers_json();
+// Presentation mode: the sample machines shown instead of My printers (names used by the sample orders).
+std::vector<std::string> demo_printer_names();
 // Added printers with their address and slicer API key (for [r]evo Mission's calls to the agent).
 struct PrinterLink { std::string name, host, key; };
 std::vector<PrinterLink> printer_links();
