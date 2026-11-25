@@ -58,6 +58,7 @@ public:
 
 protected:
     wxTextCtrl *txt_filename;
+    wxTextCtrl *txt_order { nullptr };   // [r]evo Mission: order number put in front of the uploaded file name
     wxComboBox *combo_groups;
     wxComboBox* combo_storage;
     PrintHostPostUploadAction post_upload_action;

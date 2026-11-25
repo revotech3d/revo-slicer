@@ -2,6 +2,7 @@
 #include "CloudProvider.hpp"
 #include "RevoLicencja.hpp"
 #include "RevoKreator.hpp"
+#include "RevoMission.hpp"
 #include "ExportPresetBundleDialog.hpp"
 #include "ICloudServiceAgent.hpp"
 #include "IPrinterAgent.hpp"
@@ -1308,6 +1309,8 @@ bool GUI_App::is_glsl_version_greater_or_equal_to(unsigned int major, unsigned i
 void GUI_App::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown enter";
+
+    Revo::stop_mission_network();
 
 	if (m_removable_drive_manager) {
 		removable_drive_manager()->shutdown();
@@ -3785,9 +3788,13 @@ bool GUI_App::on_init_inner()
     if (is_editor()) {
         if (starts_on_prepare()) {
             mainframe->select_tab(TAB_ID_PREPARE);
+        } else if (Revo::mission_control() && app_config->get("revo_mission_ask") == "0") {
+            // [r]evo Mission Control: production is the first screen
+            mainframe->select_tab(TAB_ID_MISSION);
         } else {
             mainframe->select_tab(TAB_ID_HOME);
         }
+        Revo::start_mission_network();
     }
 
     sidebar().obj_list()->init();
@@ -5768,7 +5775,17 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 CallAfter([this] { Revo::show_connect_wizard(mainframe); });
             }
             else if (command_str.compare("homepage_myprinters") == 0) {   // [r]evo: lista dodanych drukarek
-                CallAfter([] { Revo::send_my_printers(); });
+                CallAfter([] {
+                    Revo::send_my_printers();
+                    Revo::send_mission_home(true);
+                });
+            }
+            else if (command_str.compare("homepage_mission") == 0) {   // [r]evo Mission: ścieżka startu, przełączanie, okno Mission
+                const std::string action   = root.get<std::string>("data.action", "");
+                const bool        control  = root.get<bool>("data.control", false);
+                const bool        remember = root.get<bool>("data.remember", false);
+                const std::string view     = root.get<std::string>("data.view", "");
+                CallAfter([action, control, remember, view] { Revo::handle_home_message(action, control, remember, view); });
             }
             else if (command_str.compare("homepage_selectprinter") == 0) {  // [r]evo: wybór aktywnej drukarki
                 const std::string name = root.get<std::string>("data.name", "");
@@ -8712,11 +8729,14 @@ int GUI_App::GetSingleChoiceIndex(const wxString& message,
 bool GUI_App::load_language(wxString language, bool initial)
 {
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: language %2%, initial: %3%") %__FUNCTION__ %language %initial;
+    // [r]evo Slicer starts in English; another language only when the user picked it in Preferences.
+    bool user_choice = !initial;
     if (initial) {
     	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
+        user_choice = !language.empty();
         if (! language.empty())
         	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by OrcaSlicer.conf: %1%") % language;
         else {
@@ -8767,9 +8787,15 @@ bool GUI_App::load_language(wxString language, bool initial)
         }
     }
 
-    // [r]evo Slicer: interfejs wyłącznie po angielsku (jak Revo OS)
-    language = "en_US";
-    app_config->set("language", "en_US");
+    // [r]evo Slicer: English unless the user picked one of the languages [r]evo Slicer is translated into (the list in
+    // PreferencesDialog::create_item_language_combobox); never the system language on its own.
+    static const char* const revo_languages[] = {"en", "pl", "de", "fr", "es", "it", "cs"};
+    const bool translated = std::any_of(std::begin(revo_languages), std::end(revo_languages),
+                                        [&language](const char* code) { return language.Lower().StartsWith(code); });
+    if (!user_choice || !translated) {
+        language = "en_US";
+        app_config->set("language", "en_US");
+    }
     m_language_info_system = nullptr;
     m_language_info_best   = nullptr;
 	const wxLanguageInfo *language_info = language.empty() ? nullptr : wxLocale::FindLanguageInfo(language);

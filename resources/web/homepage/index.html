@@ -16,7 +16,8 @@
 
 <link rel="stylesheet" type="text/css" href="../include/swiper/swiper-bundle.min.css" />
 <script type="text/javascript" src="../include/swiper/swiper-bundle.min.js"></script>
-<script type="text/javascript" src="../include/i18n.js"></script>		
+<script type="text/javascript" src="../include/i18n.js"></script>
+<script type="text/javascript" src="../include/revo_i18n.js"></script>		
 	
 <script type="text/javascript" src="js/home.js"></script>
 <!-- [r]evo Slicer: bez kont Orca Cloud i Bambu Cloud -->
@@ -148,7 +149,7 @@
 	<div class="MsFoot"><div class="PbBtn PbBtnMain" onClick="StartMission()">START MISSION ▸</div></div>
 </div>
 <div id="PrintersBoard" class="thin-scroll PbBoard" board="printers">
-	<div class="PbCap">[R]EVO SLICER · MISSION CONTROL</div>
+	<div class="PbCap"><span id="MsnCap">[R]EVO SLICER</span><a id="MsnSwitch" class="MsnSwitch" style="display:none" onClick="MsnSend('switch')"></a></div>
 	<div class="PbHead">
 		<div class="PbTitle">MAIN LAUNCH CONTROL</div>
 		<div class="PbActs">
@@ -156,6 +157,23 @@
 			<div class="PbBtn" onClick="OnClickOpenProject()">OPEN PROJECT</div>
 		</div>
 	</div>
+	<!-- [r]evo Mission: przy starcie wybór ścieżki, w Mission Control pasek produkcji z maszyny -->
+	<div id="MsnPath" style="display:none">
+		<div class="PbCap" style="margin-top:6px">CHOOSE YOUR PATH</div>
+		<div class="MsnPath">
+			<div class="MsnCard" data-control="0" onClick="MsnPick(0)" onDblClick="MsnPick(0);MsnStart()"><i>JUST PRINT</i>
+				<svg viewBox="0 0 48 48"><path d="M8 34h32M12 34V22h24v12"/><path d="M18 22v-6h12v6"/><path d="M24 10v6"/></svg>
+				<b>SIMPLE MISSION</b><span>Prepare a model and print it. The slicer only, as simple as it gets.</span>
+				<ul><li>SLICE</li><li>SEND TO PRINTER</li><li>CALIBRATION</li></ul></div>
+			<div class="MsnCard" data-control="1" onClick="MsnPick(1)" onDblClick="MsnPick(1);MsnStart()"><i>PRODUCTION</i>
+				<svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="24"/><path d="M16 40h16M24 32v8"/><path d="M11 26l7-8 6 5 7-9 6 6"/></svg>
+				<b>MISSION CONTROL</b><span>The slicer plus production: every print linked to an order, the queue shared across your machines, reports for your clients.</span>
+				<ul><li>ORDERS</li><li>QUEUE &amp; FARM</li><li>CLIENTS</li><li>SHOPS</li><li>PRINT REPORTS</li></ul></div>
+		</div>
+		<div class="MsnFoot"><label onClick="MsnRemember()"><span id="MsnBox" class="box on"></span>REMEMBER MY CHOICE · CHANGE IT ANY TIME FROM THE MISSION MENU</label>
+			<span class="MsnGo" onClick="MsnStart()">START ▸</span></div>
+	</div>
+	<div id="MsnProd" style="display:none"></div>
 	<div class="PbSec"><span>MY PRINTERS</span><a onClick="OnClickFindPrinters()">+ FIND PRINTERS</a></div>
 	<div id="PbList"></div>
 	<div id="PbEmpty">

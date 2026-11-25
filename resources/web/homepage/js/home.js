@@ -162,6 +162,8 @@ function HandleStudio( pVal )
     ShowStaffPick(m_HotModelList);
   } else if (strCmd == "revo_mission_picker") {
     ShowMissionPicker(pVal["data"]);
+  } else if (strCmd == "revo_mission") {
+    ShowMissionHome(pVal["data"]);
   } else if (strCmd == "revo_printers") {
     ShowMyPrinters(pVal["printers"]);
   } else if (strCmd == "SetLoginPanelVisibility") {
@@ -823,4 +825,47 @@ function StartMission()
 		slope_angle:m_Mission.slope_angle*1, segment:Math.max(0, m_Mission.segment*1), adv_speed:m_Mission.adv_speed*1, endless_count:Math.max(0, Math.round(m_Mission.endless_count*1)),
 		lift:m_Mission.lift*1, clear_z:m_Mission.clear_z*1, clear_y:m_Mission.clear_y*1}}));
 	GotoMenu('printers');
+}
+
+
+/*---- [r]evo Mission: start path and production strip ----*/
+var m_Msn = { control: 0, remember: true, d: null };
+
+function MsnSend(action, extra)
+{
+	SendWXMessage(JSON.stringify({sequence_id:Math.round(new Date()/1000),command:"homepage_mission",data:Object.assign({action:action},extra||{})}));
+}
+function MsnPick(c){ m_Msn.control=c; $("#MsnPath .MsnCard").each(function(){ $(this).toggleClass("on", $(this).attr("data-control")==String(c)); }); }
+function MsnRemember(){ m_Msn.remember=!m_Msn.remember; $("#MsnBox").toggleClass("on", m_Msn.remember); }
+function MsnStart(){ MsnSend("start", {control: !!m_Msn.control, remember: m_Msn.remember}); }
+
+function ShowMissionHome(d)
+{
+	m_Msn.d=d;
+	$("#MsnCap").text(d.control ? "[R]EVO MISSION CONTROL" : (d.ask ? "[R]EVO SLICER" : "[R]EVO SLICER · SIMPLE MISSION"));
+	$("#MsnSwitch").toggle(!d.ask).text(d.control ? "SWITCH TO SIMPLE MISSION" : "SWITCH TO MISSION CONTROL ▸");
+	if (d.ask && !$("#MsnPath").is(":visible")) MsnPick(d.control ? 1 : 0);
+	$("#MsnPath").toggle(!!d.ask);
+	let box=$("#MsnProd");
+	if (!d.control || d.ask) { box.hide().empty(); return; }
+	let s=d.summary;
+	if (!s) {
+		box.html('<div class="MsnNone">NO ORDERS YET · OPEN THE MISSION TAB TO ADD THE FIRST ONE</div>').show();
+		box.find(".MsnNone").css("cursor","pointer").click(function(){ MsnSend("open",{view:"un"}); });
+		return;
+	}
+	let n=s.nastepne;
+	let tile=function(view,k,v,unit,detail){ return '<div class="MsnTile" data-view="'+view+'"><div class="k">'+k+'</div><div class="v">'+v+'<small>'+unit+'</small></div><div class="d">'+detail+'</div></div>'; };
+	let html='<div class="PbSec" style="margin-top:22px"><span>PRODUCTION</span><a onClick="MsnSend(\'open\',{view:\'un\'})">OPEN MISSION ▸</a></div>';
+	if (n) html+='<div class="MsnNext"><div class="k">NEXT</div><div class="t">'+PbEsc(n.numer)+' · '+PbEsc(n.nazwa)+' · '+n.dobre+' / '+n.sztuk+' PCS'+
+		'<span>'+PbEsc(n.klient||'')+(n.drukarka?' · '+PbEsc(n.drukarka):'')+(n.termin?' · '+RTF('DUE %s',PbEsc(n.termin)):'')+'</span></div><div class="PbBtn PbBtnMain" onClick="MsnSend(\'open\',{view:\'pr\'})">PRINTERS</div></div>';
+	let late=s.po_terminie?'<span class="r">'+s.po_terminie+' overdue</span> · ':'';
+	html+='<div class="MsnStrip">'+
+		tile('un','UNASSIGNED',s.nieprzydzielone,'ORDERS',s.nieprzydzielone?'<span class="a">waiting for a printer</span>':'all orders have a printer')+
+		tile('as','ASSIGNED',s.przydzielone,'ORDERS',late+'<span class="a">'+s.w_tym_tygodniu+' due this week</span>')+
+		tile('ok','COMPLETED',s.zakonczone,'ORDERS','<span class="g">ready to deliver and archive</span>')+
+		tile('wy','UNASSIGNED PRINTS',s.wydruki_nieprzydzielone,'PRINTS',s.wydruki_nieprzydzielone?'<span class="a">attach to an order or client</span>':'every print is attached')+
+		'</div>';
+	box.html(html).show();
+	box.find(".MsnTile").click(function(){ MsnSend("open",{view:$(this).attr("data-view")}); });
 }

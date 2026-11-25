@@ -4,6 +4,9 @@
 //  - Monek: kalibracja nowego filamentu krok po kroku (temperatura, przepływ, PA, współczynnik, retrakcja) i zapis profilu.
 
 #include <string>
+#include <vector>
+
+#include <nlohmann/json.hpp>
 
 namespace Slic3r { struct Calib_Params; }
 
@@ -19,6 +22,13 @@ void show_connect_wizard(wxWindow* parent);
 // „My printers” na ekranie startowym: dodane maszyny (profil z adresem) ze stanem z sieci; klik = aktywna drukarka.
 void send_my_printers(bool refresh = true);
 void select_my_printer(const std::string& name);
+// The same list for [r]evo Mission: name, host, model, state from the last network check.
+nlohmann::json my_printers_json();
+// Added printers with their address and slicer API key (for [r]evo Mission's calls to the agent).
+struct PrinterLink { std::string name, host, key; };
+std::vector<PrinterLink> printer_links();
+// Checks the machines in the background; the start screen and [r]evo Mission get the new states.
+void refresh_printers();
 void remove_my_printer(const std::string& name);
 
 // Zapamiętuje zakres ostatnio wydrukowanego testu – kreator filamentu pokazuje dokładnie te wartości do wyboru.

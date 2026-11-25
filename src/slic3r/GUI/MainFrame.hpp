@@ -49,6 +49,7 @@
 // id of its own: sharing TAB_ID_MONITOR makes every name lookup resolve to whichever of the two
 // comes first, which silently defeats PluginPages' selection round-trip across a tab relayout.
 #define TAB_ID_MONITOR_WEB   "monitor_web"
+#define TAB_ID_MISSION       "mission"   // [r]evo Mission Control
 #define TAB_ID_MULTI_DEVICE  "multi_device"
 #define TAB_ID_PROJECT       "project"
 #define TAB_ID_CALIBRATION   "calibration"
@@ -200,6 +201,7 @@ class MainFrame : public DPIFrame
     // The latest EVT_LOAD_PRINTER_URL, applied when the web Device view is built.
     wxString              m_printer_url;
     wxString              m_printer_api_key;
+    wxMenu*               m_mission_menu{nullptr};
 
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
@@ -488,6 +490,11 @@ public:
     void        load_url(wxString url);
     void        load_printer_url(wxString url, wxString apikey = "");
     void        load_printer_url();
+    // [r]evo Mission: the docked machine, and the Mission menu rebuilt when the start path changes
+    const wxString& printer_url() const { return m_printer_url; }
+    const wxString& printer_api_key() const { return m_printer_api_key; }
+    void        update_mission_menu();   // also shows or hides the MISSION tab
+    void        place_mission_tab();
     bool        is_printer_view() const;
     void        refresh_plugin_tips();
     void RunScript(wxString js);

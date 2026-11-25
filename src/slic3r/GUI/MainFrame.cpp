@@ -1,4 +1,5 @@
 #include "RevoKreator.hpp"
+#include "RevoMission.hpp"
 #include "RevoLicencja.hpp"
 #include "MainFrame.hpp"
 #include "Widgets/Label.hpp"
@@ -1248,6 +1249,7 @@ void MainFrame::update_layout()
 #endif
         m_tabpanel->InsertPage(prepare_pos, TAB_ID_PREPARE, m_plater, _L("Prepare"), "tab_3d_active");
         m_tabpanel->InsertPage(prepare_pos + 1, TAB_ID_PREVIEW, m_plater, _L("Preview"), "tab_preview_active");
+        place_mission_tab();   // [r]evo: MISSION before Prepare
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 0);
 
         m_tabpanel->Bind(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, [this](wxCommandEvent& evt)
@@ -1624,6 +1626,7 @@ void MainFrame::init_tabpanel() {
         m_printer_api_key = evt.GetAPIkey();
         if (PrinterWebView* view = PrinterWebView::if_built())
             view->load_url(m_printer_url, m_printer_api_key);
+        Slic3r::GUI::Revo::mission_printer_changed();
     });
 
     m_multi_machine_page = new LazyPage<MultiMachinePage>(m_tabpanel, TAB_ID_MULTI_DEVICE, 40);
@@ -3687,6 +3690,9 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);
     top_menu->AppendSeparator();
+    m_mission_menu = new wxMenu();
+    update_mission_menu();
+    m_topbar->AddDropDownSubMenu(m_mission_menu, _L("Mission"));
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
 
     // SoftFever calibrations
@@ -3867,6 +3873,9 @@ void MainFrame::init_menubar_as_editor()
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
     m_menubar->Append(calib_menu,wxString::Format("&%s", _L("Calibration")));
+    m_mission_menu = new wxMenu();
+    update_mission_menu();
+    m_menubar->Append(m_mission_menu, wxString::Format("&%s", _L("Mission")));
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);
@@ -4699,6 +4708,40 @@ void MainFrame::load_printer_url()
         apikey = cfg.opt_string("printhost_apikey");
     // [r]evo: an empty address clears the device page (printer undocked or none docked)
     load_printer_url(url, apikey);
+}
+
+void MainFrame::update_mission_menu()
+{
+    Slic3r::GUI::Revo::fill_mission_menu(m_mission_menu, this);
+    if (!m_tabpanel || !wxGetApp().is_editor())
+        return;
+    const int idx = m_tabpanel->FindPageByName(TAB_ID_MISSION);
+    if (Slic3r::GUI::Revo::mission_control() && idx == wxNOT_FOUND) {
+        wxWindow* page = Slic3r::GUI::Revo::create_mission_page(m_tabpanel);
+        page->Show(false);
+        m_tabpanel->InsertPage(m_tabpanel->PositionAfter({TAB_ID_HOME}), TAB_ID_MISSION, page, _L("Mission"), "tab_mission_active");
+        place_mission_tab();
+        fit_tab_labels();
+    } else if (!Slic3r::GUI::Revo::mission_control() && idx != wxNOT_FOUND) {
+        if (m_tabpanel->GetSelection() == idx)
+            select_tab(wxString(TAB_ID_PREPARE));
+        m_tabpanel->RemovePage(idx);
+        fit_tab_labels();
+    }
+}
+
+// The MISSION tab goes first, right before Prepare: production is managed before anything is prepared
+// or printed. Prepare is inserted after the menu bar builds the tab, so this runs again from update_layout().
+void MainFrame::place_mission_tab()
+{
+    const int idx     = m_tabpanel ? m_tabpanel->FindPageByName(TAB_ID_MISSION) : wxNOT_FOUND;
+    const int prepare = idx == wxNOT_FOUND ? wxNOT_FOUND : m_tabpanel->FindPageByName(TAB_ID_PREPARE);
+    if (prepare == wxNOT_FOUND || idx == prepare - 1)
+        return;
+    const bool selected = m_tabpanel->GetSelection() == idx;
+    wxWindow*  page     = m_tabpanel->GetPage(idx);
+    m_tabpanel->RemovePage(idx);
+    m_tabpanel->InsertPage(size_t(m_tabpanel->FindPageByName(TAB_ID_PREPARE)), TAB_ID_MISSION, page, _L("Mission"), "tab_mission_active", selected);
 }
 
 bool MainFrame::is_printer_view() const { return m_tabpanel->GetSelectedPageName() == TAB_ID_MONITOR; }

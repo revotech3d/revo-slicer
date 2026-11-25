@@ -4783,6 +4783,9 @@ std::string Sidebar::get_cur_select_bed_image()
     auto select_bed_type   = get_cur_select_bed_type();
     //auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
     auto image_path        = bed_type_thumbnails[select_bed_type];// + series_suffix_str;
+    // [r]evo: on Revon printers Textured Cool Plate is the Belt (RevoBedTypes.hpp)
+    if (select_bed_type == BedType::btPCT && revo_printer_model(p->plater->get_curr_printer_model()))
+        image_path = "bed_belt";
     return image_path;
 }
 
