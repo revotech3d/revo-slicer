@@ -12,6 +12,16 @@
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
 
+#ifdef _WIN32
+#include <iphlpapi.h>
+#pragma comment(lib, "iphlpapi.lib")
+#else
+#include <arpa/inet.h>
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#endif
+
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
@@ -346,9 +356,17 @@ bool valid_profile_path(const std::string& rel)
         return false;
     if (std::find(std::begin(PROFILE_KINDS), std::end(PROFILE_KINDS), parts[0]) == std::end(PROFILE_KINDS))
         return false;
+    // A profile made on macOS must also be a valid file name on Windows, and the other way round.
     const std::string& name = parts.back();
-    return name.size() > 5 && name.compare(name.size() - 5, 5, ".json") == 0 && name[0] != '.' && rel.find("..") == std::string::npos &&
-           rel.find('\\') == std::string::npos && rel.find(':') == std::string::npos;
+    if (name.size() <= 5 || name.compare(name.size() - 5, 5, ".json") != 0 || name[0] == '.' || rel.find("..") != std::string::npos)
+        return false;
+    const char stem_end = name[name.size() - 6];
+    if (stem_end == ' ' || stem_end == '.')
+        return false;
+    for (unsigned char c : rel)
+        if (c < 32 || std::string("\\:*?\"<>|").find(char(c)) != std::string::npos)
+            return false;
+    return true;
 }
 
 json list_profiles(const std::string& user_dir, const std::vector<std::string>& kinds)
@@ -536,11 +554,16 @@ bool Server::start(const std::string& key, const std::string& salt, const std::s
     try {
         const tcp::endpoint ep(tcp::v4(), HTTP_PORT);
         m_impl->acceptor.open(ep.protocol());
+#ifndef _WIN32
+        // On Windows SO_REUSEADDR would let a second slicer take the same port; elsewhere it only allows a quick restart.
         m_impl->acceptor.set_option(net::socket_base::reuse_address(true));
+#endif
         m_impl->acceptor.bind(ep);
         m_impl->acceptor.listen();
         m_impl->udp_socket.open(udp::v4());
+#ifndef _WIN32
         m_impl->udp_socket.set_option(net::socket_base::reuse_address(true));
+#endif
         m_impl->udp_socket.bind(udp::endpoint(udp::v4(), DISCOVERY_PORT));
     } catch (const std::exception& e) {
         error    = e.what();
@@ -572,6 +595,55 @@ void Server::stop()
 
 // ---------- other stations ----------
 
+namespace {
+
+// Broadcast address of every IPv4 network this computer is on. 255.255.255.255 leaves through one interface only
+// (on Windows often a VPN or Hyper-V adapter), so the ask also goes to each network's own broadcast address.
+std::vector<net::ip::address_v4> broadcast_addresses()
+{
+    std::vector<net::ip::address_v4> out{net::ip::address_v4::broadcast()};
+    const auto add = [&out](uint32_t ip, uint32_t mask) {
+        const net::ip::address_v4 a(ip | ~mask);
+        if ((ip >> 24) != 127 && (ip >> 16) != 0xA9FE && mask != 0xFFFFFFFFu && std::find(out.begin(), out.end(), a) == out.end())
+            out.push_back(a);
+    };
+#ifdef _WIN32
+    ULONG                  size = 16 * 1024;
+    std::vector<char>      buf(size);
+    auto*                  list = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buf.data());
+    const ULONG            flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER;
+    if (GetAdaptersAddresses(AF_INET, flags, nullptr, list, &size) == ERROR_BUFFER_OVERFLOW) {
+        buf.resize(size);
+        list = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(buf.data());
+    }
+    if (GetAdaptersAddresses(AF_INET, flags, nullptr, list, &size) == NO_ERROR)
+        for (auto* a = list; a; a = a->Next) {
+            if (a->OperStatus != IfOperStatusUp || a->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
+                continue;
+            for (auto* u = a->FirstUnicastAddress; u; u = u->Next) {
+                if (u->Address.lpSockaddr->sa_family != AF_INET || u->OnLinkPrefixLength > 32)
+                    continue;
+                const uint32_t ip   = ntohl(reinterpret_cast<sockaddr_in*>(u->Address.lpSockaddr)->sin_addr.s_addr);
+                const uint32_t mask = u->OnLinkPrefixLength == 0 ? 0 : 0xFFFFFFFFu << (32 - u->OnLinkPrefixLength);
+                add(ip, mask);
+            }
+        }
+#else
+    ifaddrs* list = nullptr;
+    if (getifaddrs(&list) == 0) {
+        for (ifaddrs* a = list; a; a = a->ifa_next)
+            if (a->ifa_addr && a->ifa_netmask && a->ifa_addr->sa_family == AF_INET && (a->ifa_flags & IFF_UP) &&
+                !(a->ifa_flags & IFF_LOOPBACK))
+                add(ntohl(reinterpret_cast<sockaddr_in*>(a->ifa_addr)->sin_addr.s_addr),
+                    ntohl(reinterpret_cast<sockaddr_in*>(a->ifa_netmask)->sin_addr.s_addr));
+        freeifaddrs(list);
+    }
+#endif
+    return out;
+}
+
+} // namespace
+
 json discover(int timeout_ms)
 {
     json found = json::array();
@@ -579,7 +651,10 @@ json discover(int timeout_ms)
         net::io_context io;
         udp::socket     sock(io, udp::endpoint(udp::v4(), 0));
         sock.set_option(net::socket_base::broadcast(true));
-        sock.send_to(net::buffer(std::string(DISCOVER_ASK)), udp::endpoint(net::ip::address_v4::broadcast(), DISCOVERY_PORT));
+        for (const auto& addr : broadcast_addresses()) {
+            beast::error_code ignored;   // an interface that refuses the broadcast does not stop the others
+            sock.send_to(net::buffer(std::string(DISCOVER_ASK)), udp::endpoint(addr, DISCOVERY_PORT), 0, ignored);
+        }
         std::array<char, 1024> buf{};
         udp::endpoint          from;
         std::set<std::string>  seen;

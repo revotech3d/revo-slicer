@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -44,6 +45,11 @@
 #include <wx/string.h>
 #include <wx/utils.h>
 #include <wx/webview.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
 
 namespace fs = boost::filesystem;
 
@@ -319,6 +325,43 @@ bool start_server()
                            [udir, bdir](const nlohmann::json& r) { return serve(r, udir, bdir); }, g_server_error);
 }
 
+#ifdef _WIN32
+// Windows Defender Firewall drops connections to a new listening port until a rule allows them, and the "allow access"
+// prompt it shows for the app is easy to dismiss. Sharing therefore adds its own rule for the station ports, limited to
+// the local subnet, once; adding it needs the administrator (UAC).
+constexpr const wchar_t* FIREWALL_RULE = L"[r]evo Mission";
+
+DWORD run_hidden(const std::wstring& exe, const std::wstring& args, bool elevated)
+{
+    SHELLEXECUTEINFOW info{};
+    info.cbSize       = sizeof(info);
+    info.fMask        = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NO_CONSOLE;
+    info.lpVerb       = elevated ? L"runas" : L"open";
+    info.lpFile       = exe.c_str();
+    info.lpParameters = args.c_str();
+    info.nShow        = SW_HIDE;
+    if (!ShellExecuteExW(&info) || !info.hProcess)
+        return DWORD(-1);
+    WaitForSingleObject(info.hProcess, 60000);
+    DWORD code = DWORD(-1);
+    GetExitCodeProcess(info.hProcess, &code);
+    CloseHandle(info.hProcess);
+    return code;
+}
+
+// Worker thread. False when the rule is missing and the user declined the administrator prompt.
+bool ensure_firewall_rule()
+{
+    const std::wstring name = std::wstring(L"name=\"") + FIREWALL_RULE + L"\"";
+    if (run_hidden(L"netsh.exe", L"advfirewall firewall show rule " + name, false) == 0)
+        return true;
+    const std::wstring common = L"advfirewall firewall add rule " + name + L" dir=in action=allow remoteip=localsubnet profile=any";
+    const std::wstring args   = L"/c netsh " + common + L" protocol=TCP localport=" + std::to_wstring(RevoNet::HTTP_PORT) + L" && netsh " +
+                              common + L" protocol=UDP localport=" + std::to_wstring(RevoNet::DISCOVERY_PORT);
+    return run_hidden(L"cmd.exe", args, true) == 0;
+}
+#endif
+
 void stop_server()
 {
     if (g_server)
@@ -519,6 +562,17 @@ private:
             s_instance->result(ok, ok ? (on ? "Sharing on the local network" : "Sharing off – orders stay on this computer") :
                                         "Could not open port " + std::to_string(RevoNet::HTTP_PORT) + ": " + g_server_error);
             s_instance->net_changed();
+#ifdef _WIN32
+            if (ok && on)
+                std::thread([] {
+                    if (!ensure_firewall_rule())
+                        wxTheApp->CallAfter([] {
+                            if (s_instance)
+                                s_instance->result(false, "Windows Firewall may block other stations: allow [r]evo Slicer on private "
+                                                          "networks, or turn sharing on again and accept the administrator prompt");
+                        });
+                }).detach();
+#endif
         };
         if (password.empty())
             return apply("", "");
@@ -622,31 +676,38 @@ private:
             int            pulled = 0, added = 0, pushed = 0, failed = 0;
             bool           ok     = RevoNet::request(host, port, key, {{"cmd", "plist"}}, remote, err, 20);
             if (ok) {
+                // macOS and Windows file names ignore case: "PLA.json" here and "pla.json" there are one profile.
+                const auto lower = [](std::string p) {
+                    std::transform(p.begin(), p.end(), p.begin(), [](unsigned char c) { return char(c < 128 ? std::tolower(c) : c); });
+                    return p;
+                };
                 std::map<std::string, nlohmann::json> here, there;
                 for (const auto& f : RevoNet::list_profiles(udir, kinds))
-                    here[f["p"].get<std::string>()] = f;
+                    here[lower(f["p"].get<std::string>())] = f;
                 for (const auto& f : remote.value("list", nlohmann::json::array()))
                     if (std::find(kinds.begin(), kinds.end(), f.value("p", "").substr(0, f.value("p", "").find('/'))) != kinds.end())
-                        there[f["p"].get<std::string>()] = f;
-                for (const auto& [p, r] : there) {
-                    const auto l = here.find(p);
+                        there[lower(f.value("p", ""))] = f;
+                for (const auto& [id, r] : there) {
+                    const auto l = here.find(id);
                     if (l != here.end() && (l->second["h"] == r["h"] || l->second["m"].get<int64_t>() > r["m"].get<int64_t>()))
                         continue;
-                    if (RevoNet::request(host, port, key, {{"cmd", "pget"}, {"p", p}}, reply, err) &&
+                    const std::string p = l != here.end() ? l->second.value("p", "") : r.value("p", "");   // keep the local name
+                    if (RevoNet::request(host, port, key, {{"cmd", "pget"}, {"p", r.value("p", "")}}, reply, err) &&
                         RevoNet::write_profile(udir, bdir, p, reply.value("d", ""), reply.value("m", int64_t(0)))) {
                         ++pulled;
                         added += l == here.end();
                     } else
                         ++failed;
                 }
-                for (const auto& [p, l] : here) {
-                    const auto r = there.find(p);
+                for (const auto& [id, l] : here) {
+                    const auto r = there.find(id);
                     if (r != there.end() && (r->second["h"] == l["h"] || r->second["m"].get<int64_t>() >= l["m"].get<int64_t>()))
                         continue;
-                    std::string data;
-                    int64_t     mtime = 0;
+                    const std::string p = l.value("p", ""), to = r != there.end() ? r->second.value("p", "") : p;
+                    std::string       data;
+                    int64_t           mtime = 0;
                     if (RevoNet::read_profile(udir, p, data, mtime) &&
-                        RevoNet::request(host, port, key, {{"cmd", "pput"}, {"p", p}, {"d", data}, {"m", mtime}}, reply, err))
+                        RevoNet::request(host, port, key, {{"cmd", "pput"}, {"p", to}, {"d", data}, {"m", mtime}}, reply, err))
                         ++pushed;
                     else
                         ++failed;

@@ -86,6 +86,15 @@ TEST_CASE("Only user preset json files can be synced", "[RevoMissionNet]")
     CHECK_FALSE(valid_profile_path("other/x.json"));
 }
 
+TEST_CASE("A profile name has to be a valid file name on both macOS and Windows", "[RevoMissionNet]")
+{
+    CHECK(valid_profile_path("process/0.20mm Standard @Revon.json"));
+    CHECK_FALSE(valid_profile_path("process/a:b.json"));
+    CHECK_FALSE(valid_profile_path("process/what?.json"));
+    CHECK_FALSE(valid_profile_path("process/quoted \"x\".json"));
+    CHECK_FALSE(valid_profile_path("process/ends with space .json"));
+}
+
 TEST_CASE("A synced profile keeps its time and backs up the one it replaces", "[RevoMissionNet]")
 {
     const boost::filesystem::path root = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
