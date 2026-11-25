@@ -858,7 +858,7 @@ function ShowMissionHome(d)
 	let tile=function(view,k,v,unit,detail){ return '<div class="MsnTile" data-view="'+view+'"><div class="k">'+k+'</div><div class="v">'+v+'<small>'+unit+'</small></div><div class="d">'+detail+'</div></div>'; };
 	let html='<div class="PbSec" style="margin-top:22px"><span>PRODUCTION</span><a onClick="MsnSend(\'open\',{view:\'un\'})">OPEN MISSION ▸</a></div>';
 	if (n) html+='<div class="MsnNext"><div class="k">NEXT</div><div class="t">'+PbEsc(n.numer)+' · '+PbEsc(n.nazwa)+' · '+n.dobre+' / '+n.sztuk+' PCS'+
-		'<span>'+PbEsc(n.klient||'')+(n.drukarka?' · '+PbEsc(n.drukarka):'')+(n.termin?' · DUE '+PbEsc(n.termin):'')+'</span></div><div class="PbBtn PbBtnMain" onClick="MsnSend(\'open\',{view:\'pr\'})">PRINTERS</div></div>';
+		'<span>'+PbEsc(n.klient||'')+(n.drukarka?' · '+PbEsc(n.drukarka):'')+(n.termin?' · '+RTF('DUE %s',PbEsc(n.termin)):'')+'</span></div><div class="PbBtn PbBtnMain" onClick="MsnSend(\'open\',{view:\'pr\'})">PRINTERS</div></div>';
 	let late=s.po_terminie?'<span class="r">'+s.po_terminie+' overdue</span> · ':'';
 	html+='<div class="MsnStrip">'+
 		tile('un','UNASSIGNED',s.nieprzydzielone,'ORDERS',s.nieprzydzielone?'<span class="a">waiting for a printer</span>':'all orders have a printer')+
