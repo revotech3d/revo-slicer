@@ -406,7 +406,11 @@ public:
                     show(m_view);
             });
             CallAfter([this] {
-                WebView::LoadUrl(m_browser, file_url_from_path(fs::path(resources_dir()) / "web" / "mission" / "index.html"));
+                wxString url = file_url_from_path(fs::path(resources_dir()) / "web" / "mission" / "index.html");
+                const wxString lang = wxGetApp().current_language_code_safe();
+                if (!lang.empty())
+                    url += "?lang=" + lang;
+                WebView::LoadUrl(m_browser, url);
             });
         }
         SetSizer(sizer);

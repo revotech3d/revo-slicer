@@ -397,37 +397,20 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxString too
 
 wxBoxSizer *PreferencesDialog::create_item_language_combobox(wxString title, wxString tooltip)
 {
+    // [r]evo Slicer is translated, its own texts included, into these languages only; English is the default.
     wxLanguage supported_languages[]{
         wxLANGUAGE_ENGLISH,
-        wxLANGUAGE_CHINESE_SIMPLIFIED,
-        wxLANGUAGE_CHINESE_TRADITIONAL,
+        wxLANGUAGE_POLISH,
         wxLANGUAGE_GERMAN,
-        wxLANGUAGE_CZECH,
         wxLANGUAGE_FRENCH,
         wxLANGUAGE_SPANISH,
-        wxLANGUAGE_SWEDISH,
-        wxLANGUAGE_DUTCH,
-        wxLANGUAGE_HUNGARIAN,
-        wxLANGUAGE_JAPANESE,
         wxLANGUAGE_ITALIAN,
-        wxLANGUAGE_KOREAN,
-        wxLANGUAGE_RUSSIAN,
-        wxLANGUAGE_UKRAINIAN,
-        wxLANGUAGE_TURKISH,
-        wxLANGUAGE_POLISH,
-        wxLANGUAGE_CATALAN,
-        wxLANGUAGE_BASQUE,
-        wxLANGUAGE_PORTUGUESE_BRAZILIAN,
-        wxLANGUAGE_LITHUANIAN,
-        wxLANGUAGE_VIETNAMESE,
-        wxLANGUAGE_THAI,
-        wxLANGUAGE_ROMANIAN
+        wxLANGUAGE_CZECH
     };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
-    translations.Clear(); // [r]evo Slicer: tylko angielski
     for (size_t i = 0; i < translations.GetCount(); ++i) {
         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
 

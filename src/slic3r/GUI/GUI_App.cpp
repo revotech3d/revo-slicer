@@ -8729,11 +8729,14 @@ int GUI_App::GetSingleChoiceIndex(const wxString& message,
 bool GUI_App::load_language(wxString language, bool initial)
 {
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: language %2%, initial: %3%") %__FUNCTION__ %language %initial;
+    // [r]evo Slicer starts in English; another language only when the user picked it in Preferences.
+    bool user_choice = !initial;
     if (initial) {
     	// There is a static list of lookup path prefixes in wxWidgets. Add ours.
 	    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(from_u8(localization_dir()));
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
+        user_choice = !language.empty();
         if (! language.empty())
         	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by OrcaSlicer.conf: %1%") % language;
         else {
@@ -8784,9 +8787,15 @@ bool GUI_App::load_language(wxString language, bool initial)
         }
     }
 
-    // [r]evo Slicer: interfejs wyłącznie po angielsku (jak Revo OS)
-    language = "en_US";
-    app_config->set("language", "en_US");
+    // [r]evo Slicer: English unless the user picked one of the languages [r]evo Slicer is translated into (the list in
+    // PreferencesDialog::create_item_language_combobox); never the system language on its own.
+    static const char* const revo_languages[] = {"en", "pl", "de", "fr", "es", "it", "cs"};
+    const bool translated = std::any_of(std::begin(revo_languages), std::end(revo_languages),
+                                        [&language](const char* code) { return language.Lower().StartsWith(code); });
+    if (!user_choice || !translated) {
+        language = "en_US";
+        app_config->set("language", "en_US");
+    }
     m_language_info_system = nullptr;
     m_language_info_best   = nullptr;
 	const wxLanguageInfo *language_info = language.empty() ? nullptr : wxLocale::FindLanguageInfo(language);
