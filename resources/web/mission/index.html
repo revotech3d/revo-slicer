@@ -284,8 +284,8 @@ function ordersView(s) {
 function printsView() {
   const list = unassignedPrints(), done_ = D.wydruki.filter(w => w.przypisanie).slice(0, 30);
   const off = PR.filter(p => !p.online).length;
-  let h = `<div class="dim" style="margin-bottom:8px;font-size:12px">Every print finished on your printers lands here until you attach it to an order, a client or own production.
-    ${off ? `${off} printer(s) offline – their prints arrive when they are back.` : ""} <button class="b sm" onclick="send('prints',{since:D.sync})">Check printers now</button></div>`;
+  let h = `<div class="dim" style="margin-bottom:8px;font-size:12px"><span>Every print finished on your printers lands here until you attach it to an order, a client or own production.</span>
+    ${off ? `<span>${RTF("Printers offline: %s – their prints arrive when they are back.", off)}</span>` : ""} <button class="b sm" onclick="send('prints',{since:D.sync})">Check printers now</button></div>`;
   h += list.length ? `<table><tr><th>Finished</th><th>Printer</th><th>File</th><th>Good</th><th>Defective</th><th></th></tr>` + list.map(w =>
     `<tr><td class="mono nw">${esc((w.koniec || "").replace("T", " ").slice(0, 16))}</td><td>${esc(w.drukarka)}</td><td>${esc(w.plik)}</td>
      <td class="mono">${w.dobre ?? "—"}</td><td class="mono">${w.wadliwe ?? "—"}</td>
