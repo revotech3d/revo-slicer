@@ -345,7 +345,7 @@ else ()
             set(BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/OrcaSlicer.app/Contents/MacOS")
         endif()
         set(MACOSX_BUNDLE_ICON_FILE Icon.icns)
-        set(MACOSX_BUNDLE_BUNDLE_NAME "[r]evo Slicer") # [r]evo Slicer: nazwa w menu macOS i Docku
+        set(MACOSX_BUNDLE_BUNDLE_NAME "[r]evo Slicer + [r]evo Mission") # [r]evo: nazwa w menu macOS; plik aplikacji zostaje „[r]evo Slicer.app”
         set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${REVO_SLICER_VERSION})
         set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2022-2024 Li Jiang All Rights Reserved")
         if (XCODE)
