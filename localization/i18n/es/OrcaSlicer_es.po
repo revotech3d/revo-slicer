@@ -39842,3 +39842,232 @@ msgstr "Introduce el valor de esa placa."
 # AI Translated
 msgid "Time about 15 min · filament about 10 g"
 msgstr "Tiempo aprox. 15 min · filamento aprox. 10 g"
+
+# AI Translated
+#, boost-format
+msgid "%1% printer found on %2%"
+msgid_plural "%1% printers found on %2%"
+msgstr[0] "%1% impresora encontrada en %2%"
+msgstr[1] "%1% impresoras encontradas en %2%"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Fixed bed · eject after %d minute"
+msgid_plural "Fixed bed · eject after %d minutes"
+msgstr[0] "Cama fija · expulsión tras %d minuto"
+msgstr[1] "Cama fija · expulsión tras %d minutos"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Sequential · %d piece"
+msgid_plural "Sequential · %d pieces"
+msgstr[0] "Secuencial · %d pieza"
+msgstr[1] "Secuencial · %d piezas"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Plates · %d plate"
+msgid_plural "Plates · %d plates"
+msgstr[0] "Placas · %d placa"
+msgstr[1] "Placas · %d placas"
+
+# AI Translated
+msgid "Toolhead p"
+msgstr "Cabezal p"
+
+# AI Translated
+msgid "Toolhead w"
+msgstr "Cabezal w"
+
+# AI Translated
+#, boost-format
+msgid ""
+"This part is %1% m long; one object can be at most %2% m. Print longer parts"
+" with Endless, which repeats a segment."
+msgstr ""
+"Esta pieza mide %1% m; un objeto puede medir como máximo %2% m. Imprime las "
+"piezas más largas con Endless, que repite un segmento."
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: only numbers, commas and dots are allowed"
+msgstr "Línea %1%: solo se permiten números, comas y puntos"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Line %1%: must contain exactly 3 comma-separated values (PA, flow, "
+"acceleration)"
+msgstr ""
+"Línea %1%: debe contener exactamente 3 valores separados por comas (PA, "
+"flujo, aceleración)"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: missing PA value"
+msgstr "Línea %1%: falta el valor de PA"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: missing flow value"
+msgstr "Línea %1%: falta el valor de flujo"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: missing acceleration value"
+msgstr "Línea %1%: falta el valor de aceleración"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: PA value must be less than 2"
+msgstr "Línea %1%: el valor de PA debe ser menor que 2"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: flow value must be greater than PA value"
+msgstr "Línea %1%: el valor de flujo debe ser mayor que el de PA"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: acceleration value must be greater than flow value"
+msgstr "Línea %1%: el valor de aceleración debe ser mayor que el de flujo"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: invalid numeric value"
+msgstr "Línea %1%: valor numérico no válido"
+
+# AI Translated
+msgid ""
+"G-code processor post-process export failed.\n"
+"Cannot open file for reading.\n"
+msgstr ""
+"Falló la exportación del posprocesado del G-code.\n"
+"No se puede abrir el archivo para lectura.\n"
+
+# AI Translated
+msgid ""
+"G-code processor post-process export failed.\n"
+"Cannot open file for writing.\n"
+msgstr ""
+"Falló la exportación del posprocesado del G-code.\n"
+"No se puede abrir el archivo para escritura.\n"
+
+# AI Translated
+msgid ""
+"The G-code post-processor encountered an invalid tool change, maybe from "
+"custom G-code:"
+msgstr ""
+"El posprocesador de G-code encontró un cambio de herramienta no válido, "
+"quizá de un G-code personalizado:"
+
+# AI Translated
+msgid "Generated M104 lines may be incorrect."
+msgstr "Las líneas M104 generadas pueden ser incorrectas."
+
+# AI Translated
+msgid ""
+"G-code processor post-process export failed.\n"
+"Error while reading from file.\n"
+msgstr ""
+"Falló la exportación del posprocesado del G-code.\n"
+"Error al leer el archivo.\n"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Failed to rename the output G-code file from %1% to %2%.\n"
+"Is %1% locked?"
+msgstr ""
+"No se pudo renombrar el archivo G-code de salida de %1% a %2%.\n"
+"¿Está %1% bloqueado?"
+
+# AI Translated
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Cannot open file for reading.\n"
+msgstr ""
+"Falló la pasada de inserción de precalentamiento del G-code.\n"
+"No se puede abrir el archivo para lectura.\n"
+
+# AI Translated
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Cannot open file for writing.\n"
+msgstr ""
+"Falló la pasada de inserción de precalentamiento del G-code.\n"
+"No se puede abrir el archivo para escritura.\n"
+
+# AI Translated
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Error while reading from file.\n"
+msgstr ""
+"Falló la pasada de inserción de precalentamiento del G-code.\n"
+"Error al leer el archivo.\n"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Small Area Flow Compensation: Error parsing data point in small area infill "
+"compensation model: %1%"
+msgstr ""
+"Compensación de flujo en áreas pequeñas: error al leer un punto del modelo "
+"de compensación: %1%"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: First extrusion length for small area infill "
+"compensation model must be 0"
+msgstr ""
+"Compensación de flujo en áreas pequeñas: la primera longitud de extrusión "
+"del modelo debe ser 0"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: Only the first extrusion length for small area"
+" infill compensation model can be 0"
+msgstr ""
+"Compensación de flujo en áreas pequeñas: solo la primera longitud de "
+"extrusión del modelo puede ser 0"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: Extrusion lengths for subsequent points must "
+"be increasing"
+msgstr ""
+"Compensación de flujo en áreas pequeñas: las longitudes de extrusión de los "
+"puntos siguientes deben aumentar"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: Flow compensation factors must strictly "
+"increase with extrusion length"
+msgstr ""
+"Compensación de flujo en áreas pequeñas: los factores de compensación deben "
+"aumentar estrictamente con la longitud de extrusión"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: Final compensation factor for small area "
+"infill flow compensation model must be 1.0"
+msgstr ""
+"Compensación de flujo en áreas pequeñas: el factor final del modelo de "
+"compensación debe ser 1.0"
+
+# AI Translated
+msgid "The mesh does not enclose any volume."
+msgstr "La malla no encierra ningún volumen."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Slot %1%: the printer needs the \"%2%\" variant, which the filament does not"
+" define. Publishing the values printed with \"%3%\"."
+msgstr ""
+"Ranura %1%: la impresora necesita la variante «%2%», que el filamento no "
+"define. Se publican los valores impresos con «%3%»."
+
+# AI Translated
+msgid "Move over surface"
+msgstr "Mover sobre la superficie"

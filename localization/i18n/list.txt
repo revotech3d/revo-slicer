@@ -401,3 +401,12 @@ src/slic3r/GUI/PostProcessor.cpp
 src/slic3r/GUI/TaskManager.cpp
 src/slic3r/GUI/Widgets/ProgressDialog.hpp
 src/slic3r/GUI/Widgets/StepCtrl.cpp
+src/OrcaSlicer.cpp
+src/libslic3r/GCode/AdaptivePAProcessor.cpp
+src/libslic3r/GCode/GCodeProcessor.cpp
+src/libslic3r/GCode/SmallAreaInfillFlowCompensator.cpp
+src/libslic3r/GCode/Thumbnails.cpp
+src/libslic3r/MeshRepair.cpp
+src/libslic3r/PublishSettings.cpp
+src/slic3r/GUI/Notebook.cpp
+src/slic3r/GUI/SurfaceDrag.cpp

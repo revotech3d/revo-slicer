@@ -33830,3 +33830,164 @@ msgstr ""
 
 msgid "Time about 15 min · filament about 10 g"
 msgstr ""
+
+#, boost-format
+msgid "%1% printer found on %2%"
+msgid_plural "%1% printers found on %2%"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
+msgid "Fixed bed · eject after %d minute"
+msgid_plural "Fixed bed · eject after %d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
+msgid "Sequential · %d piece"
+msgid_plural "Sequential · %d pieces"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
+msgid "Plates · %d plate"
+msgid_plural "Plates · %d plates"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Toolhead p"
+msgstr ""
+
+msgid "Toolhead w"
+msgstr ""
+
+#, boost-format
+msgid ""
+"This part is %1% m long; one object can be at most %2% m. Print longer parts"
+" with Endless, which repeats a segment."
+msgstr ""
+
+#, boost-format
+msgid "Line %1%: only numbers, commas and dots are allowed"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Line %1%: must contain exactly 3 comma-separated values (PA, flow, "
+"acceleration)"
+msgstr ""
+
+#, boost-format
+msgid "Line %1%: missing PA value"
+msgstr ""
+
+#, boost-format
+msgid "Line %1%: missing flow value"
+msgstr ""
+
+#, boost-format
+msgid "Line %1%: missing acceleration value"
+msgstr ""
+
+#, boost-format
+msgid "Line %1%: PA value must be less than 2"
+msgstr ""
+
+#, boost-format
+msgid "Line %1%: flow value must be greater than PA value"
+msgstr ""
+
+#, boost-format
+msgid "Line %1%: acceleration value must be greater than flow value"
+msgstr ""
+
+#, boost-format
+msgid "Line %1%: invalid numeric value"
+msgstr ""
+
+msgid ""
+"G-code processor post-process export failed.\n"
+"Cannot open file for reading.\n"
+msgstr ""
+
+msgid ""
+"G-code processor post-process export failed.\n"
+"Cannot open file for writing.\n"
+msgstr ""
+
+msgid ""
+"The G-code post-processor encountered an invalid tool change, maybe from "
+"custom G-code:"
+msgstr ""
+
+msgid "Generated M104 lines may be incorrect."
+msgstr ""
+
+msgid ""
+"G-code processor post-process export failed.\n"
+"Error while reading from file.\n"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Failed to rename the output G-code file from %1% to %2%.\n"
+"Is %1% locked?"
+msgstr ""
+
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Cannot open file for reading.\n"
+msgstr ""
+
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Cannot open file for writing.\n"
+msgstr ""
+
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Error while reading from file.\n"
+msgstr ""
+
+#, boost-format
+msgid ""
+"Small Area Flow Compensation: Error parsing data point in small area infill "
+"compensation model: %1%"
+msgstr ""
+
+msgid ""
+"Small Area Flow Compensation: First extrusion length for small area infill "
+"compensation model must be 0"
+msgstr ""
+
+msgid ""
+"Small Area Flow Compensation: Only the first extrusion length for small area"
+" infill compensation model can be 0"
+msgstr ""
+
+msgid ""
+"Small Area Flow Compensation: Extrusion lengths for subsequent points must "
+"be increasing"
+msgstr ""
+
+msgid ""
+"Small Area Flow Compensation: Flow compensation factors must strictly "
+"increase with extrusion length"
+msgstr ""
+
+msgid ""
+"Small Area Flow Compensation: Final compensation factor for small area "
+"infill flow compensation model must be 1.0"
+msgstr ""
+
+msgid "The mesh does not enclose any volume."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Slot %1%: the printer needs the \"%2%\" variant, which the filament does not"
+" define. Publishing the values printed with \"%3%\"."
+msgstr ""
+
+msgid "Move over surface"
+msgstr ""

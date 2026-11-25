@@ -41040,3 +41040,231 @@ msgstr "Zadej hodnotu té destičky."
 # AI Translated
 msgid "Time about 15 min · filament about 10 g"
 msgstr "Čas asi 15 min · filament asi 10 g"
+
+# AI Translated
+#, boost-format
+msgid "%1% printer found on %2%"
+msgid_plural "%1% printers found on %2%"
+msgstr[0] "Nalezena %1% tiskárna v %2%"
+msgstr[1] "Nalezeny %1% tiskárny v %2%"
+msgstr[2] "Nalezeno %1% tiskáren v %2%"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Fixed bed · eject after %d minute"
+msgid_plural "Fixed bed · eject after %d minutes"
+msgstr[0] "Pevná podložka · vysunutí po %d minutě"
+msgstr[1] "Pevná podložka · vysunutí po %d minutách"
+msgstr[2] "Pevná podložka · vysunutí po %d minutách"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Sequential · %d piece"
+msgid_plural "Sequential · %d pieces"
+msgstr[0] "Sekvenční · %d kus"
+msgstr[1] "Sekvenční · %d kusy"
+msgstr[2] "Sekvenční · %d kusů"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Plates · %d plate"
+msgid_plural "Plates · %d plates"
+msgstr[0] "Desky · %d deska"
+msgstr[1] "Desky · %d desky"
+msgstr[2] "Desky · %d desek"
+
+# AI Translated
+msgid "Toolhead p"
+msgstr "Hlava p"
+
+# AI Translated
+msgid "Toolhead w"
+msgstr "Hlava w"
+
+# AI Translated
+#, boost-format
+msgid ""
+"This part is %1% m long; one object can be at most %2% m. Print longer parts"
+" with Endless, which repeats a segment."
+msgstr ""
+"Tento díl je dlouhý %1% m; jeden objekt může mít nejvýš %2% m. Delší díly "
+"tiskni v režimu Endless, který opakuje segment."
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: only numbers, commas and dots are allowed"
+msgstr "Řádek %1%: povoleny jsou jen číslice, čárky a tečky"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Line %1%: must contain exactly 3 comma-separated values (PA, flow, "
+"acceleration)"
+msgstr ""
+"Řádek %1%: musí obsahovat přesně 3 hodnoty oddělené čárkami (PA, průtok, "
+"zrychlení)"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: missing PA value"
+msgstr "Řádek %1%: chybí hodnota PA"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: missing flow value"
+msgstr "Řádek %1%: chybí hodnota průtoku"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: missing acceleration value"
+msgstr "Řádek %1%: chybí hodnota zrychlení"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: PA value must be less than 2"
+msgstr "Řádek %1%: hodnota PA musí být menší než 2"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: flow value must be greater than PA value"
+msgstr "Řádek %1%: hodnota průtoku musí být větší než hodnota PA"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: acceleration value must be greater than flow value"
+msgstr "Řádek %1%: hodnota zrychlení musí být větší než hodnota průtoku"
+
+# AI Translated
+#, boost-format
+msgid "Line %1%: invalid numeric value"
+msgstr "Řádek %1%: neplatná číselná hodnota"
+
+# AI Translated
+msgid ""
+"G-code processor post-process export failed.\n"
+"Cannot open file for reading.\n"
+msgstr ""
+"Export post-processingu G-code selhal.\n"
+"Soubor nelze otevřít pro čtení.\n"
+
+# AI Translated
+msgid ""
+"G-code processor post-process export failed.\n"
+"Cannot open file for writing.\n"
+msgstr ""
+"Export post-processingu G-code selhal.\n"
+"Soubor nelze otevřít pro zápis.\n"
+
+# AI Translated
+msgid ""
+"The G-code post-processor encountered an invalid tool change, maybe from "
+"custom G-code:"
+msgstr ""
+"Post-procesor G-code narazil na neplatnou výměnu nástroje, možná z vlastního"
+" G-code:"
+
+# AI Translated
+msgid "Generated M104 lines may be incorrect."
+msgstr "Vygenerované řádky M104 mohou být chybné."
+
+# AI Translated
+msgid ""
+"G-code processor post-process export failed.\n"
+"Error while reading from file.\n"
+msgstr ""
+"Export post-processingu G-code selhal.\n"
+"Chyba při čtení souboru.\n"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Failed to rename the output G-code file from %1% to %2%.\n"
+"Is %1% locked?"
+msgstr ""
+"Výstupní soubor G-code se nepodařilo přejmenovat z %1% na %2%.\n"
+"Je %1% zamčený?"
+
+# AI Translated
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Cannot open file for reading.\n"
+msgstr ""
+"Průchod vkládání předehřevu v G-code selhal.\n"
+"Soubor nelze otevřít pro čtení.\n"
+
+# AI Translated
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Cannot open file for writing.\n"
+msgstr ""
+"Průchod vkládání předehřevu v G-code selhal.\n"
+"Soubor nelze otevřít pro zápis.\n"
+
+# AI Translated
+msgid ""
+"G-code processor pre-heat injection pass failed.\n"
+"Error while reading from file.\n"
+msgstr ""
+"Průchod vkládání předehřevu v G-code selhal.\n"
+"Chyba při čtení souboru.\n"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Small Area Flow Compensation: Error parsing data point in small area infill "
+"compensation model: %1%"
+msgstr ""
+"Kompenzace průtoku malých ploch: chyba při čtení bodu modelu kompenzace: %1%"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: First extrusion length for small area infill "
+"compensation model must be 0"
+msgstr ""
+"Kompenzace průtoku malých ploch: první délka extruze v modelu musí být 0"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: Only the first extrusion length for small area"
+" infill compensation model can be 0"
+msgstr ""
+"Kompenzace průtoku malých ploch: jen první délka extruze v modelu smí být 0"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: Extrusion lengths for subsequent points must "
+"be increasing"
+msgstr "Kompenzace průtoku malých ploch: délky extruze dalších bodů musí růst"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: Flow compensation factors must strictly "
+"increase with extrusion length"
+msgstr ""
+"Kompenzace průtoku malých ploch: kompenzační faktory musí s délkou extruze "
+"ostře růst"
+
+# AI Translated
+msgid ""
+"Small Area Flow Compensation: Final compensation factor for small area "
+"infill flow compensation model must be 1.0"
+msgstr ""
+"Kompenzace průtoku malých ploch: poslední faktor modelu kompenzace musí být "
+"1.0"
+
+# AI Translated
+msgid "The mesh does not enclose any volume."
+msgstr "Síť neuzavírá žádný objem."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Slot %1%: the printer needs the \"%2%\" variant, which the filament does not"
+" define. Publishing the values printed with \"%3%\"."
+msgstr ""
+"Slot %1%: tiskárna potřebuje variantu „%2%“, kterou filament nedefinuje. "
+"Zveřejňuji hodnoty vytištěné s „%3%“."
+
+# AI Translated
+msgid "Move over surface"
+msgstr "Posunout po povrchu"
