@@ -415,7 +415,11 @@ public:
         }
         SetSizer(sizer);
     }
-    ~MissionPanel() override { s_instance = nullptr; }
+    ~MissionPanel() override
+    {
+        if (s_instance == this)
+            s_instance = nullptr;
+    }
 
     void show(const std::string& view)
     {
@@ -950,7 +954,10 @@ void mission_printer_changed()
 
 wxWindow* create_mission_page(wxWindow* parent)
 {
-    if (!MissionPanel::s_instance)
+    // The panel is reused when Mission is switched off and on again (the tab is removed, not deleted).
+    // A new main frame (recreate_GUI after a language change) gets its own panel: the old one belongs
+    // to the old frame and is destroyed with it.
+    if (!MissionPanel::s_instance || MissionPanel::s_instance->GetParent() != parent)
         MissionPanel::s_instance = new MissionPanel(parent);
     return MissionPanel::s_instance;
 }

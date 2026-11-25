@@ -212,8 +212,9 @@ window.MissionApp = {
   onNetResult(ok, msg) { toast(msg); send("net"); },
   onFound(list) { FOUND = list; if (VIEW === "st") render(); if (!list.length) toast("No main station found – type its address"); },
   onProfiles(r) {
-    toast(r.ok ? `Profiles synced · ${r.pulled} received (${r.added} new), ${r.pushed} sent` + (r.failed ? `, ${r.failed} failed` : "") +
-                 (r.pulled > r.added ? " · changed profiles apply after a restart" : "") : r.error);
+    toast(r.ok ? (r.failed ? RTF("Profiles synced · %s received (%s new), %s sent, %s failed", r.pulled, r.added, r.pushed, r.failed)
+                           : RTF("Profiles synced · %s received (%s new), %s sent", r.pulled, r.added, r.pushed)) +
+                 (r.pulled > r.added ? " · " + RT("Changed profiles apply after a restart") : "") : RT(r.error));
     NET.last_sync = r.last_sync; if (VIEW === "st") render();
   },
   onPrinters(list) { PR = list || []; if (loaded) render(); },
