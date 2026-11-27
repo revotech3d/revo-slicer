@@ -176,6 +176,7 @@ protected:
 	ScalableButton*		m_btn_compare_preset;
 	ScalableButton*		m_btn_save_preset;
 	ScalableButton*		m_btn_delete_preset;
+	ScalableButton*		m_btn_revo_focus { nullptr }; // [r]evo: expand the process settings to the whole sidebar
 	//ScalableButton*		m_btn_edit_ph_printer {nullptr};
 	//ScalableButton*		m_btn_hide_incompatible_presets;
 	//wxBoxSizer*			m_hsizer;
@@ -461,6 +462,7 @@ public:
 	void			apply_preset_config_values(const std::vector<std::pair<std::string, std::string>>& values);
 	virtual void	reload_config();
     void            update_mode();
+    void            update_revo_focus_button(bool expanded); // [r]evo: icon and tooltip follow the sidebar state
     void            update_visibility();
     virtual void    msw_rescale();
     virtual void	sys_color_changed();
