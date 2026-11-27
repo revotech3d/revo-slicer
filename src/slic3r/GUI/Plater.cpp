@@ -369,7 +369,9 @@ wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_THUMBNAIL_SIZE (wxSize(40, 40)) // ORCA
-#define REVO_SCROLL_STEP 10 // [r]evo: pixels per scroll unit of the whole sidebar
+#define REVO_SCROLL_STEP 10
+// [r]evo: filament presets one per row, so each name has the whole sidebar width (Orca deals them into two columns)
+static constexpr bool REVO_FILAMENT_ONE_COLUMN = true; // [r]evo: pixels per scroll unit of the whole sidebar
 #define REVO_SETTINGS_MIN_HEIGHT 450 // [r]evo: the room the settings tabs keep below the sidebar sections before the printer silhouette gives way
 #define PRINTER_PANEL_SIZE (    wxSize(70, 60)) // ORCA
 #define PRINTER_PANEL_RADIUS (0) // [r]evo: square boxes, launch style
@@ -4205,8 +4207,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     // BBS:  filament double columns
 
     // int em = wxGetApp().em_unit();
-    if ((filament_idx % 2) == 0) // Dont add right column item. this one create equal spacing on left, right & middle
-        combo_and_btn_sizer->AddSpacer(FromDIP((filament_idx % 2) == 0 ? 12 : 3)); // Content Margin
+    if (REVO_FILAMENT_ONE_COLUMN || (filament_idx % 2) == 0) // Dont add right column item. this one create equal spacing on left, right & middle
+        combo_and_btn_sizer->AddSpacer(FromDIP(12)); // Content Margin
 
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(SidebarProps::ElementSpacing()) - FromDIP(2)); // ElementSpacing - 2 (from combo box))
@@ -4292,6 +4294,10 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     combo_and_btn_sizer->AddSpacer(FromDIP(SidebarProps::ContentMargin()));
 
+    if (REVO_FILAMENT_ONE_COLUMN) {
+        p->sizer_filaments->GetItem((size_t) 0)->GetSizer()->Add(combo_and_btn_sizer, 0, wxEXPAND);
+        return;
+    }
     // BBS:  filament double columns
     auto side = filament_idx % 2;
     auto /***/sizer_filaments = this->p->sizer_filaments->GetItem(side)->GetSizer();
@@ -4309,11 +4315,15 @@ void Sidebar::remove_unused_filament_combos(const size_t current_extruder_count)
         return;
     while (p->combos_filament.size() > current_extruder_count) {
         const int last = p->combos_filament.size() - 1;
-        auto sizer_filaments = this->p->sizer_filaments->GetItem(last % 2)->GetSizer();
-        sizer_filaments->Remove(last / 2);
+        if (REVO_FILAMENT_ONE_COLUMN)
+            p->sizer_filaments->GetItem((size_t) 0)->GetSizer()->Remove(last);
+        else
+            p->sizer_filaments->GetItem(last % 2)->GetSizer()->Remove(last / 2);
         (*p->combos_filament[last]).Destroy();
         p->combos_filament.pop_back();
     }
+    if (REVO_FILAMENT_ONE_COLUMN)
+        return;
     // BBS:  filament double columns
     auto sizer_filaments0 = this->p->sizer_filaments->GetItem((size_t)0)->GetSizer();
     auto sizer_filaments1 = this->p->sizer_filaments->GetItem(1)->GetSizer();
@@ -6210,7 +6220,7 @@ void Sidebar::update_filaments_area_height()
     // ORCA use a height with user preference
     auto left_sizer          = p->sizer_filaments->GetItem((size_t) 0)->GetSizer();
     auto combo_sizer         = left_sizer->GetItem((size_t) 0)->GetSizer();
-    int  preferred_rows      = std::ceil(0.5 * std::stoi(wxGetApp().app_config->get("filaments_area_preferred_count")));
+    int  preferred_rows      = std::ceil((REVO_FILAMENT_ONE_COLUMN ? 1.0 : 0.5) * std::stoi(wxGetApp().app_config->get("filaments_area_preferred_count")));
     auto height_with_borders = combo_sizer->GetSize().GetHeight(); // gets height from sizer instead static numbers
     p->m_panel_filament_content->SetMaxSize(wxSize{-1, preferred_rows * height_with_borders});
 
@@ -6534,8 +6544,10 @@ void Sidebar::on_filaments_delete(size_t filament_id)
         // delete UI item
         {
             const int last            = p->combos_filament.size() - 1;
-            auto      sizer_filaments = this->p->sizer_filaments->GetItem(last % 2)->GetSizer();
-            sizer_filaments->Remove(last / 2);
+            if (REVO_FILAMENT_ONE_COLUMN)
+                p->sizer_filaments->GetItem((size_t) 0)->GetSizer()->Remove(last);
+            else
+                p->sizer_filaments->GetItem(last % 2)->GetSizer()->Remove(last / 2);
 
             PlaterPresetComboBox* to_delete_combox = p->combos_filament[filament_id];
             (*p->combos_filament[last]).Destroy();
@@ -6544,7 +6556,9 @@ void Sidebar::on_filaments_delete(size_t filament_id)
             // BBS:  filament double columns
             auto sizer_filaments0 = this->p->sizer_filaments->GetItem((size_t) 0)->GetSizer();
             auto sizer_filaments1 = this->p->sizer_filaments->GetItem(1)->GetSizer();
-            if (p->combos_filament.size() < 2) {
+            if (REVO_FILAMENT_ONE_COLUMN) {
+                // one column: nothing to balance
+            } else if (p->combos_filament.size() < 2) {
                 sizer_filaments1->Clear();
             } else {
                 size_t c0 = sizer_filaments0->GetChildren().GetCount();
