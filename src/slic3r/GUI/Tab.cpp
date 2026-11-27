@@ -480,6 +480,12 @@ void Tab::create_preset_tab()
 #endif
     m_top_sizer->Add(m_btn_save_preset  , 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     m_top_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    if (dynamic_cast<TabPrint*>(this)) { // [r]evo: process settings fill the sidebar
+        add_scaled_button(m_top_panel, &m_btn_revo_focus, "revo_settings_expand");
+        m_btn_revo_focus->Bind(wxEVT_BUTTON, [](wxCommandEvent&) { wxGetApp().sidebar().toggle_revo_settings_focus(); });
+        update_revo_focus_button(wxGetApp().app_config->get_bool("revo_settings_focus"));
+        m_top_sizer->Add(m_btn_revo_focus, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
+    }
     m_top_sizer->Add(m_btn_search       , 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
     m_top_sizer->Add(m_search_item      , 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(SidebarProps::ContentMargin()));
 
@@ -763,6 +769,15 @@ void Tab::add_scaled_button(wxWindow* parent,
     *btn = new ScalableButton(parent, wxID_ANY, icon_name, label, wxDefaultSize, wxDefaultPosition, style, true);
     (*btn)->SetBackgroundColour(parent->GetBackgroundColour());
     m_scaled_buttons.push_back(*btn);
+}
+
+void Tab::update_revo_focus_button(bool expanded)
+{
+    if (!m_btn_revo_focus)
+        return;
+    m_btn_revo_focus->SetBitmap_(expanded ? "revo_settings_restore" : "revo_settings_expand");
+    m_btn_revo_focus->SetToolTip(expanded ? _L("Show the printer and filament sections again") :
+                                            _L("Expand the settings to the whole sidebar"));
 }
 
 void Tab::add_scaled_bitmap(wxWindow* parent,

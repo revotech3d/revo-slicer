@@ -369,6 +369,7 @@ wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 #define PRINTER_THUMBNAIL_SIZE (wxSize(40, 40)) // ORCA
+#define REVO_SCROLL_STEP 10 // [r]evo: pixels per scroll unit of the whole sidebar
 #define REVO_SETTINGS_MIN_HEIGHT 450 // [r]evo: the room the settings tabs keep below the sidebar sections before the printer silhouette gives way
 #define PRINTER_PANEL_SIZE (    wxSize(70, 60)) // ORCA
 #define PRINTER_PANEL_RADIUS (0) // [r]evo: square boxes, launch style
@@ -991,6 +992,13 @@ struct Sidebar::priv
     wxPanel*        m_revo_plan         = nullptr; // [r]evo: flight plan rows, folded by a click on its title
     wxWindow*       m_revo_params       = nullptr; // [r]evo: the settings tabs below the sections
     wxPanel*        m_revo_actions      = nullptr; // [r]evo: SLICE / PRINT w karcie drukarki
+    wxScrolledWindow* m_revo_scroll     = nullptr; // [r]evo: the scrolled area holding every sidebar section (== scrolled)
+    int             m_revo_params_min   = -1;      // [r]evo: the settings tabs' own minimum height
+    wxSize          m_revo_scroll_fit;             // [r]evo: sizer minimum and visible height the scroll was last fitted to
+    bool            m_revo_focus        = false;   // [r]evo: the sections are folded so the settings tabs fill the sidebar
+    bool            m_revo_focus_printer  = true;  // [r]evo: what the sections looked like before the settings were expanded
+    bool            m_revo_focus_filament = true;
+    bool            m_revo_focus_plan     = true;
     // Filament Track Switch status overlay: an icon floated over the left/single extruder AMS area,
     // shown only when the switch is installed (green when ready, red when not calibrated).
     wxStaticBitmap* extruder_separator_icon = nullptr;
@@ -2798,10 +2806,23 @@ Sidebar::Sidebar(Plater *parent)
     Choice::register_dynamic_list("bottom_surface_filament_id", &dynamic_filament_list);
     Choice::register_dynamic_list("wipe_tower_filament", &dynamic_physical_filament_list);
 
-    p->scrolled = new wxPanel(this);
+    // [r]evo: the whole sidebar scrolls, and the settings tabs keep at least the visible height, so scrolling
+    // down shows them on the full height of the sidebar (see update_revo_scroll)
+    p->m_revo_scroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxTAB_TRAVERSAL);
+    p->m_revo_scroll->SetScrollRate(0, FromDIP(REVO_SCROLL_STEP));
+    p->scrolled = p->m_revo_scroll;
     Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
         e.Skip();
         CallAfter([this] { update_revo_hero_visibility(); });
+    });
+    p->m_revo_scroll->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
+        e.Skip();
+        CallAfter([this] { update_revo_scroll(); });
+    });
+    // the sections change their height in many places (folding, filaments added, infoboxes): follow the sizer
+    p->m_revo_scroll->Bind(wxEVT_IDLE, [this](wxIdleEvent& e) {
+        e.Skip();
+        update_revo_scroll();
     });
     //    p->scrolled->SetScrollbars(0, 100, 1, 2); // ys_DELETE_after_testing. pixelsPerUnitY = 100
     // but this cause the bad layout of the sidebar, when all infoboxes appear.
@@ -2900,16 +2921,10 @@ Sidebar::Sidebar(Plater *parent)
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
         // ORCA Bind with LEFT_DOWN, since closing a dialog over the title bar can send it a stray LEFT_UP
         auto toggle_printer_section = ([this] (wxMouseEvent & e) {
-            if (!p || !p->combo_printer || !p->m_text_printer_settings || !p->m_panel_printer_content || !m_scrolled_sizer)
+            if (!p || !p->m_panel_printer_content)
                 return;
-            // ORCA Show printer name on title when its folded to inform user without expanding it again
-            bool     isShown = p->m_panel_printer_content->IsShown();
-            wxString title   = ::Label::Spaced(_L("Vehicle · Printer")) + wxString(!isShown ? "" : ("  |  " + p->combo_printer->GetValue()));
-            p->m_text_printer_settings->SetLabel(title);
-            p->m_panel_printer_content->Show(!isShown);
-            p->m_panel_printer_separator->Show(isShown);
-            update_revo_hero_visibility(); // [r]evo: the silhouette folds with the section
-            m_scrolled_sizer->Layout();
+            leave_revo_settings_focus();
+            set_printer_section_open(!p->m_panel_printer_content->IsShown());
         });
         p->m_panel_printer_title->Bind(wxEVT_LEFT_DOWN  , toggle_printer_section);
         p->m_panel_printer_title->Bind(wxEVT_LEFT_DCLICK, toggle_printer_section);
@@ -3328,12 +3343,8 @@ Sidebar::Sidebar(Plater *parent)
         else if (ams_btn->IsShown())                    exclude_pt = ams_btn->GetPosition().x;
         if (e.GetPosition().x > exclude_pt)
             return;
-        bool isShown = p->m_filament_area_wrapper->IsShown();
-        p->m_filament_area_wrapper->Show(!isShown);
-        p->m_panel_filament_separator->Show(isShown);
-        m_scrolled_sizer->Layout();
-
-        CallAfter([this]{update_filaments_counter(true);}); // call after all UI processing done
+        leave_revo_settings_focus();
+        set_filament_section_open(!p->m_filament_area_wrapper->IsShown());
     });
     p->m_panel_filament_title->Bind(wxEVT_LEFT_DOWN  , toggle_filament_section);
     p->m_panel_filament_title->Bind(wxEVT_LEFT_DCLICK, toggle_filament_section);
@@ -3999,12 +4010,10 @@ Sidebar::Sidebar(Plater *parent)
             p->m_revo_plan = plan;
             // [r]evo: a click on the title bar folds the flight plan, so a short screen keeps room for the settings tabs
             auto toggle_plan = [this](wxMouseEvent&) {
-                if (!p->m_revo_plan || !m_scrolled_sizer)
+                if (!p->m_revo_plan)
                     return;
-                p->m_revo_plan->Show(!p->m_revo_plan->IsShown());
-                m_scrolled_sizer->Layout();
-                update_revo_hero_visibility();
-                Layout();
+                leave_revo_settings_focus();
+                set_revo_plan_open(!p->m_revo_plan->IsShown());
             };
             params_panel->get_top_panel()->Bind(wxEVT_LEFT_DOWN, toggle_plan);
             params_panel->get_top_panel()->Bind(wxEVT_LEFT_DCLICK, toggle_plan);
@@ -4082,6 +4091,14 @@ Sidebar::Sidebar(Plater *parent)
         params_panel->Reparent(p->scrolled);
         scrolled_sizer->Add(params_panel, 3, wxEXPAND);
         p->m_revo_params = params_panel;
+        p->m_revo_params_min = params_panel->GetMinSize().y;
+        // [r]evo: scroll chaining – the wheel over the settings first scrolls the sidebar until the tabs reach
+        // its top, and back up once the page itself is at its top
+        if (wxScrolledWindow* page = params_panel->get_paged_view())
+            page->Bind(wxEVT_MOUSEWHEEL, [this, page](wxMouseEvent& e) {
+                if (!scroll_sidebar_before_page(page, e))
+                    e.Skip();
+            });
     }
 #endif
     }
@@ -4093,6 +4110,10 @@ Sidebar::Sidebar(Plater *parent)
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
     SetSizer(sizer);
+
+    // [r]evo: the settings stay expanded across restarts
+    if (wxGetApp().app_config->get_bool("revo_settings_focus"))
+        CallAfter([this] { if (!p->m_revo_focus) toggle_revo_settings_focus(); });
 }
 
 Sidebar::~Sidebar() {}
@@ -4483,6 +4504,127 @@ void Sidebar::update_revo_hero_visibility()
         return;
     p->m_revo_hero_panel->Show(show);
     Layout();
+}
+
+bool Sidebar::is_revo_settings_focus() const { return p->m_revo_focus; }
+
+void Sidebar::set_printer_section_open(bool open)
+{
+    if (!p->combo_printer || !p->m_text_printer_settings || !p->m_panel_printer_content || !m_scrolled_sizer)
+        return;
+    // ORCA Show printer name on title when its folded to inform user without expanding it again
+    p->m_text_printer_settings->SetLabel(::Label::Spaced(_L("Vehicle · Printer")) + wxString(open ? "" : ("  |  " + p->combo_printer->GetValue())));
+    p->m_panel_printer_content->Show(open);
+    p->m_panel_printer_separator->Show(!open);
+    update_revo_hero_visibility(); // [r]evo: the silhouette folds with the section
+    m_scrolled_sizer->Layout();
+}
+
+void Sidebar::set_filament_section_open(bool open)
+{
+    if (!p->m_filament_area_wrapper || !m_scrolled_sizer)
+        return;
+    p->m_filament_area_wrapper->Show(open);
+    p->m_panel_filament_separator->Show(!open);
+    m_scrolled_sizer->Layout();
+    CallAfter([this] { update_filaments_counter(true); }); // call after all UI processing done
+}
+
+void Sidebar::set_revo_plan_open(bool open)
+{
+    if (!p->m_revo_plan || !m_scrolled_sizer)
+        return;
+    p->m_revo_plan->Show(open);
+    m_scrolled_sizer->Layout();
+    update_revo_hero_visibility();
+    Layout();
+}
+
+// [r]evo: the button next to the process preset folds the printer, filament and flight plan sections to
+// their title bars, so the settings tabs take the whole sidebar; a second click brings the sections back.
+void Sidebar::toggle_revo_settings_focus()
+{
+    if (!p->m_panel_printer_content || !p->m_filament_area_wrapper)
+        return;
+    Freeze();
+    if (!p->m_revo_focus) {
+        p->m_revo_focus_printer  = p->m_panel_printer_content->IsShown();
+        p->m_revo_focus_filament = p->m_filament_area_wrapper->IsShown();
+        p->m_revo_focus_plan     = p->m_revo_plan && p->m_revo_plan->IsShown();
+        p->m_revo_focus          = true;
+        if (p->m_revo_focus_printer)  set_printer_section_open(false);
+        if (p->m_revo_focus_filament) set_filament_section_open(false);
+        if (p->m_revo_focus_plan)     set_revo_plan_open(false);
+    } else {
+        p->m_revo_focus = false;
+        if (p->m_revo_focus_printer  && !p->m_panel_printer_content->IsShown()) set_printer_section_open(true);
+        if (p->m_revo_focus_filament && !p->m_filament_area_wrapper->IsShown()) set_filament_section_open(true);
+        if (p->m_revo_focus_plan     && p->m_revo_plan && !p->m_revo_plan->IsShown()) set_revo_plan_open(true);
+    }
+    on_revo_settings_focus_changed();
+    Thaw();
+}
+
+// [r]evo: opening a section by its title while the settings are expanded ends the expanded state,
+// leaving the other sections folded
+void Sidebar::leave_revo_settings_focus()
+{
+    if (!p->m_revo_focus)
+        return;
+    p->m_revo_focus = false;
+    on_revo_settings_focus_changed();
+}
+
+void Sidebar::on_revo_settings_focus_changed()
+{
+    wxGetApp().app_config->set_bool("revo_settings_focus", p->m_revo_focus);
+    for (auto* tabs : {&wxGetApp().tabs_list, &wxGetApp().model_tabs_list})
+        for (Tab* tab : *tabs)
+            if (tab)
+                tab->update_revo_focus_button(p->m_revo_focus);
+    update_revo_scroll();
+    if (p->m_revo_focus && p->m_revo_scroll)
+        p->m_revo_scroll->Scroll(0, 0);
+}
+
+// [r]evo: the settings tabs keep at least the visible height of the sidebar, so the scrolled sidebar can show
+// them on its full height; while expanded the sections are folded and the tabs simply fill what is left.
+void Sidebar::update_revo_scroll()
+{
+    wxScrolledWindow* sw = p->m_revo_scroll;
+    if (!sw || !m_scrolled_sizer || !sw->IsShownOnScreen())
+        return;
+    const int view_h = sw->GetClientSize().y;
+    if (p->m_revo_params) {
+        const int min_h = p->m_revo_focus ? p->m_revo_params_min : std::max(p->m_revo_params_min, view_h);
+        if (p->m_revo_params->GetMinSize().y != min_h)
+            p->m_revo_params->SetMinSize(wxSize(-1, min_h));
+    }
+    const wxSize fit(m_scrolled_sizer->GetMinSize().y, view_h);
+    if (fit == p->m_revo_scroll_fit)
+        return;
+    p->m_revo_scroll_fit = fit;
+    sw->FitInside();
+}
+
+// [r]evo: returns true when the wheel moved the sidebar instead of the settings page under the cursor
+bool Sidebar::scroll_sidebar_before_page(wxScrolledWindow* page, const wxMouseEvent& e)
+{
+    wxScrolledWindow* sw = p->m_revo_scroll;
+    if (!sw || e.GetWheelAxis() != wxMOUSE_WHEEL_VERTICAL || e.GetWheelRotation() == 0 || e.GetWheelDelta() <= 0)
+        return false;
+    const bool down    = e.GetWheelRotation() < 0;
+    const int  unit    = std::max(1, FromDIP(REVO_SCROLL_STEP));
+    const int  y       = sw->GetViewStart().y;
+    const int  max_y   = std::max(0, (sw->GetVirtualSize().y - sw->GetClientSize().y + unit - 1) / unit);
+    const bool page_top = page->GetViewStart().y == 0;
+    if (down ? y >= max_y : (y <= 0 || !page_top))
+        return false;
+    // one wheel notch moves the sidebar as far as it moves a settings page
+    const int lines = std::max(1, std::abs(e.GetWheelRotation()) / e.GetWheelDelta()) * std::max(1, e.GetLinesPerAction());
+    const int step  = lines * std::max(1, FromDIP(20) / unit);
+    sw->Scroll(-1, std::clamp(y + (down ? step : -step), 0, max_y));
+    return true;
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)

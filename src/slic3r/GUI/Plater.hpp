@@ -201,6 +201,9 @@ public:
     // [r]evo: sylwetka aktywnej drukarki w karcie PRINTER
     void update_revo_printer_card();
     void update_revo_hero_visibility();
+    // [r]evo: fold the sections above the process settings so the settings tabs fill the sidebar, and back
+    void toggle_revo_settings_focus();
+    bool is_revo_settings_focus() const;
     //BBS
     const std::vector<BedType>& get_cur_combox_bed_types() { return m_cur_combox_bed_types; }
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
@@ -341,6 +344,14 @@ private:
 
     wxBoxSizer* m_scrolled_sizer = nullptr;
     bool            m_need_auto_sync_after_connect_printer{false};
+    // [r]evo: sidebar sections and the scrolled area
+    void set_printer_section_open(bool open);
+    void set_filament_section_open(bool open);
+    void set_revo_plan_open(bool open);
+    void leave_revo_settings_focus();
+    void on_revo_settings_focus_changed();
+    void update_revo_scroll();
+    bool scroll_sidebar_before_page(wxScrolledWindow* page, const wxMouseEvent& e);
 };
 
 class Plater: public wxPanel
