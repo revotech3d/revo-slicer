@@ -24,6 +24,8 @@ json order(const std::string& id, const std::string& number, const std::string& 
     return {{"id", id}, {"numer", number}, {"utworzone", created}, {"zm", zm}, {"pozycje", json::array()}};
 }
 
+// A braced single order would become that object itself, not a one-element array, on some compilers:
+// callers pass json::array({...}).
 json store(json orders)
 {
     return {{"v", 1}, {"nr", {{"rok", 2026}, {"n", 2}}}, {"klienci", json::array()}, {"wydruki", json::array()}, {"zlecenia", orders}};
@@ -46,7 +48,7 @@ TEST_CASE("A sealed message opens only with the key it was sealed with", "[RevoM
 TEST_CASE("The newer copy of an order wins the merge", "[RevoMissionNet]")
 {
     const int64_t t   = recent_ms();
-    json          a   = store({order("z1", "ZL/2026/0001", "2026-11-01T10:00:00", t)});
+    json          a   = store(json::array({order("z1", "ZL/2026/0001", "2026-11-01T10:00:00", t)}));
     json          b   = a;
     b["zlecenia"][0]["po"] = "PO-7";
     b["zlecenia"][0]["zm"] = t + 10;
@@ -57,7 +59,7 @@ TEST_CASE("The newer copy of an order wins the merge", "[RevoMissionNet]")
 TEST_CASE("A deletion removes copies not changed after it", "[RevoMissionNet]")
 {
     const int64_t t = recent_ms();
-    json          a = store({order("z1", "ZL/2026/0001", "2026-11-01T10:00:00", t)});
+    json          a = store(json::array({order("z1", "ZL/2026/0001", "2026-11-01T10:00:00", t)}));
     json          b = store(json::array());
     b["usuniete"]   = {{"z1", t + 5}};
     CHECK(merge_store(a, b)["zlecenia"].empty());
@@ -68,8 +70,8 @@ TEST_CASE("A deletion removes copies not changed after it", "[RevoMissionNet]")
 TEST_CASE("Orders numbered alike on two stations get distinct numbers", "[RevoMissionNet]")
 {
     const int64_t t = recent_ms();
-    const json    a = store({order("z1", "ZL/2026/0002", "2026-11-01T10:00:00", t)});
-    const json    b = store({order("z2", "ZL/2026/0002", "2026-11-01T11:00:00", t)});
+    const json    a = store(json::array({order("z1", "ZL/2026/0002", "2026-11-01T10:00:00", t)}));
+    const json    b = store(json::array({order("z2", "ZL/2026/0002", "2026-11-01T11:00:00", t)}));
     const json    m = merge_store(a, b);
     REQUIRE(m["zlecenia"].size() == 2);
     CHECK(m["zlecenia"][0]["numer"] == "ZL/2026/0002");   // created first, keeps its number
