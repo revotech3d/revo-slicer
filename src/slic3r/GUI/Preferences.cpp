@@ -1084,6 +1084,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxString too
         else if (param == "revo_presentation") {
             Revo::set_presentation_mode(checkbox->GetValue());
         }
+        else if (param == "revo_printer_picture") {
+            wxGetApp().sidebar().update_revo_hero_visibility();
+        }
         else if (param == "hide_login_side_panel") {
             if (WebViewPanel* home = WebViewPanel::if_built()) {
                 home->SendCloudProvidersInfo();
@@ -1710,6 +1713,12 @@ void PreferencesDialog::create_items()
            "Sharing on the local network is off meanwhile."),
         "revo_presentation");
     g_sizer->Add(item_presentation);
+
+    // [r]evo: off leaves only the printer choice in the sidebar's printer section
+    auto item_printer_picture = create_item_checkbox(_L("Show printer picture"),
+        _L("Shows a picture of the selected Revon printer above the printer choice in the sidebar."),
+        "revo_printer_picture");
+    g_sizer->Add(item_printer_picture);
 
 #ifdef __linux__
     auto item_window_button_pos  = create_item_checkbox(_L("Use window buttons on left side"), "", "window_buttons_on_left", _L("(Requires restart)"));

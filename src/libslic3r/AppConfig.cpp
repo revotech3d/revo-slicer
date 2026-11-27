@@ -505,6 +505,10 @@ void AppConfig::set_defaults()
     }
 
     // Orca
+    // [r]evo: the printer picture in the sidebar's printer section
+    if (get("revo_printer_picture").empty())
+        set_bool("revo_printer_picture", true);
+
     if(get("show_splash_screen").empty()) {
         set_bool("show_splash_screen", true);
     }

@@ -4505,7 +4505,7 @@ void Sidebar::update_revo_printer_card()
     update_revo_hero_visibility();
 }
 
-// [r]evo: the silhouette shows only while the printer section is open, the settings are not expanded and the
+// [r]evo: the silhouette shows only while it is on in Preferences, the printer section is open, the settings are not expanded and the
 // scrolled area below the fixed top still keeps REVO_SETTINGS_MIN_HEIGHT with it shown.
 void Sidebar::update_revo_hero_visibility()
 {
@@ -4515,6 +4515,7 @@ void Sidebar::update_revo_hero_visibility()
     // the silhouette sits in the fixed top part: show it while the scrolled area below keeps room for the settings
     const int settings = p->m_revo_scroll->GetClientSize().y + (p->m_revo_hero_panel->IsShown() ? hero : 0);
     const bool show    = p->m_revo_hero_ok && p->m_panel_printer_content->IsShown() && !p->m_revo_focus &&
+                         wxGetApp().app_config->get_bool("revo_printer_picture") &&
                          settings - hero >= FromDIP(REVO_SETTINGS_MIN_HEIGHT);
     if (show == p->m_revo_hero_panel->IsShown())
         return;
