@@ -350,7 +350,8 @@ private:
     void set_revo_plan_open(bool open);
     void leave_revo_settings_focus();
     void on_revo_settings_focus_changed();
-    void update_revo_scroll();
+    void update_revo_scroll(bool force);
+    bool layout_revo_scroll(bool force);
     bool scroll_sidebar_before_page(wxScrolledWindow* page, const wxMouseEvent& e);
 };
 
